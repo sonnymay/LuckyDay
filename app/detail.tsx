@@ -41,6 +41,8 @@ export default function DetailScreen() {
       </Card>
 
       <Card style={styles.stack}>
+        <SectionRow label="🌙 Moon" value={`${reading.moonPhase}: ${reading.moonMessage}`} />
+        <View style={styles.divider} />
         <SectionRow label="💰 Money" value={reading.money} />
         <View style={styles.divider} />
         <SectionRow label="💗 Love" value={reading.love} />

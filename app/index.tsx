@@ -75,6 +75,10 @@ export default function WelcomeScreen() {
         <LuckyMetricCard label="🧭 Direction" value={sample.luckyDirection} variant="direction" />
       </View>
 
+      <Card style={styles.moonCard}>
+        <SectionRow label="🌙 Moon energy" value={`${sample.moonPhase}: ${sample.moonMessage}`} />
+      </Card>
+
       <Card style={styles.guidanceCard}>
         <SectionRow label="🌿 Good for" value={sample.goodFor.join(', ')} />
         <View style={styles.divider} />
@@ -131,6 +135,10 @@ const styles = StyleSheet.create({
   },
   guidanceCard: {
     backgroundColor: colors.sunrise,
+    borderColor: colors.roseGold,
+  },
+  moonCard: {
+    backgroundColor: colors.panelStrong,
     borderColor: colors.roseGold,
   },
   divider: {

@@ -3,6 +3,7 @@ import {
   generateDailyReading,
   getChineseZodiac,
   getDailySeed,
+  getMoonPhase,
   getWesternZodiac,
   pickFromArrayWithSeed,
 } from './luck';
@@ -66,6 +67,11 @@ describe('luck helpers', () => {
     expect(choices).toContain(pickFromArrayWithSeed(choices, 42, 2));
   });
 
+  it('maps dates to stable moon phases', () => {
+    expect(getMoonPhase(new Date('2000-01-06T18:14:00.000Z'))).toBe('New Moon');
+    expect(getMoonPhase(new Date('2000-01-21T12:00:00.000Z'))).toBe('Full Moon');
+  });
+
   it('generates stable daily readings in the expected shape', () => {
     const date = new Date('2026-04-28T12:00:00.000Z');
     const reading = generateDailyReading(baseProfile, date);
@@ -76,6 +82,8 @@ describe('luck helpers', () => {
     expect(reading.score).toBeLessThanOrEqual(92);
     expect(reading.goodFor.length).toBeGreaterThan(0);
     expect(reading.avoid.length).toBeGreaterThan(0);
+    expect(reading.moonPhase).toBeTruthy();
+    expect(reading.moonMessage).toBeTruthy();
     expect(reading.luckyNumber).toBeGreaterThanOrEqual(1);
     expect(reading.luckyNumber).toBeLessThanOrEqual(9);
   });

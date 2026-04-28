@@ -26,7 +26,7 @@ Latest pushed work:
 ## Current App Behavior
 
 First launch:
-1. Shows a daily preview with a luck-energy score orb, lucky color swatch, lucky number, lucky time, lucky direction, and simple daily guidance.
+1. Shows a daily preview with a luck-energy score orb, lucky color swatch, lucky number, lucky time, lucky direction, moon energy, and simple daily guidance.
 2. Asks if the user wants a personal LuckyDay.
 3. Opens onboarding.
 4. Onboarding is split into 3 steps with a progress indicator:
@@ -63,6 +63,7 @@ Profile shape is defined in `src/types.ts`.
 `mainFocus` is now `MainFocus[]`, not a string. Older local profiles may still have a single string from earlier builds, so `normalizeMainFocuses` in `src/lib/luck.ts` keeps compatibility.
 
 Daily reading logic lives in `src/lib/luck.ts`.
+- Readings include a deterministic local moon phase and moon guidance message. No network or calendar API is used.
 
 Storage lives in `src/lib/storage.ts`.
 
@@ -92,6 +93,7 @@ Visual/product direction:
 - Primary CTA buttons use a warm gold treatment.
 - Home includes a 9:16 `LuckyShareCard` capture flow. It uses `react-native-view-shot` to render a local PNG, `expo-media-library` to save it to photos, and `expo-sharing` to offer the native share sheet after save.
 - The share card intentionally omits PII: no nickname, birthday, birth time, or photos.
+- The share card includes the moon phase under the date as a subtle content-depth cue.
 - Web falls back to a text share because camera roll save/share-image behavior is native-only.
 - Consumer-facing copy should avoid internal terms like `MVP`; keep developer/product notes in docs only.
 
@@ -155,9 +157,9 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-28 after local reminder wiring:
+Last verified on 2026-04-28 after moon phase reading pass:
 - `npm run typecheck` passed
-- `npm test` passed: 7 tests
+- `npm test` passed: 8 tests
 - `npm run export:web` passed
 - `npm run e2e` passed: 3 browser smoke tests
 
@@ -200,7 +202,7 @@ Known verification gap:
 3. Improve the daily reading model.
    - Make multi-focus readings more visibly reflect all selected focuses.
    - Add Thai day-of-week color traditions.
-   - Add more template variety without AI.
+   - Add more moon/message variety without AI.
 
 4. Improve the notification habit loop.
    - Add better reminder copy variants.

@@ -95,6 +95,10 @@ export default function HomeScreen() {
         <LuckyMetricCard label="🧭 Direction" value={reading.luckyDirection} variant="direction" />
       </View>
 
+      <Card style={styles.moonCard}>
+        <SectionRow label="🌙 Moon energy" value={`${reading.moonPhase}: ${reading.moonMessage}`} />
+      </Card>
+
       <Card style={styles.guidanceCard}>
         <SectionRow label="🍀 Small action" value={reading.action} />
       </Card>
@@ -210,6 +214,10 @@ const styles = StyleSheet.create({
   },
   guidanceCard: {
     backgroundColor: colors.sunrise,
+    borderColor: colors.roseGold,
+  },
+  moonCard: {
+    backgroundColor: colors.panelStrong,
     borderColor: colors.roseGold,
   },
   divider: {

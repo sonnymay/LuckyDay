@@ -99,6 +99,16 @@ const luckyDirections = ['North', 'South', 'East', 'West', 'Northeast', 'Northwe
 const luckyTimes = ['7 AM - 9 AM', '9 AM - 11 AM', '11 AM - 1 PM', '1 PM - 3 PM', '3 PM - 5 PM', '6 PM - 8 PM'];
 const goodForPool = ['work', 'planning', 'saving money', 'family calls', 'cleaning', 'study', 'short trips'];
 const avoidPool = ['arguing', 'impulse spending', 'late replies', 'big promises', 'rushing', 'gossip', 'heavy food'];
+const moonPhaseMessages: Record<string, string> = {
+  'New Moon': 'Set a quiet intention and protect your energy.',
+  'Waxing Crescent': 'Take one small step toward what you want.',
+  'First Quarter': 'Choose action over overthinking today.',
+  'Waxing Gibbous': 'Refine your plan before you push forward.',
+  'Full Moon': 'Notice what feels clear, bright, and ready to release.',
+  'Waning Gibbous': 'Share gratitude and keep your plans simple.',
+  'Last Quarter': 'Let go of one thing that drains your luck.',
+  'Waning Crescent': 'Rest, reset, and move gently.',
+};
 
 export function getChineseZodiac(birthday: string) {
   const year = new Date(`${birthday}T00:00:00`).getFullYear();
@@ -160,6 +170,26 @@ export function pickFromArrayWithSeed<T>(array: T[], seed: number, offset = 0) {
   return array[Math.abs(seed + offset * 9973) % array.length];
 }
 
+export function getMoonPhase(date = new Date()) {
+  const lunarCycleDays = 29.530588853;
+  const knownNewMoonUtc = Date.UTC(2000, 0, 6, 18, 14);
+  const dateUtc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12);
+  const daysSinceKnownNewMoon = (dateUtc - knownNewMoonUtc) / 86400000;
+  const cyclePosition = ((daysSinceKnownNewMoon % lunarCycleDays) + lunarCycleDays) % lunarCycleDays;
+  const phaseIndex = Math.floor((cyclePosition / lunarCycleDays) * 8 + 0.5) % 8;
+
+  return [
+    'New Moon',
+    'Waxing Crescent',
+    'First Quarter',
+    'Waxing Gibbous',
+    'Full Moon',
+    'Waning Gibbous',
+    'Last Quarter',
+    'Waning Crescent',
+  ][phaseIndex];
+}
+
 export function generateDailyReading(profile: Profile, date = new Date()): DailyReading {
   const seed = getDailySeed(profile, date);
   const day = date.getDay();
@@ -169,6 +199,7 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
   const focusGood = mainFocuses.flatMap((focus) => focusGoodFor[focus]);
   const focusAvoid = mainFocuses.flatMap((focus) => avoidByFocus[focus]);
   const score = 55 + (Math.abs(seed + day + zodiacBias + mainFocuses.length) % 38);
+  const moonPhase = getMoonPhase(date);
 
   return {
     date: todayKey(date),
@@ -188,6 +219,8 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
     luckyColor: pickFromArrayWithSeed(luckyColors, seed, 5),
     luckyTime: pickFromArrayWithSeed(luckyTimes, seed, 6),
     luckyDirection: pickFromArrayWithSeed(luckyDirections, seed, 7),
+    moonPhase,
+    moonMessage: moonPhaseMessages[moonPhase],
     money: pickFromArrayWithSeed(moneyReadings, seed, 8),
     love: pickFromArrayWithSeed(loveReadings, seed, 9),
     work: pickFromArrayWithSeed(workReadings, seed, 10),
