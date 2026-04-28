@@ -9,6 +9,7 @@ import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
 import { isValidDateKey } from '../src/lib/date';
 import { createProfile } from '../src/lib/luck';
+import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
 import { saveStoredProfile } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
 import { MainFocus } from '../src/types';
@@ -70,6 +71,11 @@ export default function OnboardingScreen() {
       return false;
     }
 
+    if (!isValidReminderTime(notificationTime.trim())) {
+      Alert.alert('Reminder time', 'Use a 24-hour time like 08:00.');
+      return false;
+    }
+
     return true;
   }
 
@@ -106,6 +112,7 @@ export default function OnboardingScreen() {
     });
 
     await saveStoredProfile(profile);
+    await showReminderStatus(syncLocalDailyReminder(notificationTime));
     router.replace('/home');
   }
 
@@ -147,7 +154,7 @@ export default function OnboardingScreen() {
         </View>
 
         <Field
-          label="Notification time optional"
+          label="Morning reminder optional"
           value={notificationTime}
           onChangeText={setNotificationTime}
           placeholder="08:00"
@@ -209,8 +216,15 @@ function getStepTitle(step: number) {
 
 function getStepCopy(step: number) {
   if (step === 1) return 'Your profile stays on your phone. Private by default, easy to update anytime.';
-  if (step === 2) return 'Pick what you want today’s guidance to support. You can choose one, a few, or all.';
+  if (step === 2) return 'Pick what you want today’s guidance to support. Add a reminder if you want a daily nudge.';
   return 'Photos are optional. Skip them now or add them later from Settings.';
+}
+
+async function showReminderStatus(resultPromise: Promise<string>) {
+  const result = await resultPromise;
+  if (result === 'denied') {
+    Alert.alert('Reminder not enabled', 'Notifications are off. You can allow them later in your device settings.');
+  }
 }
 
 function toggleFocus(current: MainFocus[], focus: MainFocus) {

@@ -8,6 +8,7 @@ import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
 import { isValidDateKey } from '../src/lib/date';
 import { createProfile, normalizeMainFocuses } from '../src/lib/luck';
+import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
 import { getStoredProfile, resetAllStoredData, resetStoredFeedback, resetStoredProfile, saveStoredProfile } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
 import { MainFocus, Profile } from '../src/types';
@@ -72,6 +73,11 @@ export default function SettingsScreen() {
       return;
     }
 
+    if (!isValidReminderTime(notificationTime.trim())) {
+      Alert.alert('Reminder time', 'Use a 24-hour time like 08:00.');
+      return;
+    }
+
     const nextProfile = {
       ...createProfile({
         nickname,
@@ -99,6 +105,10 @@ export default function SettingsScreen() {
     };
 
     await saveStoredProfile(nextProfile);
+    const reminderResult = await syncLocalDailyReminder(notificationTime);
+    if (reminderResult === 'denied') {
+      Alert.alert('Reminder not enabled', 'Notifications are off. You can allow them later in your device settings.');
+    }
     router.replace('/home');
   }
 
@@ -110,6 +120,7 @@ export default function SettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           await resetStoredProfile();
+          await syncLocalDailyReminder();
           router.replace('/');
         },
       },
@@ -138,6 +149,7 @@ export default function SettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           await resetAllStoredData();
+          await syncLocalDailyReminder();
           router.replace('/');
         },
       },
@@ -218,7 +230,7 @@ export default function SettingsScreen() {
         </View>
 
         <Field
-          label="Notification time optional"
+          label="Morning reminder optional"
           value={notificationTime}
           onChangeText={setNotificationTime}
           placeholder="08:00"

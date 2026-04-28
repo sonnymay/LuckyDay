@@ -108,6 +108,13 @@ Privacy controls:
 - Storage helpers are in `src/lib/storage.ts`: `resetStoredFeedback` and `resetAllStoredData`.
 - Settings now warns that AsyncStorage is local but not encrypted.
 
+Local reminders:
+- `src/lib/notifications.ts` validates `HH:mm` reminder times, requests notification permission only when a time is present, cancels the previous LuckyDay reminder, and schedules one daily local notification.
+- Onboarding Step 2 and Settings label this as `Morning reminder optional`.
+- Clearing notification time disables the stored reminder.
+- Reset profile and Delete all local data also cancel the stored reminder.
+- Web returns an unsupported/no-op result for reminder scheduling; native behavior still needs device testing.
+
 ## Commands
 
 Install:
@@ -148,7 +155,7 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-28 after stepped onboarding pass:
+Last verified on 2026-04-28 after local reminder wiring:
 - `npm run typecheck` passed
 - `npm test` passed: 7 tests
 - `npm run export:web` passed
@@ -163,6 +170,7 @@ Known verification gap:
 - Native camera capture has not been tested on a physical iOS/Android device.
 - The e2e setup exports web to `dist` and serves it with `e2e/static-server.js`; it does not validate native camera behavior.
 - Native share-card saving and share-sheet behavior still need physical iOS/Android testing, especially camera roll permission, image sharpness, and Instagram/LINE/WhatsApp handoff behavior.
+- Local notification permission, scheduling, delivery timing, and cancellation need physical iOS/Android testing.
 
 ## Current Risks
 
@@ -182,6 +190,7 @@ Known verification gap:
    - Verify photo previews persist after app restart.
    - Verify Settings retake works.
    - Verify `Share today's luck` saves a sharp 9:16 image to Photos and can hand off to Instagram/LINE/WhatsApp.
+   - Verify the morning reminder permission prompt, daily delivery, time changes, and disable/reset behavior.
 
 2. Improve photo/privacy UX further.
    - Add a dedicated “Photos and privacy” screen if Settings gets too long.
@@ -193,10 +202,10 @@ Known verification gap:
    - Add Thai day-of-week color traditions.
    - Add more template variety without AI.
 
-4. Add a lightweight local notification MVP.
-   - Do not request permission during onboarding.
-   - Let user enable reminders from Settings.
-   - Use local notifications only.
+4. Improve the notification habit loop.
+   - Add better reminder copy variants.
+   - Consider an in-app preview of the notification teaser.
+   - Verify delivery on real devices before App Store screenshots.
 
 5. Prepare future Supabase sync carefully.
    - Add Auth only when explicitly needed.
