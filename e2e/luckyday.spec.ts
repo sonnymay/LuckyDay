@@ -38,6 +38,7 @@ test('new users see daily preview and optional photo setup', async ({ page }) =>
   await expect(page.getByText('A morning ritual for luck, timing, and intention.')).toBeVisible();
   await expect(page.getByText("Today's preview")).toBeVisible();
   await expect(page.getByText('Lucky color')).toBeVisible();
+  await expect(page.getByText('Thai day color')).toBeVisible();
 
   await page.getByText('Create my lucky profile').click();
 

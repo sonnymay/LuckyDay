@@ -97,6 +97,8 @@ export default function HomeScreen() {
 
       <Card style={styles.moonCard}>
         <SectionRow label="🌙 Moon energy" value={`${reading.moonPhase}: ${reading.moonMessage}`} />
+        <View style={styles.divider} />
+        <SectionRow label="🇹🇭 Thai day color" value={`${reading.thaiDayColor}: ${reading.thaiDayColorMessage}`} />
       </Card>
 
       <Card style={styles.guidanceCard}>

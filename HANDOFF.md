@@ -26,7 +26,7 @@ Latest pushed work:
 ## Current App Behavior
 
 First launch:
-1. Shows a daily preview with a luck-energy score orb, lucky color swatch, lucky number, lucky time, lucky direction, moon energy, and simple daily guidance.
+1. Shows a daily preview with a luck-energy score orb, lucky color swatch, lucky number, lucky time, lucky direction, moon energy, Thai day-of-week color, and simple daily guidance.
 2. Asks if the user wants a personal LuckyDay.
 3. Opens onboarding.
 4. Onboarding is split into 3 steps with a progress indicator:
@@ -64,6 +64,7 @@ Profile shape is defined in `src/types.ts`.
 
 Daily reading logic lives in `src/lib/luck.ts`.
 - Readings include a deterministic local moon phase and moon guidance message. No network or calendar API is used.
+- Readings include Thai day-of-week color guidance using a local Sunday-Saturday color map.
 
 Storage lives in `src/lib/storage.ts`.
 
@@ -157,9 +158,9 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-28 after moon phase reading pass:
+Last verified on 2026-04-28 after Thai day color pass:
 - `npm run typecheck` passed
-- `npm test` passed: 8 tests
+- `npm test` passed: 9 tests
 - `npm run export:web` passed
 - `npm run e2e` passed: 3 browser smoke tests
 
@@ -201,7 +202,7 @@ Known verification gap:
 
 3. Improve the daily reading model.
    - Make multi-focus readings more visibly reflect all selected focuses.
-   - Add Thai day-of-week color traditions.
+   - Add more Thai day-of-week advice variety.
    - Add more moon/message variety without AI.
 
 4. Improve the notification habit loop.

@@ -54,6 +54,8 @@ export type DailyReading = {
   luckyDirection: string;
   moonPhase: string;
   moonMessage: string;
+  thaiDayColor: string;
+  thaiDayColorMessage: string;
   money: string;
   love: string;
   work: string;
