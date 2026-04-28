@@ -117,11 +117,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   completeStatus: {
-    backgroundColor: '#DCE9D8',
+    backgroundColor: '#D8F1E6',
     color: colors.green,
   },
   neededStatus: {
-    backgroundColor: '#F4D8D3',
+    backgroundColor: colors.pink,
     color: colors.red,
   },
   hint: {
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: 'center',
-    backgroundColor: colors.ink,
+    backgroundColor: colors.mauve,
     borderRadius: radii.pill,
     minHeight: 46,
     justifyContent: 'center',
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     alignItems: 'center',
-    backgroundColor: '#F4D8D3',
+    backgroundColor: colors.pink,
     borderRadius: radii.pill,
     minHeight: 46,
     justifyContent: 'center',

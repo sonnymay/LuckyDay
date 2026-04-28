@@ -11,7 +11,7 @@ export function MediaConsentCard({ accepted, onChange }: Props) {
   return (
     <Card style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>Photo privacy</Text>
+        <Text style={styles.title}>Photo privacy 🧿</Text>
         <Pressable
           accessibilityRole="checkbox"
           accessibilityState={{ checked: accepted }}
@@ -22,7 +22,7 @@ export function MediaConsentCard({ accepted, onChange }: Props) {
         </Pressable>
       </View>
       <Text style={styles.copy}>
-        Photos are optional. If you add face, palm, or handwriting photos, LuckyDay saves them only for your local profile in this MVP.
+        Photos are optional. If you add face, palm, or handwriting photos, LuckyDay saves them only on this device. You can delete them anytime.
       </Text>
       <Pressable onPress={() => onChange(!accepted)} style={styles.consentRow}>
         <Text style={styles.consentText}>I agree to save optional photos on this device.</Text>
@@ -34,6 +34,7 @@ export function MediaConsentCard({ accepted, onChange }: Props) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
     gap: spacing.md,
   },
   header: {
@@ -62,8 +63,8 @@ const styles = StyleSheet.create({
     width: 30,
   },
   checked: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
+    backgroundColor: colors.mauve,
+    borderColor: colors.mauve,
   },
   checkmark: {
     color: colors.white,

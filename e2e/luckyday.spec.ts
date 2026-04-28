@@ -31,18 +31,29 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test('new users see sample reading and optional photo setup', async ({ page }) => {
+test('new users see daily preview and optional photo setup', async ({ page }) => {
   await page.goto('/');
 
   await expect(page.getByText('LuckyDay', { exact: true })).toBeVisible();
-  await expect(page.getByText('Your daily luck guide.')).toBeVisible();
+  await expect(page.getByText('A morning ritual for luck, timing, and intention.')).toBeVisible();
+  await expect(page.getByText("Today's preview")).toBeVisible();
+  await expect(page.getByText('Lucky color')).toBeVisible();
 
-  await page.getByText('Create my profile').click();
+  await page.getByText('Create my lucky profile').click();
 
-  await expect(page.getByText('One-time setup')).toBeVisible();
+  await expect(page.getByText('Step 1 of 3')).toBeVisible();
+  await expect(page.getByText('Tell LuckyDay about you')).toBeVisible();
+  await page.getByPlaceholder('Mali').fill('Nok');
+  await page.getByPlaceholder('e.g. 1995-03-22').fill('1994-08-12');
+  await page.getByText('Continue').click();
+
+  await expect(page.getByText('Step 2 of 3')).toBeVisible();
   await expect(page.getByText('Main focuses')).toBeVisible();
   await expect(page.getByText('Choose one, a few, or all of them.')).toBeVisible();
-  await expect(page.getByText('Optional luck photos')).toBeVisible();
+  await page.getByText('Continue').click();
+
+  await expect(page.getByText('Step 3 of 3')).toBeVisible();
+  await expect(page.getByText('Optional luck photos 🍀', { exact: true })).toBeVisible();
   await expect(page.getByText('You can skip these now and add them later in Settings.')).toBeVisible();
   await expect(page.getByText('Photo privacy')).toBeVisible();
   await expect(page.getByText('I agree to save optional photos on this device.')).toBeVisible();
@@ -56,13 +67,16 @@ test('new users see sample reading and optional photo setup', async ({ page }) =
 test('new users can finish onboarding without photos', async ({ page }) => {
   await page.goto('/');
 
-  await page.getByText('Create my profile').click();
+  await page.getByText('Create my lucky profile').click();
   await page.getByPlaceholder('Mali').fill('Nok');
-  await page.getByPlaceholder('YYYY-MM-DD').fill('1994-08-12');
+  await page.getByPlaceholder('e.g. 1995-03-22').fill('1994-08-12');
+  await page.getByText('Continue').click();
+  await page.getByText('Continue').click();
   await page.getByText("Show today's luck").click();
 
   await expect(page.getByText('Hi, Nok')).toBeVisible();
-  await expect(page.getByText('Today Score')).toBeVisible();
+  await expect(page.getByText("Today's luck energy")).toBeVisible();
+  await expect(page.getByText("Share today's luck")).toBeVisible();
 });
 
 test('saved users can retake all setup photos from settings', async ({ page }) => {
@@ -72,13 +86,13 @@ test('saved users can retake all setup photos from settings', async ({ page }) =
 
   await page.goto('/settings');
 
-  await expect(page.getByText('Your profile', { exact: true })).toBeVisible();
+  await expect(page.getByText('Your profile ✨', { exact: true })).toBeVisible();
   await expect(page.getByText('Optional luck photos')).toBeVisible();
-  await expect(page.getByText('Add, retake, or remove photos anytime. Photo links are saved locally and are not encrypted in this MVP.')).toBeVisible();
+  await expect(page.getByText('Add, retake, or remove photos anytime. Photo links are saved on this device and are not encrypted.')).toBeVisible();
   await expect(page.getByText('Retake photo')).toHaveCount(4);
   await expect(page.getByText('Captured')).toHaveCount(4);
   await expect(page.getByText(/Updated/)).toHaveCount(4);
-  await expect(page.getByText('Remove')).toHaveCount(4);
+  await expect(page.getByText('Remove', { exact: true })).toHaveCount(4);
   await expect(page.getByText('Privacy controls')).toBeVisible();
   await expect(page.getByText('Clear feedback')).toBeVisible();
   await expect(page.getByText('Delete photos only')).toBeVisible();

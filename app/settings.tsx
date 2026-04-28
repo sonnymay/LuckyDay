@@ -191,7 +191,7 @@ export default function SettingsScreen() {
   return (
     <Screen>
       <Card style={styles.card}>
-        <Text style={styles.title}>Your profile</Text>
+        <Text style={styles.title}>Your profile ✨</Text>
         <Text style={styles.copy}>
           {profile.westernZodiac} and {profile.chineseZodiac}. LuckyDay stays local for now.
         </Text>
@@ -226,8 +226,8 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.photoStack}>
-        <Text style={styles.photoTitle}>Optional luck photos</Text>
-        <Text style={styles.photoCopy}>Add, retake, or remove photos anytime. Photo links are saved locally and are not encrypted in this MVP.</Text>
+        <Text style={styles.photoTitle}>Optional luck photos 🍀</Text>
+        <Text style={styles.photoCopy}>Add, retake, or remove photos anytime. Photo links are saved on this device and are not encrypted.</Text>
         <ProfilePhotoCapture
           label="Face"
           hint="Take a clear photo in soft light."
@@ -264,9 +264,9 @@ export default function SettingsScreen() {
       </View>
 
       <Card style={styles.privacyCard}>
-        <Text style={styles.photoTitle}>Privacy controls</Text>
+        <Text style={styles.photoTitle}>Privacy controls 🧿</Text>
         <Text style={styles.photoCopy}>
-          Your profile, photo links, and feedback are stored on this device for the MVP. AsyncStorage is local, but it is not encrypted.
+          Your profile, photo links, and feedback are stored on this device. Local storage is private to this app, but it is not encrypted.
         </Text>
         <View style={styles.privacyActions}>
           <AppButton label="Clear feedback" variant="secondary" onPress={confirmClearFeedback} />
@@ -335,6 +335,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
   },
   title: {
     color: colors.ink,
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   photoTitle: {
-    color: colors.ink,
+    color: colors.mauve,
     fontSize: 24,
     fontWeight: '900',
   },
@@ -405,8 +406,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   selectedChip: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
+    backgroundColor: colors.mauve,
+    borderColor: colors.mauve,
   },
   chipText: {
     color: colors.ink,

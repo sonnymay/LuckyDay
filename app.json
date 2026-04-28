@@ -13,7 +13,10 @@
       "backgroundColor": "#f6f0e8"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryAddUsageDescription": "LuckyDay saves your daily luck card to your photos so you can share it."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -34,6 +37,12 @@
           "cameraPermission": "LuckyDay uses the camera to capture your face, palms, and handwriting during setup.",
           "photosPermission": "LuckyDay can use selected photos for your local luck profile.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "savePhotosPermission": "LuckyDay saves your daily luck card to your photos so you can share it."
         }
       ]
     ]

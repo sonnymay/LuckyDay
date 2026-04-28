@@ -20,7 +20,7 @@ export function AppButton({ label, onPress, variant = 'primary', style }: Props)
         style,
       ]}
     >
-      <Text style={[styles.label, variant !== 'primary' && styles.darkLabel]}>{label}</Text>
+      <Text style={styles.label}>{label}</Text>
     </Pressable>
   );
 }
@@ -34,7 +34,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   primary: {
-    backgroundColor: colors.ink,
+    backgroundColor: colors.luckyGold,
+    borderColor: colors.roseGold,
+    borderWidth: 2,
+    shadowColor: colors.luckyGold,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
   },
   secondary: {
     backgroundColor: colors.panelStrong,
@@ -45,17 +51,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   danger: {
-    backgroundColor: '#F4D8D3',
+    backgroundColor: colors.pink,
   },
   pressed: {
     opacity: 0.78,
   },
   label: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  darkLabel: {
     color: colors.ink,
+    fontSize: 16,
+    fontWeight: '900',
   },
 });

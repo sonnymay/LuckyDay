@@ -26,10 +26,13 @@ Latest pushed work:
 ## Current App Behavior
 
 First launch:
-1. Shows a sample daily reading.
+1. Shows a daily preview with a luck-energy score orb, lucky color swatch, lucky number, lucky time, lucky direction, and simple daily guidance.
 2. Asks if the user wants a personal LuckyDay.
 3. Opens onboarding.
-4. User enters profile fields.
+4. Onboarding is split into 3 steps with a progress indicator:
+   - Step 1: nickname, birthday, optional birth time, optional birthplace
+   - Step 2: main focuses and optional notification time
+   - Step 3: optional photos and local photo privacy consent
 5. User selects one or more Main focuses. They can select all:
    - Money
    - Love
@@ -46,9 +49,9 @@ First launch:
 9. Future opens go straight to Home.
 
 Main screens:
-- `app/index.tsx`: welcome/sample reading
-- `app/onboarding.tsx`: local profile setup, multi-focus chips, optional media consent, optional photo capture
-- `app/home.tsx`: daily score and summary
+- `app/index.tsx`: welcome/daily preview
+- `app/onboarding.tsx`: stepped local profile setup, multi-focus chips, optional media consent, optional photo capture
+- `app/home.tsx`: daily score, summary, and share-card save/share action
 - `app/detail.tsx`: money/love/work/health/warning/action detail
 - `app/feedback.tsx`: local rating and tags
 - `app/settings.tsx`: edit nickname, birthday, multi-focuses, notification time, retake/remove photos, privacy controls, reset profile
@@ -77,6 +80,20 @@ Photo capture:
 - Stores optional `photoTimestamps` on the profile for last-updated display.
 - Handwriting prompt is currently: `Today I choose steady luck.`
 - Native camera flow still needs physical-device or simulator testing.
+
+Visual/product direction:
+- The first screen now uses a more feminine premium palette: blush, mauve, rose-gold accents, champagne, and pearl-style panels.
+- The old plain score card was replaced with `EnergyScoreCard`, which leads with the daily message and presents the number as `luck energy` inside a score-based gold segmented halo.
+- Lucky color, number, time, and direction are now visible as metric cards on the landing page and Home.
+- Lucky color uses a real swatch and short meaning copy via `src/lib/luckyColor.ts`.
+- Lucky number uses a larger gold display treatment, and direction includes an arrow glyph.
+- The score halo uses bright gold active dots and faded inactive dots so the ring reads as a score, not just decoration.
+- Landing/Home guidance cards now use the champagne/rose-gold treatment for visual continuity.
+- Primary CTA buttons use a warm gold treatment.
+- Home includes a 9:16 `LuckyShareCard` capture flow. It uses `react-native-view-shot` to render a local PNG, `expo-media-library` to save it to photos, and `expo-sharing` to offer the native share sheet after save.
+- The share card intentionally omits PII: no nickname, birthday, birth time, or photos.
+- Web falls back to a text share because camera roll save/share-image behavior is native-only.
+- Consumer-facing copy should avoid internal terms like `MVP`; keep developer/product notes in docs only.
 
 Consent:
 - `src/components/MediaConsentCard.tsx`
@@ -131,21 +148,21 @@ npm run export:web
 
 ## Verification Status
 
-Last verified after optional-photo onboarding change:
+Last verified on 2026-04-28 after stepped onboarding pass:
 - `npm run typecheck` passed
 - `npm test` passed: 7 tests
 - `npm run export:web` passed
+- `npm run e2e` passed: 3 browser smoke tests
 
 E2E note:
 - `npm run e2e` now includes 3 browser smoke tests, including onboarding without photos.
-- It was not rerun after the optional-photo change because the sandbox rejected the localhost server escalation due usage limits.
-- Previous e2e verification before this change passed with 2 browser smoke tests.
+- The browser smoke tests use exact text matches where screen copy repeats terms like `Remove` or `Your profile`.
+- In the Codex sandbox, `npm run e2e` requires permission to bind a localhost server.
 
 Known verification gap:
 - Native camera capture has not been tested on a physical iOS/Android device.
-- Browser smoke tests should be rerun when localhost binding is available again.
-
-Note: In the Codex sandbox, `npm run e2e` required permission to bind a localhost server. The e2e setup exports web to `dist` and serves it with `e2e/static-server.js`.
+- The e2e setup exports web to `dist` and serves it with `e2e/static-server.js`; it does not validate native camera behavior.
+- Native share-card saving and share-sheet behavior still need physical iOS/Android testing, especially camera roll permission, image sharpness, and Instagram/LINE/WhatsApp handoff behavior.
 
 ## Current Risks
 
@@ -159,10 +176,12 @@ Note: In the Codex sandbox, `npm run e2e` required permission to bind a localhos
 
 1. Test the full onboarding flow on a real phone with Expo Go.
    - Verify onboarding can finish without any photos.
+   - Verify each setup step fits comfortably on small iPhone and Android screens.
    - Verify each capture works.
    - Verify front camera is used for face.
    - Verify photo previews persist after app restart.
    - Verify Settings retake works.
+   - Verify `Share today's luck` saves a sharp 9:16 image to Photos and can hand off to Instagram/LINE/WhatsApp.
 
 2. Improve photo/privacy UX further.
    - Add a dedicated “Photos and privacy” screen if Settings gets too long.

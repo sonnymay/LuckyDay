@@ -14,8 +14,10 @@ import { colors, radii, spacing } from '../src/styles/theme';
 import { MainFocus } from '../src/types';
 
 const focusOptions: MainFocus[] = ['Money', 'Love', 'Work', 'Health', 'Luck'];
+const totalSteps = 3;
 
 export default function OnboardingScreen() {
+  const [step, setStep] = useState(1);
   const [nickname, setNickname] = useState('');
   const [birthday, setBirthday] = useState('');
   const [birthTime, setBirthTime] = useState('');
@@ -32,19 +34,47 @@ export default function OnboardingScreen() {
   const [handwritingUpdatedAt, setHandwritingUpdatedAt] = useState('');
   const [acceptedMediaConsent, setAcceptedMediaConsent] = useState(false);
 
-  async function saveProfile() {
+  function goNext() {
+    if (step === 1 && !validateIdentity()) {
+      return;
+    }
+
+    if (step === 2 && !validateFocus()) {
+      return;
+    }
+
+    setStep((current) => Math.min(totalSteps, current + 1));
+  }
+
+  function goBack() {
+    setStep((current) => Math.max(1, current - 1));
+  }
+
+  function validateIdentity() {
     if (!nickname.trim()) {
       Alert.alert('Nickname needed', 'Add the name you want LuckyDay to use.');
-      return;
+      return false;
     }
 
     if (!isValidDateKey(birthday.trim())) {
-      Alert.alert('Birthday needed', 'Use the format YYYY-MM-DD.');
-      return;
+      Alert.alert('Birthday needed', 'Use the format YYYY-MM-DD, like 1995-03-22.');
+      return false;
     }
 
+    return true;
+  }
+
+  function validateFocus() {
     if (mainFocus.length === 0) {
       Alert.alert('Main focus needed', 'Choose at least one focus for your daily reading.');
+      return false;
+    }
+
+    return true;
+  }
+
+  async function saveProfile() {
+    if (!validateIdentity() || !validateFocus()) {
       return;
     }
 
@@ -82,18 +112,24 @@ export default function OnboardingScreen() {
   return (
     <Screen>
       <Card style={styles.intro}>
-        <Text style={styles.title}>One-time setup</Text>
+        <Text style={styles.stepLabel}>Step {step} of {totalSteps}</Text>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${(step / totalSteps) * 100}%` }]} />
+        </View>
+        <Text style={styles.title}>{getStepTitle(step)}</Text>
         <Text style={styles.copy}>
-          LuckyDay saves your profile on your phone first. No account is needed for the MVP.
+          {getStepCopy(step)}
         </Text>
       </Card>
 
-      <View style={styles.form}>
+      {step === 1 ? <View style={styles.form}>
         <Field label="Nickname" value={nickname} onChangeText={setNickname} placeholder="Mali" />
-        <Field label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="YYYY-MM-DD" />
+        <Field label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="e.g. 1995-03-22" />
         <Field label="Birth time optional" value={birthTime} onChangeText={setBirthTime} placeholder="08:30" />
         <Field label="Birthplace optional" value={birthplace} onChangeText={setBirthplace} placeholder="Bangkok" />
+      </View> : null}
 
+      {step === 2 ? <View style={styles.form}>
         <View style={styles.group}>
           <Text style={styles.label}>Main focuses</Text>
           <View style={styles.chips}>
@@ -116,10 +152,10 @@ export default function OnboardingScreen() {
           onChangeText={setNotificationTime}
           placeholder="08:00"
         />
-      </View>
+      </View> : null}
 
-      <View style={styles.photoStack}>
-        <Text style={styles.photoTitle}>Optional luck photos</Text>
+      {step === 3 ? <View style={styles.photoStack}>
+        <Text style={styles.photoTitle}>Optional luck photos 🍀</Text>
         <Text style={styles.photoCopy}>You can skip these now and add them later in Settings.</Text>
         <MediaConsentCard accepted={acceptedMediaConsent} onChange={setAcceptedMediaConsent} />
         <ProfilePhotoCapture
@@ -151,11 +187,30 @@ export default function OnboardingScreen() {
           onChange={(uri) => updatePhoto(uri, setHandwritingUri, setHandwritingUpdatedAt)}
           updatedAt={handwritingUpdatedAt}
         />
-      </View>
+      </View> : null}
 
-      <AppButton label="Show today's luck" onPress={saveProfile} />
+      <View style={styles.navActions}>
+        {step > 1 ? <AppButton label="Back" variant="secondary" onPress={goBack} /> : null}
+        {step < totalSteps ? (
+          <AppButton label="Continue" onPress={goNext} />
+        ) : (
+          <AppButton label="Show today's luck" onPress={saveProfile} />
+        )}
+      </View>
     </Screen>
   );
+}
+
+function getStepTitle(step: number) {
+  if (step === 1) return 'Tell LuckyDay about you ✨';
+  if (step === 2) return 'Choose your daily focus 🍀';
+  return 'Optional luck photos 🔒';
+}
+
+function getStepCopy(step: number) {
+  if (step === 1) return 'Your profile stays on your phone. Private by default, easy to update anytime.';
+  if (step === 2) return 'Pick what you want today’s guidance to support. You can choose one, a few, or all.';
+  return 'Photos are optional. Skip them now or add them later from Settings.';
 }
 
 function toggleFocus(current: MainFocus[], focus: MainFocus) {
@@ -204,7 +259,27 @@ function Field({ label, value, onChangeText, placeholder }: FieldProps) {
 
 const styles = StyleSheet.create({
   intro: {
-    backgroundColor: colors.ink,
+    backgroundColor: colors.mauve,
+    borderColor: colors.roseGold,
+    borderWidth: 2,
+  },
+  stepLabel: {
+    color: colors.champagne,
+    fontSize: 13,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  progressTrack: {
+    backgroundColor: 'rgba(255, 240, 199, 0.28)',
+    borderRadius: radii.pill,
+    height: 8,
+    marginVertical: spacing.md,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    backgroundColor: colors.luckyGold,
+    borderRadius: radii.pill,
+    height: '100%',
   },
   title: {
     color: colors.white,
@@ -212,7 +287,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   copy: {
-    color: colors.panelStrong,
+    color: colors.sunrise,
     fontSize: 16,
     lineHeight: 23,
     marginTop: spacing.sm,
@@ -220,11 +295,14 @@ const styles = StyleSheet.create({
   form: {
     gap: spacing.md,
   },
+  navActions: {
+    gap: spacing.sm,
+  },
   photoStack: {
     gap: spacing.md,
   },
   photoTitle: {
-    color: colors.ink,
+    color: colors.mauve,
     fontSize: 24,
     fontWeight: '900',
   },
@@ -269,8 +347,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   selectedChip: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
+    backgroundColor: colors.mauve,
+    borderColor: colors.mauve,
   },
   chipText: {
     color: colors.ink,

@@ -36,22 +36,22 @@ export default function DetailScreen() {
   return (
     <Screen>
       <Card style={styles.top}>
-        <Text style={styles.date}>{reading.date}</Text>
+        <Text style={styles.date}>✨ {reading.date}</Text>
         <Text style={styles.title}>{reading.mainMessage}</Text>
       </Card>
 
       <Card style={styles.stack}>
-        <SectionRow label="Money" value={reading.money} />
+        <SectionRow label="💰 Money" value={reading.money} />
         <View style={styles.divider} />
-        <SectionRow label="Love" value={reading.love} />
+        <SectionRow label="💗 Love" value={reading.love} />
         <View style={styles.divider} />
-        <SectionRow label="Work" value={reading.work} />
+        <SectionRow label="📌 Work" value={reading.work} />
         <View style={styles.divider} />
-        <SectionRow label="Health" value={reading.health} />
+        <SectionRow label="🌿 Health" value={reading.health} />
         <View style={styles.divider} />
-        <SectionRow label="Warning" value={reading.warning} />
+        <SectionRow label="🧿 Warning" value={reading.warning} />
         <View style={styles.divider} />
-        <SectionRow label="Small action" value={reading.action} />
+        <SectionRow label="🍀 Small action" value={reading.action} />
       </Card>
     </Screen>
   );
@@ -66,9 +66,10 @@ const styles = StyleSheet.create({
   },
   top: {
     backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
   },
   date: {
-    color: colors.muted,
+    color: colors.mauve,
     fontSize: 14,
     fontWeight: '800',
   },

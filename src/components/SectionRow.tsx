@@ -20,9 +20,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   label: {
-    color: colors.muted,
+    color: colors.goldDeep,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '900',
     textTransform: 'uppercase',
   },
   value: {

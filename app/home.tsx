@@ -1,11 +1,18 @@
-import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { RefObject, useCallback, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
 import { router, useFocusEffect } from 'expo-router';
+import ViewShot from 'react-native-view-shot';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
+import { EnergyScoreCard } from '../src/components/EnergyScoreCard';
+import { LuckyMetricCard } from '../src/components/LuckyMetricCard';
+import { LuckyShareCard } from '../src/components/LuckyShareCard';
 import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
 import { generateDailyReading } from '../src/lib/luck';
+import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
 import { getStoredProfile } from '../src/lib/storage';
 import { colors, spacing } from '../src/styles/theme';
 import { DailyReading, Profile } from '../src/types';
@@ -13,7 +20,9 @@ import { DailyReading, Profile } from '../src/types';
 export default function HomeScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [reading, setReading] = useState<DailyReading | null>(null);
+  const [savingShareCard, setSavingShareCard] = useState(false);
   const [loading, setLoading] = useState(true);
+  const shareCardRef = useRef<ViewShot>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -53,7 +62,7 @@ export default function HomeScreen() {
     <Screen>
       <View style={styles.header}>
         <View>
-          <Text style={styles.kicker}>Today</Text>
+          <Text style={styles.kicker}>✨ Today</Text>
           <Text style={styles.title}>Hi, {profile.nickname}</Text>
         </View>
         <Pressable onPress={() => router.push('/settings')} style={styles.settings}>
@@ -61,44 +70,108 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      <Card style={styles.scoreCard}>
-        <Text style={styles.scoreLabel}>Today Score</Text>
-        <Text style={styles.score}>{reading.score}/100</Text>
-        <Text style={styles.message}>{reading.mainMessage}</Text>
-      </Card>
+      <EnergyScoreCard label="✨ Today's luck energy" score={reading.score} message={reading.mainMessage} />
 
-      <Card>
-        <SectionRow label="Good for" value={reading.goodFor.join(', ')} />
+      <AppButton
+        label={savingShareCard ? 'Saving your luck...' : "Share today's luck"}
+        onPress={() => saveShareCard(reading, shareCardRef, setSavingShareCard)}
+      />
+
+      <Card style={styles.luckyCard}>
+        <SectionRow label="🌿 Good for" value={reading.goodFor.join(', ')} />
         <View style={styles.divider} />
-        <SectionRow label="Avoid" value={reading.avoid.join(', ')} />
+        <SectionRow label="🧿 Avoid" value={reading.avoid.join(', ')} />
       </Card>
 
       <View style={styles.grid}>
-        <MiniCard label="Lucky number" value={String(reading.luckyNumber)} />
-        <MiniCard label="Lucky color" value={reading.luckyColor} />
-        <MiniCard label="Lucky time" value={reading.luckyTime} />
-        <MiniCard label="Direction" value={reading.luckyDirection} />
+        <LuckyMetricCard label="🔢 Lucky number" value={String(reading.luckyNumber)} variant="number" />
+        <LuckyMetricCard
+          label="🎨 Lucky color"
+          note={getLuckyColorMeaning(reading.luckyColor)}
+          value={reading.luckyColor}
+          swatchColor={getLuckyColorHex(reading.luckyColor)}
+        />
+        <LuckyMetricCard label="⏰ Lucky time" value={reading.luckyTime} />
+        <LuckyMetricCard label="🧭 Direction" value={reading.luckyDirection} variant="direction" />
       </View>
 
-      <Card>
-        <SectionRow label="Small action" value={reading.action} />
+      <Card style={styles.guidanceCard}>
+        <SectionRow label="🍀 Small action" value={reading.action} />
       </Card>
 
       <View style={styles.actions}>
-        <AppButton label="Daily detail" onPress={() => router.push('/detail')} />
+        <AppButton label="Daily detail" variant="secondary" onPress={() => router.push('/detail')} />
         <AppButton label="Was today accurate?" variant="secondary" onPress={() => router.push('/feedback')} />
+      </View>
+
+      <View style={styles.captureArea} pointerEvents="none">
+        <ViewShot ref={shareCardRef} options={{ format: 'png', quality: 1, result: 'tmpfile' }}>
+          <LuckyShareCard reading={reading} />
+        </ViewShot>
       </View>
     </Screen>
   );
 }
 
-function MiniCard({ label, value }: { label: string; value: string }) {
-  return (
-    <Card style={styles.miniCard}>
-      <Text style={styles.miniLabel}>{label}</Text>
-      <Text style={styles.miniValue}>{value}</Text>
-    </Card>
-  );
+async function saveShareCard(
+  reading: DailyReading,
+  shareCardRef: RefObject<ViewShot | null>,
+  setSavingShareCard: (saving: boolean) => void,
+) {
+  if (savingFallbackNeeded()) {
+    await Share.share({
+      message: `My LuckyDay energy is ${reading.score}. ${reading.mainMessage} Lucky color: ${reading.luckyColor}. Lucky number: ${reading.luckyNumber}.`,
+    });
+    return;
+  }
+
+  try {
+    setSavingShareCard(true);
+    const uri = await shareCardRef.current?.capture?.();
+    if (!uri) {
+      Alert.alert('Share card not ready', 'Please try again in a moment.');
+      return;
+    }
+
+    const permission = await MediaLibrary.requestPermissionsAsync(true);
+    if (!permission.granted) {
+      Alert.alert(
+        'Photos permission needed',
+        'Allow photo access to save your LuckyDay card. You can change this in Settings anytime.',
+      );
+      return;
+    }
+
+    await MediaLibrary.saveToLibraryAsync(uri);
+
+    const canShare = await Sharing.isAvailableAsync();
+    if (!canShare) {
+      Alert.alert('Saved to your photos ✨', 'Your LuckyDay card is ready in your camera roll.');
+      return;
+    }
+
+    Alert.alert('Saved to your photos ✨', 'Your LuckyDay card is ready. Want to share it now?', [
+      { text: 'Not now', style: 'cancel' },
+      {
+        text: 'Share now',
+        onPress: () => {
+          Sharing.shareAsync(uri, {
+            dialogTitle: "Share today's LuckyDay",
+            mimeType: 'image/png',
+            UTI: 'public.png',
+          });
+        },
+      },
+    ]);
+  } catch {
+    Alert.alert('Could not save card', 'Please try again in a moment.');
+  } finally {
+    setSavingShareCard(false);
+  }
+}
+
+function savingFallbackNeeded() {
+  return Platform.OS === 'web';
 }
 
 const styles = StyleSheet.create({
@@ -114,7 +187,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   kicker: {
-    color: colors.gold,
+    color: colors.mauve,
     fontSize: 14,
     fontWeight: '900',
     textTransform: 'uppercase',
@@ -128,30 +201,16 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   settingsText: {
-    color: colors.muted,
+    color: colors.mauve,
     fontSize: 15,
     fontWeight: '800',
   },
-  scoreCard: {
-    backgroundColor: colors.ink,
-    minHeight: 210,
+  luckyCard: {
+    backgroundColor: colors.panelStrong,
   },
-  scoreLabel: {
-    color: colors.panelStrong,
-    fontSize: 13,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
-  score: {
-    color: colors.white,
-    fontSize: 72,
-    fontWeight: '900',
-    marginTop: spacing.sm,
-  },
-  message: {
-    color: colors.panelStrong,
-    fontSize: 18,
-    lineHeight: 26,
+  guidanceCard: {
+    backgroundColor: colors.sunrise,
+    borderColor: colors.roseGold,
   },
   divider: {
     backgroundColor: colors.line,
@@ -163,24 +222,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.md,
   },
-  miniCard: {
-    flexBasis: '47%',
-    flexGrow: 1,
-    minHeight: 104,
-  },
-  miniLabel: {
-    color: colors.muted,
-    fontSize: 13,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
-  miniValue: {
-    color: colors.ink,
-    fontSize: 24,
-    fontWeight: '900',
-    marginTop: spacing.sm,
-  },
   actions: {
     gap: spacing.sm,
+  },
+  captureArea: {
+    left: -10000,
+    position: 'absolute',
+    top: 0,
   },
 });
