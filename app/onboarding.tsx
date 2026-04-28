@@ -1,0 +1,234 @@
+import { useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import { AppButton } from '../src/components/AppButton';
+import { Card } from '../src/components/Card';
+import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
+import { Screen } from '../src/components/Screen';
+import { isValidDateKey } from '../src/lib/date';
+import { createProfile } from '../src/lib/luck';
+import { saveStoredProfile } from '../src/lib/storage';
+import { colors, radii, spacing } from '../src/styles/theme';
+import { MainFocus } from '../src/types';
+
+const focusOptions: MainFocus[] = ['Money', 'Love', 'Work', 'Health', 'Luck'];
+
+export default function OnboardingScreen() {
+  const [nickname, setNickname] = useState('');
+  const [birthday, setBirthday] = useState('');
+  const [birthTime, setBirthTime] = useState('');
+  const [birthplace, setBirthplace] = useState('');
+  const [mainFocus, setMainFocus] = useState<MainFocus>('Luck');
+  const [notificationTime, setNotificationTime] = useState('');
+  const [faceUri, setFaceUri] = useState('');
+  const [leftPalmUri, setLeftPalmUri] = useState('');
+  const [rightPalmUri, setRightPalmUri] = useState('');
+  const [handwritingUri, setHandwritingUri] = useState('');
+
+  async function saveProfile() {
+    if (!nickname.trim()) {
+      Alert.alert('Nickname needed', 'Add the name you want LuckyDay to use.');
+      return;
+    }
+
+    if (!isValidDateKey(birthday.trim())) {
+      Alert.alert('Birthday needed', 'Use the format YYYY-MM-DD.');
+      return;
+    }
+
+    if (!faceUri || !leftPalmUri || !rightPalmUri || !handwritingUri) {
+      Alert.alert('Photos needed', 'Take your face, left palm, right palm, and handwriting photos.');
+      return;
+    }
+
+    const profile = createProfile({
+      nickname,
+      birthday,
+      birthTime,
+      birthplace,
+      mainFocus,
+      notificationTime,
+      photos: {
+        faceUri,
+        leftPalmUri,
+        rightPalmUri,
+        handwritingUri,
+      },
+    });
+
+    await saveStoredProfile(profile);
+    router.replace('/home');
+  }
+
+  return (
+    <Screen>
+      <Card style={styles.intro}>
+        <Text style={styles.title}>One-time setup</Text>
+        <Text style={styles.copy}>
+          LuckyDay saves your profile and photos on your phone first. No account is needed for the MVP.
+        </Text>
+      </Card>
+
+      <View style={styles.form}>
+        <Field label="Nickname" value={nickname} onChangeText={setNickname} placeholder="Mali" />
+        <Field label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="YYYY-MM-DD" />
+        <Field label="Birth time optional" value={birthTime} onChangeText={setBirthTime} placeholder="08:30" />
+        <Field label="Birthplace optional" value={birthplace} onChangeText={setBirthplace} placeholder="Bangkok" />
+
+        <View style={styles.group}>
+          <Text style={styles.label}>Main focus</Text>
+          <View style={styles.chips}>
+            {focusOptions.map((focus) => (
+              <Pressable
+                key={focus}
+                onPress={() => setMainFocus(focus)}
+                style={[styles.chip, mainFocus === focus && styles.selectedChip]}
+              >
+                <Text style={[styles.chipText, mainFocus === focus && styles.selectedChipText]}>{focus}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        <Field
+          label="Notification time optional"
+          value={notificationTime}
+          onChangeText={setNotificationTime}
+          placeholder="08:00"
+        />
+      </View>
+
+      <View style={styles.photoStack}>
+        <Text style={styles.photoTitle}>Luck photos</Text>
+        <Text style={styles.photoCopy}>These are required for sign up now and stay local in the MVP.</Text>
+        <ProfilePhotoCapture
+          label="Face"
+          hint="Take a clear photo in soft light."
+          value={faceUri}
+          onChange={setFaceUri}
+          cameraType={ImagePicker.CameraType.front}
+        />
+        <ProfilePhotoCapture
+          label="Left palm"
+          hint="Open your left hand and show the full palm."
+          value={leftPalmUri}
+          onChange={setLeftPalmUri}
+        />
+        <ProfilePhotoCapture
+          label="Right palm"
+          hint="Open your right hand and show the full palm."
+          value={rightPalmUri}
+          onChange={setRightPalmUri}
+        />
+        <ProfilePhotoCapture
+          label="Handwriting"
+          hint="Write one short sentence on paper and take a photo."
+          value={handwritingUri}
+          onChange={setHandwritingUri}
+        />
+      </View>
+
+      <AppButton label="Show today's luck" onPress={saveProfile} />
+    </Screen>
+  );
+}
+
+type FieldProps = {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder: string;
+};
+
+function Field({ label, value, onChangeText, placeholder }: FieldProps) {
+  return (
+    <View style={styles.group}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        autoCapitalize="none"
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.faint}
+        style={styles.input}
+        value={value}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  intro: {
+    backgroundColor: colors.ink,
+  },
+  title: {
+    color: colors.white,
+    fontSize: 28,
+    fontWeight: '900',
+  },
+  copy: {
+    color: colors.panelStrong,
+    fontSize: 16,
+    lineHeight: 23,
+    marginTop: spacing.sm,
+  },
+  form: {
+    gap: spacing.md,
+  },
+  photoStack: {
+    gap: spacing.md,
+  },
+  photoTitle: {
+    color: colors.ink,
+    fontSize: 24,
+    fontWeight: '900',
+  },
+  photoCopy: {
+    color: colors.muted,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  group: {
+    gap: spacing.sm,
+  },
+  label: {
+    color: colors.ink,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  input: {
+    backgroundColor: colors.panel,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    color: colors.ink,
+    fontSize: 17,
+    minHeight: 54,
+    paddingHorizontal: spacing.md,
+  },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  chip: {
+    backgroundColor: colors.panel,
+    borderColor: colors.line,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  selectedChip: {
+    backgroundColor: colors.ink,
+    borderColor: colors.ink,
+  },
+  chipText: {
+    color: colors.ink,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  selectedChipText: {
+    color: colors.white,
+  },
+});
