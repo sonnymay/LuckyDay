@@ -6,7 +6,7 @@ const profile = {
   birthday: '1996-04-13',
   birthTime: '08:30',
   birthplace: 'Bangkok',
-  mainFocus: 'Work',
+  mainFocus: ['Work'],
   notificationTime: '08:00',
   westernZodiac: 'Aries',
   chineseZodiac: 'Rat',
@@ -34,6 +34,8 @@ test('new users see sample reading and consent-gated photo setup', async ({ page
   await page.getByText('Create my profile').click();
 
   await expect(page.getByText('One-time setup')).toBeVisible();
+  await expect(page.getByText('Main focuses')).toBeVisible();
+  await expect(page.getByText('Choose one, a few, or all of them.')).toBeVisible();
   await expect(page.getByText('Photo privacy')).toBeVisible();
   await expect(page.getByText('I understand and agree to save these photos on this device.')).toBeVisible();
   await expect(page.getByText('Face', { exact: true })).toBeVisible();

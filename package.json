@@ -9,7 +9,9 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "vitest run src/lib/luck.test.ts",
-    "e2e": "playwright test"
+    "export:web": "expo export --platform web",
+    "e2e": "npm run export:web && playwright test",
+    "e2e:server": "node e2e/static-server.js"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

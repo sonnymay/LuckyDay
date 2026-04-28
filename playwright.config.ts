@@ -16,9 +16,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm start -- --port 8081',
+    command: 'npm run e2e:server',
     url: 'http://localhost:8081',
     reuseExistingServer: true,
-    timeout: 60_000,
+    timeout: 10_000,
   },
 });

@@ -14,7 +14,7 @@ const baseProfile: Profile = {
   birthday: '1996-04-13',
   birthTime: '08:30',
   birthplace: 'Bangkok',
-  mainFocus: 'Work',
+  mainFocus: ['Work'],
   notificationTime: '08:00',
   westernZodiac: 'Aries',
   chineseZodiac: 'Rat',
@@ -72,6 +72,14 @@ describe('luck helpers', () => {
     expect(reading.avoid.length).toBeGreaterThan(0);
     expect(reading.luckyNumber).toBeGreaterThanOrEqual(1);
     expect(reading.luckyNumber).toBeLessThanOrEqual(9);
+  });
+
+  it('supports more than one main focus', () => {
+    const date = new Date('2026-04-28T12:00:00.000Z');
+    const reading = generateDailyReading({ ...baseProfile, mainFocus: ['Money', 'Love', 'Work', 'Health', 'Luck'] }, date);
+
+    expect(reading.goodFor.some((item) => ['money', 'love', 'work', 'health', 'luck'].includes(item))).toBe(true);
+    expect(reading.avoid.length).toBeGreaterThan(0);
   });
 
   it('does not give identical readings to same-birthday users with different nicknames', () => {

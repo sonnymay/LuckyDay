@@ -6,7 +6,7 @@ create table if not exists public.profiles (
   birthplace text,
   western_zodiac text not null,
   chinese_zodiac text not null,
-  main_focus text not null check (main_focus in ('Money', 'Love', 'Work', 'Health', 'Luck')),
+  main_focus text[] not null check (main_focus <@ array['Money', 'Love', 'Work', 'Health', 'Luck']),
   notification_time time,
   face_image_path text,
   left_palm_image_path text,

@@ -14,7 +14,7 @@ const sampleProfile: Profile = {
   id: 'sample',
   nickname: 'Mali',
   birthday: '1996-04-13',
-  mainFocus: 'Work',
+  mainFocus: ['Work'],
   westernZodiac: 'Aries',
   chineseZodiac: 'Rat',
   photos: {

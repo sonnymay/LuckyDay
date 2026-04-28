@@ -20,7 +20,7 @@ export default function OnboardingScreen() {
   const [birthday, setBirthday] = useState('');
   const [birthTime, setBirthTime] = useState('');
   const [birthplace, setBirthplace] = useState('');
-  const [mainFocus, setMainFocus] = useState<MainFocus>('Luck');
+  const [mainFocus, setMainFocus] = useState<MainFocus[]>(['Luck']);
   const [notificationTime, setNotificationTime] = useState('');
   const [faceUri, setFaceUri] = useState('');
   const [leftPalmUri, setLeftPalmUri] = useState('');
@@ -36,6 +36,11 @@ export default function OnboardingScreen() {
 
     if (!isValidDateKey(birthday.trim())) {
       Alert.alert('Birthday needed', 'Use the format YYYY-MM-DD.');
+      return;
+    }
+
+    if (mainFocus.length === 0) {
+      Alert.alert('Main focus needed', 'Choose at least one focus for your daily reading.');
       return;
     }
 
@@ -85,18 +90,19 @@ export default function OnboardingScreen() {
         <Field label="Birthplace optional" value={birthplace} onChangeText={setBirthplace} placeholder="Bangkok" />
 
         <View style={styles.group}>
-          <Text style={styles.label}>Main focus</Text>
+          <Text style={styles.label}>Main focuses</Text>
           <View style={styles.chips}>
             {focusOptions.map((focus) => (
               <Pressable
                 key={focus}
-                onPress={() => setMainFocus(focus)}
-                style={[styles.chip, mainFocus === focus && styles.selectedChip]}
+                onPress={() => setMainFocus((current) => toggleFocus(current, focus))}
+                style={[styles.chip, mainFocus.includes(focus) && styles.selectedChip]}
               >
-                <Text style={[styles.chipText, mainFocus === focus && styles.selectedChipText]}>{focus}</Text>
+                <Text style={[styles.chipText, mainFocus.includes(focus) && styles.selectedChipText]}>{focus}</Text>
               </Pressable>
             ))}
           </View>
+          <Text style={styles.helpText}>Choose one, a few, or all of them.</Text>
         </View>
 
         <Field
@@ -141,6 +147,14 @@ export default function OnboardingScreen() {
       <AppButton label="Show today's luck" onPress={saveProfile} />
     </Screen>
   );
+}
+
+function toggleFocus(current: MainFocus[], focus: MainFocus) {
+  if (current.includes(focus)) {
+    return current.filter((item) => item !== focus);
+  }
+
+  return [...current, focus];
 }
 
 type FieldProps = {
@@ -204,6 +218,10 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontSize: 15,
     fontWeight: '800',
+  },
+  helpText: {
+    color: colors.muted,
+    fontSize: 14,
   },
   input: {
     backgroundColor: colors.panel,

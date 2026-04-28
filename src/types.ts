@@ -13,7 +13,7 @@ export type Profile = {
   birthday: string;
   birthTime?: string;
   birthplace?: string;
-  mainFocus: MainFocus;
+  mainFocus: MainFocus[];
   notificationTime?: string;
   westernZodiac: string;
   chineseZodiac: string;
@@ -27,7 +27,7 @@ export type ProfileInput = {
   birthday: string;
   birthTime?: string;
   birthplace?: string;
-  mainFocus: MainFocus;
+  mainFocus: MainFocus[];
   notificationTime?: string;
   photos: ProfilePhotos;
   mediaConsentAt?: string;

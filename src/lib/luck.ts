@@ -133,7 +133,7 @@ export function createProfile(input: ProfileInput): Profile {
     birthday,
     birthTime: input.birthTime?.trim(),
     birthplace: input.birthplace?.trim(),
-    mainFocus: input.mainFocus,
+    mainFocus: normalizeMainFocuses(input.mainFocus),
     notificationTime: input.notificationTime?.trim(),
     westernZodiac: getWesternZodiac(birthday),
     chineseZodiac: getChineseZodiac(birthday),
@@ -141,6 +141,14 @@ export function createProfile(input: ProfileInput): Profile {
     mediaConsentAt: input.mediaConsentAt ?? new Date().toISOString(),
     createdAt: new Date().toISOString(),
   };
+}
+
+export function normalizeMainFocuses(value: Profile['mainFocus'] | MainFocus): MainFocus[] {
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value : ['Luck'];
+  }
+
+  return [value];
 }
 
 export function getDailySeed(profile: Pick<Profile, 'nickname' | 'birthday'>, date = new Date()) {
@@ -155,16 +163,19 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
   const seed = getDailySeed(profile, date);
   const day = date.getDay();
   const zodiacBias = profile.chineseZodiac.length + profile.westernZodiac.length;
-  const focusGood = focusGoodFor[profile.mainFocus];
-  const focusAvoid = avoidByFocus[profile.mainFocus];
-  const score = 55 + (Math.abs(seed + day + zodiacBias) % 38);
+  const mainFocuses = normalizeMainFocuses(profile.mainFocus);
+  const primaryFocus = pickFromArrayWithSeed(mainFocuses, seed, 0);
+  const focusGood = mainFocuses.flatMap((focus) => focusGoodFor[focus]);
+  const focusAvoid = mainFocuses.flatMap((focus) => avoidByFocus[focus]);
+  const score = 55 + (Math.abs(seed + day + zodiacBias + mainFocuses.length) % 38);
 
   return {
     date: todayKey(date),
     score,
     mainMessage: pickFromArrayWithSeed(mainMessages, seed, day),
     goodFor: unique([
-      profile.mainFocus.toLowerCase(),
+      primaryFocus.toLowerCase(),
+      ...mainFocuses.map((focus) => focus.toLowerCase()),
       pickFromArrayWithSeed(focusGood, seed, 1),
       pickFromArrayWithSeed(goodForPool, seed, 2),
     ]).slice(0, 3),
