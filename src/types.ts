@@ -7,6 +7,13 @@ export type ProfilePhotos = {
   handwritingUri: string;
 };
 
+export type ProfilePhotoTimestamps = {
+  faceUpdatedAt?: string;
+  leftPalmUpdatedAt?: string;
+  rightPalmUpdatedAt?: string;
+  handwritingUpdatedAt?: string;
+};
+
 export type Profile = {
   id: string;
   nickname: string;
@@ -18,6 +25,7 @@ export type Profile = {
   westernZodiac: string;
   chineseZodiac: string;
   photos: ProfilePhotos;
+  photoTimestamps?: ProfilePhotoTimestamps;
   mediaConsentAt: string;
   createdAt: string;
 };
@@ -30,6 +38,7 @@ export type ProfileInput = {
   mainFocus: MainFocus[];
   notificationTime?: string;
   photos: ProfilePhotos;
+  photoTimestamps?: ProfilePhotoTimestamps;
   mediaConsentAt?: string;
 };
 

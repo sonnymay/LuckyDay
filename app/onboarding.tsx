@@ -26,6 +26,10 @@ export default function OnboardingScreen() {
   const [leftPalmUri, setLeftPalmUri] = useState('');
   const [rightPalmUri, setRightPalmUri] = useState('');
   const [handwritingUri, setHandwritingUri] = useState('');
+  const [faceUpdatedAt, setFaceUpdatedAt] = useState('');
+  const [leftPalmUpdatedAt, setLeftPalmUpdatedAt] = useState('');
+  const [rightPalmUpdatedAt, setRightPalmUpdatedAt] = useState('');
+  const [handwritingUpdatedAt, setHandwritingUpdatedAt] = useState('');
   const [acceptedMediaConsent, setAcceptedMediaConsent] = useState(false);
 
   async function saveProfile() {
@@ -66,6 +70,12 @@ export default function OnboardingScreen() {
         leftPalmUri,
         rightPalmUri,
         handwritingUri,
+      },
+      photoTimestamps: {
+        faceUpdatedAt,
+        leftPalmUpdatedAt,
+        rightPalmUpdatedAt,
+        handwritingUpdatedAt,
       },
       mediaConsentAt: new Date().toISOString(),
     });
@@ -121,26 +131,30 @@ export default function OnboardingScreen() {
           label="Face"
           hint="Take a clear photo in soft light."
           value={faceUri}
-          onChange={setFaceUri}
+          onChange={(uri) => updatePhoto(uri, setFaceUri, setFaceUpdatedAt)}
+          updatedAt={faceUpdatedAt}
           cameraType={ImagePicker.CameraType.front}
         />
         <ProfilePhotoCapture
           label="Left palm"
           hint="Open your left hand and show the full palm."
           value={leftPalmUri}
-          onChange={setLeftPalmUri}
+          onChange={(uri) => updatePhoto(uri, setLeftPalmUri, setLeftPalmUpdatedAt)}
+          updatedAt={leftPalmUpdatedAt}
         />
         <ProfilePhotoCapture
           label="Right palm"
           hint="Open your right hand and show the full palm."
           value={rightPalmUri}
-          onChange={setRightPalmUri}
+          onChange={(uri) => updatePhoto(uri, setRightPalmUri, setRightPalmUpdatedAt)}
+          updatedAt={rightPalmUpdatedAt}
         />
         <ProfilePhotoCapture
           label="Handwriting"
           hint="Write: Today I choose steady luck. Then take a photo."
           value={handwritingUri}
-          onChange={setHandwritingUri}
+          onChange={(uri) => updatePhoto(uri, setHandwritingUri, setHandwritingUpdatedAt)}
+          updatedAt={handwritingUpdatedAt}
         />
       </View>
 
@@ -155,6 +169,15 @@ function toggleFocus(current: MainFocus[], focus: MainFocus) {
   }
 
   return [...current, focus];
+}
+
+function updatePhoto(
+  uri: string,
+  setUri: (uri: string) => void,
+  setUpdatedAt: (value: string) => void,
+) {
+  setUri(uri);
+  setUpdatedAt(new Date().toISOString());
 }
 
 type FieldProps = {

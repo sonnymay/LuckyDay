@@ -9,10 +9,19 @@ type Props = {
   value: string;
   onChange: (uri: string) => void;
   onRemove?: () => void;
+  updatedAt?: string;
   cameraType?: ImagePicker.CameraType;
 };
 
-export function ProfilePhotoCapture({ label, hint, value, onChange, onRemove, cameraType = ImagePicker.CameraType.back }: Props) {
+export function ProfilePhotoCapture({
+  label,
+  hint,
+  value,
+  onChange,
+  onRemove,
+  updatedAt,
+  cameraType = ImagePicker.CameraType.back,
+}: Props) {
   async function capture() {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
@@ -53,6 +62,7 @@ export function ProfilePhotoCapture({ label, hint, value, onChange, onRemove, ca
           </Text>
         </View>
         <Text style={styles.hint}>{hint}</Text>
+        {value && updatedAt ? <Text style={styles.updatedAt}>Updated {formatUpdatedAt(updatedAt)}</Text> : null}
       </View>
 
       {value ? <Image source={{ uri: value }} style={styles.preview} /> : <View style={styles.emptyPreview} />}
@@ -69,6 +79,15 @@ export function ProfilePhotoCapture({ label, hint, value, onChange, onRemove, ca
       </View>
     </Card>
   );
+}
+
+function formatUpdatedAt(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 const styles = StyleSheet.create({
@@ -109,6 +128,11 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 14,
     lineHeight: 20,
+  },
+  updatedAt: {
+    color: colors.faint,
+    fontSize: 13,
+    fontWeight: '700',
   },
   preview: {
     aspectRatio: 4 / 3,

@@ -24,6 +24,12 @@ const baseProfile: Profile = {
     rightPalmUri: 'file://right.jpg',
     handwritingUri: 'file://handwriting.jpg',
   },
+  photoTimestamps: {
+    faceUpdatedAt: '2026-04-28T00:00:00.000Z',
+    leftPalmUpdatedAt: '2026-04-28T00:00:00.000Z',
+    rightPalmUpdatedAt: '2026-04-28T00:00:00.000Z',
+    handwritingUpdatedAt: '2026-04-28T00:00:00.000Z',
+  },
   mediaConsentAt: '2026-04-28T00:00:00.000Z',
   createdAt: '2026-04-28T00:00:00.000Z',
 };

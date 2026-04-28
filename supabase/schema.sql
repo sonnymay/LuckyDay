@@ -12,6 +12,10 @@ create table if not exists public.profiles (
   left_palm_image_path text,
   right_palm_image_path text,
   handwriting_image_path text,
+  face_image_updated_at timestamptz,
+  left_palm_image_updated_at timestamptz,
+  right_palm_image_updated_at timestamptz,
+  handwriting_image_updated_at timestamptz,
   media_consent_at timestamptz,
   created_at timestamptz not null default now()
 );

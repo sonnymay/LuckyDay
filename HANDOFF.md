@@ -20,8 +20,8 @@ https://github.com/sonnymay/LuckyDay
 Current branch:
 `main`
 
-Latest pushed commit:
-`9339ec2 Add local privacy data controls`
+Latest pushed work:
+`Track photo update metadata` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
@@ -37,7 +37,7 @@ First launch:
    - Health
    - Luck
 6. User must accept local photo privacy consent.
-7. User must capture all required setup photos. Each photo card shows `Needed` until captured:
+7. User must capture all required setup photos. Each photo card shows `Needed` until captured, then `Captured` with an updated date:
    - face
    - left palm
    - right palm
@@ -74,6 +74,7 @@ Photo capture:
 - Stores local image URIs in AsyncStorage profile data.
 - Shows `Needed` / `Captured` status.
 - Supports retake and remove actions when a photo already exists.
+- Stores optional `photoTimestamps` on the profile for last-updated display.
 - Handwriting prompt is currently: `Today I choose steady luck.`
 - Native camera flow still needs physical-device or simulator testing.
 
@@ -85,8 +86,10 @@ Consent:
 Privacy controls:
 - Settings has a `Privacy controls` card.
 - `Clear feedback` deletes local accuracy ratings and tags only.
+- `Delete photos only` clears saved photo links and photo timestamps while keeping profile details and feedback.
 - `Delete all local data` clears profile, photo URIs, and feedback, then returns to welcome.
 - Storage helpers are in `src/lib/storage.ts`: `resetStoredFeedback` and `resetAllStoredData`.
+- Settings now warns that AsyncStorage is local but not encrypted.
 
 ## Commands
 
@@ -128,7 +131,7 @@ npm run export:web
 
 ## Verification Status
 
-Last verified after local privacy controls change:
+Last verified after photo timestamp/delete-photos-only change:
 - `npm run typecheck` passed
 - `npm test` passed: 7 tests
 - `npm run e2e` passed: 2 browser smoke tests
@@ -155,9 +158,9 @@ Note: In the Codex sandbox, `npm run e2e` required permission to bind a localhos
    - Verify Settings retake works.
 
 2. Improve photo/privacy UX further.
-   - Add a “delete photos only” action if users want to keep profile text.
-   - Show the last updated date for each photo.
-   - Add stronger explanation that AsyncStorage is not encrypted.
+   - Add a dedicated “Photos and privacy” screen if Settings gets too long.
+   - Consider moving sensitive image files out of plain AsyncStorage URI-only handling before production.
+   - Add explicit export/delete copy for future cloud sync.
 
 3. Improve the daily reading model.
    - Make multi-focus readings more visibly reflect all selected focuses.

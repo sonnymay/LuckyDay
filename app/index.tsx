@@ -23,6 +23,7 @@ const sampleProfile: Profile = {
     rightPalmUri: '',
     handwritingUri: '',
   },
+  photoTimestamps: {},
   mediaConsentAt: new Date().toISOString(),
   createdAt: new Date().toISOString(),
 };

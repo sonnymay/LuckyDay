@@ -24,6 +24,10 @@ export default function SettingsScreen() {
   const [leftPalmUri, setLeftPalmUri] = useState('');
   const [rightPalmUri, setRightPalmUri] = useState('');
   const [handwritingUri, setHandwritingUri] = useState('');
+  const [faceUpdatedAt, setFaceUpdatedAt] = useState('');
+  const [leftPalmUpdatedAt, setLeftPalmUpdatedAt] = useState('');
+  const [rightPalmUpdatedAt, setRightPalmUpdatedAt] = useState('');
+  const [handwritingUpdatedAt, setHandwritingUpdatedAt] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -42,6 +46,10 @@ export default function SettingsScreen() {
         setLeftPalmUri(storedProfile.photos?.leftPalmUri ?? '');
         setRightPalmUri(storedProfile.photos?.rightPalmUri ?? '');
         setHandwritingUri(storedProfile.photos?.handwritingUri ?? '');
+        setFaceUpdatedAt(storedProfile.photoTimestamps?.faceUpdatedAt ?? '');
+        setLeftPalmUpdatedAt(storedProfile.photoTimestamps?.leftPalmUpdatedAt ?? '');
+        setRightPalmUpdatedAt(storedProfile.photoTimestamps?.rightPalmUpdatedAt ?? '');
+        setHandwritingUpdatedAt(storedProfile.photoTimestamps?.handwritingUpdatedAt ?? '');
       });
     }, []),
   );
@@ -82,6 +90,12 @@ export default function SettingsScreen() {
           leftPalmUri,
           rightPalmUri,
           handwritingUri,
+        },
+        photoTimestamps: {
+          faceUpdatedAt,
+          leftPalmUpdatedAt,
+          rightPalmUpdatedAt,
+          handwritingUpdatedAt,
         },
         mediaConsentAt: profile.mediaConsentAt,
       }),
@@ -135,6 +149,42 @@ export default function SettingsScreen() {
     ]);
   }
 
+  function confirmDeletePhotosOnly() {
+    if (!profile) return;
+
+    Alert.alert('Delete photos only?', 'This keeps your profile details and feedback, but removes saved photo links from this device.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete photos',
+        style: 'destructive',
+        onPress: async () => {
+          const nextProfile = {
+            ...profile,
+            photos: {
+              faceUri: '',
+              leftPalmUri: '',
+              rightPalmUri: '',
+              handwritingUri: '',
+            },
+            photoTimestamps: {},
+          };
+
+          await saveStoredProfile(nextProfile);
+          setProfile(nextProfile);
+          setFaceUri('');
+          setLeftPalmUri('');
+          setRightPalmUri('');
+          setHandwritingUri('');
+          setFaceUpdatedAt('');
+          setLeftPalmUpdatedAt('');
+          setRightPalmUpdatedAt('');
+          setHandwritingUpdatedAt('');
+          Alert.alert('Photos deleted', 'Your profile details are still saved.');
+        },
+      },
+    ]);
+  }
+
   if (!profile) {
     return (
       <View style={styles.loading}>
@@ -182,45 +232,50 @@ export default function SettingsScreen() {
 
       <View style={styles.photoStack}>
         <Text style={styles.photoTitle}>Luck photos</Text>
-        <Text style={styles.photoCopy}>Retake any setup photo when your profile needs a refresh.</Text>
+        <Text style={styles.photoCopy}>Retake any setup photo when your profile needs a refresh. Photo links are saved locally and are not encrypted in this MVP.</Text>
         <ProfilePhotoCapture
           label="Face"
           hint="Take a clear photo in soft light."
           value={faceUri}
-          onChange={setFaceUri}
-          onRemove={() => setFaceUri('')}
+          onChange={(uri) => updatePhoto(uri, setFaceUri, setFaceUpdatedAt)}
+          onRemove={() => removePhoto(setFaceUri, setFaceUpdatedAt)}
+          updatedAt={faceUpdatedAt}
           cameraType={ImagePicker.CameraType.front}
         />
         <ProfilePhotoCapture
           label="Left palm"
           hint="Open your left hand and show the full palm."
           value={leftPalmUri}
-          onChange={setLeftPalmUri}
-          onRemove={() => setLeftPalmUri('')}
+          onChange={(uri) => updatePhoto(uri, setLeftPalmUri, setLeftPalmUpdatedAt)}
+          onRemove={() => removePhoto(setLeftPalmUri, setLeftPalmUpdatedAt)}
+          updatedAt={leftPalmUpdatedAt}
         />
         <ProfilePhotoCapture
           label="Right palm"
           hint="Open your right hand and show the full palm."
           value={rightPalmUri}
-          onChange={setRightPalmUri}
-          onRemove={() => setRightPalmUri('')}
+          onChange={(uri) => updatePhoto(uri, setRightPalmUri, setRightPalmUpdatedAt)}
+          onRemove={() => removePhoto(setRightPalmUri, setRightPalmUpdatedAt)}
+          updatedAt={rightPalmUpdatedAt}
         />
         <ProfilePhotoCapture
           label="Handwriting"
           hint="Write: Today I choose steady luck. Then take a photo."
           value={handwritingUri}
-          onChange={setHandwritingUri}
-          onRemove={() => setHandwritingUri('')}
+          onChange={(uri) => updatePhoto(uri, setHandwritingUri, setHandwritingUpdatedAt)}
+          onRemove={() => removePhoto(setHandwritingUri, setHandwritingUpdatedAt)}
+          updatedAt={handwritingUpdatedAt}
         />
       </View>
 
       <Card style={styles.privacyCard}>
         <Text style={styles.photoTitle}>Privacy controls</Text>
         <Text style={styles.photoCopy}>
-          Your profile, photos, and feedback are stored on this device for the MVP.
+          Your profile, photo links, and feedback are stored on this device for the MVP. AsyncStorage is local, but it is not encrypted.
         </Text>
         <View style={styles.privacyActions}>
           <AppButton label="Clear feedback" variant="secondary" onPress={confirmClearFeedback} />
+          <AppButton label="Delete photos only" variant="secondary" onPress={confirmDeletePhotosOnly} />
           <AppButton label="Delete all local data" variant="danger" onPress={confirmDeleteLocalData} />
         </View>
       </Card>
@@ -237,6 +292,20 @@ function toggleFocus(current: MainFocus[], focus: MainFocus) {
   }
 
   return [...current, focus];
+}
+
+function updatePhoto(
+  uri: string,
+  setUri: (uri: string) => void,
+  setUpdatedAt: (value: string) => void,
+) {
+  setUri(uri);
+  setUpdatedAt(new Date().toISOString());
+}
+
+function removePhoto(setUri: (uri: string) => void, setUpdatedAt: (value: string) => void) {
+  setUri('');
+  setUpdatedAt('');
 }
 
 type FieldProps = {
