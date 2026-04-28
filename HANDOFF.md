@@ -21,7 +21,7 @@ Current branch:
 `main`
 
 Latest pushed commit:
-`fffedbb Allow multiple daily focus selections`
+`9339ec2 Add local privacy data controls`
 
 ## Current App Behavior
 
@@ -37,7 +37,7 @@ First launch:
    - Health
    - Luck
 6. User must accept local photo privacy consent.
-7. User must capture:
+7. User must capture all required setup photos. Each photo card shows `Needed` until captured:
    - face
    - left palm
    - right palm
@@ -51,7 +51,7 @@ Main screens:
 - `app/home.tsx`: daily score and summary
 - `app/detail.tsx`: money/love/work/health/warning/action detail
 - `app/feedback.tsx`: local rating and tags
-- `app/settings.tsx`: edit nickname, birthday, multi-focuses, notification time, retake photos, reset profile
+- `app/settings.tsx`: edit nickname, birthday, multi-focuses, notification time, retake/remove photos, privacy controls, reset profile
 
 ## Important Implementation Notes
 
@@ -72,12 +72,21 @@ Photo capture:
 - `src/components/ProfilePhotoCapture.tsx`
 - Uses `expo-image-picker`.
 - Stores local image URIs in AsyncStorage profile data.
+- Shows `Needed` / `Captured` status.
+- Supports retake and remove actions when a photo already exists.
+- Handwriting prompt is currently: `Today I choose steady luck.`
 - Native camera flow still needs physical-device or simulator testing.
 
 Consent:
 - `src/components/MediaConsentCard.tsx`
 - Required before onboarding profile save.
 - Says photos stay on-device for the MVP.
+
+Privacy controls:
+- Settings has a `Privacy controls` card.
+- `Clear feedback` deletes local accuracy ratings and tags only.
+- `Delete all local data` clears profile, photo URIs, and feedback, then returns to welcome.
+- Storage helpers are in `src/lib/storage.ts`: `resetStoredFeedback` and `resetAllStoredData`.
 
 ## Commands
 
@@ -119,7 +128,7 @@ npm run export:web
 
 ## Verification Status
 
-Last verified after multi-focus change:
+Last verified after local privacy controls change:
 - `npm run typecheck` passed
 - `npm test` passed: 7 tests
 - `npm run e2e` passed: 2 browser smoke tests
@@ -145,27 +154,22 @@ Note: In the Codex sandbox, `npm run e2e` required permission to bind a localhos
    - Verify photo previews persist after app restart.
    - Verify Settings retake works.
 
-2. Add a better photo management UX.
-   - Show capture completion status.
-   - Add remove/retake confirmation.
-   - Add clearer guidance for handwriting sample text.
+2. Improve photo/privacy UX further.
+   - Add a “delete photos only” action if users want to keep profile text.
+   - Show the last updated date for each photo.
+   - Add stronger explanation that AsyncStorage is not encrypted.
 
-3. Add a privacy/settings section.
-   - Explain local storage.
-   - Add “delete photos only”.
-   - Add “export/delete all local data”.
-
-4. Improve the daily reading model.
+3. Improve the daily reading model.
    - Make multi-focus readings more visibly reflect all selected focuses.
    - Add Thai day-of-week color traditions.
    - Add more template variety without AI.
 
-5. Add a lightweight local notification MVP.
+4. Add a lightweight local notification MVP.
    - Do not request permission during onboarding.
    - Let user enable reminders from Settings.
    - Use local notifications only.
 
-6. Prepare future Supabase sync carefully.
+5. Prepare future Supabase sync carefully.
    - Add Auth only when explicitly needed.
    - Add Storage buckets and RLS policies before uploading photos.
    - Add deletion policies before any upload feature.
