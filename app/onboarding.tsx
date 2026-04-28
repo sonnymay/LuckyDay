@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
+import { MediaConsentCard } from '../src/components/MediaConsentCard';
 import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
 import { isValidDateKey } from '../src/lib/date';
@@ -25,6 +26,7 @@ export default function OnboardingScreen() {
   const [leftPalmUri, setLeftPalmUri] = useState('');
   const [rightPalmUri, setRightPalmUri] = useState('');
   const [handwritingUri, setHandwritingUri] = useState('');
+  const [acceptedMediaConsent, setAcceptedMediaConsent] = useState(false);
 
   async function saveProfile() {
     if (!nickname.trim()) {
@@ -34,6 +36,11 @@ export default function OnboardingScreen() {
 
     if (!isValidDateKey(birthday.trim())) {
       Alert.alert('Birthday needed', 'Use the format YYYY-MM-DD.');
+      return;
+    }
+
+    if (!acceptedMediaConsent) {
+      Alert.alert('Photo privacy', 'Agree to the local photo storage note before taking your LuckyDay photos.');
       return;
     }
 
@@ -55,6 +62,7 @@ export default function OnboardingScreen() {
         rightPalmUri,
         handwritingUri,
       },
+      mediaConsentAt: new Date().toISOString(),
     });
 
     await saveStoredProfile(profile);
@@ -102,6 +110,7 @@ export default function OnboardingScreen() {
       <View style={styles.photoStack}>
         <Text style={styles.photoTitle}>Luck photos</Text>
         <Text style={styles.photoCopy}>These are required for sign up now and stay local in the MVP.</Text>
+        <MediaConsentCard accepted={acceptedMediaConsent} onChange={setAcceptedMediaConsent} />
         <ProfilePhotoCapture
           label="Face"
           hint="Take a clear photo in soft light."

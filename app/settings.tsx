@@ -1,8 +1,10 @@
 import { useCallback, useState } from 'react';
 import { Alert, ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
+import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
 import { isValidDateKey } from '../src/lib/date';
 import { createProfile } from '../src/lib/luck';
@@ -18,6 +20,10 @@ export default function SettingsScreen() {
   const [birthday, setBirthday] = useState('');
   const [mainFocus, setMainFocus] = useState<MainFocus>('Luck');
   const [notificationTime, setNotificationTime] = useState('');
+  const [faceUri, setFaceUri] = useState('');
+  const [leftPalmUri, setLeftPalmUri] = useState('');
+  const [rightPalmUri, setRightPalmUri] = useState('');
+  const [handwritingUri, setHandwritingUri] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -32,6 +38,10 @@ export default function SettingsScreen() {
         setBirthday(storedProfile.birthday);
         setMainFocus(storedProfile.mainFocus);
         setNotificationTime(storedProfile.notificationTime ?? '');
+        setFaceUri(storedProfile.photos?.faceUri ?? '');
+        setLeftPalmUri(storedProfile.photos?.leftPalmUri ?? '');
+        setRightPalmUri(storedProfile.photos?.rightPalmUri ?? '');
+        setHandwritingUri(storedProfile.photos?.handwritingUri ?? '');
       });
     }, []),
   );
@@ -49,6 +59,11 @@ export default function SettingsScreen() {
       return;
     }
 
+    if (!faceUri || !leftPalmUri || !rightPalmUri || !handwritingUri) {
+      Alert.alert('Photos needed', 'Keep your face, left palm, right palm, and handwriting photos on your profile.');
+      return;
+    }
+
     const nextProfile = {
       ...createProfile({
         nickname,
@@ -57,7 +72,13 @@ export default function SettingsScreen() {
         birthplace: profile.birthplace,
         mainFocus,
         notificationTime,
-        photos: profile.photos,
+        photos: {
+          faceUri,
+          leftPalmUri,
+          rightPalmUri,
+          handwritingUri,
+        },
+        mediaConsentAt: profile.mediaConsentAt,
       }),
       id: profile.id,
       createdAt: profile.createdAt,
@@ -125,6 +146,36 @@ export default function SettingsScreen() {
         />
       </View>
 
+      <View style={styles.photoStack}>
+        <Text style={styles.photoTitle}>Luck photos</Text>
+        <Text style={styles.photoCopy}>Retake any setup photo when your profile needs a refresh.</Text>
+        <ProfilePhotoCapture
+          label="Face"
+          hint="Take a clear photo in soft light."
+          value={faceUri}
+          onChange={setFaceUri}
+          cameraType={ImagePicker.CameraType.front}
+        />
+        <ProfilePhotoCapture
+          label="Left palm"
+          hint="Open your left hand and show the full palm."
+          value={leftPalmUri}
+          onChange={setLeftPalmUri}
+        />
+        <ProfilePhotoCapture
+          label="Right palm"
+          hint="Open your right hand and show the full palm."
+          value={rightPalmUri}
+          onChange={setRightPalmUri}
+        />
+        <ProfilePhotoCapture
+          label="Handwriting"
+          hint="Write one short sentence on paper and take a photo."
+          value={handwritingUri}
+          onChange={setHandwritingUri}
+        />
+      </View>
+
       <AppButton label="Save settings" onPress={saveSettings} />
       <AppButton label="Reset profile" variant="danger" onPress={confirmReset} />
     </Screen>
@@ -177,6 +228,19 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing.md,
+  },
+  photoStack: {
+    gap: spacing.md,
+  },
+  photoTitle: {
+    color: colors.ink,
+    fontSize: 24,
+    fontWeight: '900',
+  },
+  photoCopy: {
+    color: colors.muted,
+    fontSize: 15,
+    lineHeight: 22,
   },
   group: {
     gap: spacing.sm,

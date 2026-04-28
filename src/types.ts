@@ -18,6 +18,7 @@ export type Profile = {
   westernZodiac: string;
   chineseZodiac: string;
   photos: ProfilePhotos;
+  mediaConsentAt: string;
   createdAt: string;
 };
 
@@ -29,6 +30,7 @@ export type ProfileInput = {
   mainFocus: MainFocus;
   notificationTime?: string;
   photos: ProfilePhotos;
+  mediaConsentAt?: string;
 };
 
 export type DailyReading = {

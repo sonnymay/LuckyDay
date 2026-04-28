@@ -7,6 +7,8 @@ node_modules/
 .expo/
 .omx/
 dist/
+test-results/
+playwright-report/
 web-build/
 expo-env.d.ts
 

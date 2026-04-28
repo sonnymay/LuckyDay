@@ -138,6 +138,7 @@ export function createProfile(input: ProfileInput): Profile {
     westernZodiac: getWesternZodiac(birthday),
     chineseZodiac: getChineseZodiac(birthday),
     photos: input.photos,
+    mediaConsentAt: input.mediaConsentAt ?? new Date().toISOString(),
     createdAt: new Date().toISOString(),
   };
 }
