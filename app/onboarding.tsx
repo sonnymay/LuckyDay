@@ -48,13 +48,8 @@ export default function OnboardingScreen() {
       return;
     }
 
-    if (!acceptedMediaConsent) {
-      Alert.alert('Photo privacy', 'Agree to the local photo storage note before taking your LuckyDay photos.');
-      return;
-    }
-
-    if (!faceUri || !leftPalmUri || !rightPalmUri || !handwritingUri) {
-      Alert.alert('Photos needed', 'Take your face, left palm, right palm, and handwriting photos.');
+    if (hasAnyPhoto([faceUri, leftPalmUri, rightPalmUri, handwritingUri]) && !acceptedMediaConsent) {
+      Alert.alert('Photo privacy', 'Agree to the local photo storage note before saving optional photos.');
       return;
     }
 
@@ -89,7 +84,7 @@ export default function OnboardingScreen() {
       <Card style={styles.intro}>
         <Text style={styles.title}>One-time setup</Text>
         <Text style={styles.copy}>
-          LuckyDay saves your profile and photos on your phone first. No account is needed for the MVP.
+          LuckyDay saves your profile on your phone first. No account is needed for the MVP.
         </Text>
       </Card>
 
@@ -124,8 +119,8 @@ export default function OnboardingScreen() {
       </View>
 
       <View style={styles.photoStack}>
-        <Text style={styles.photoTitle}>Luck photos</Text>
-        <Text style={styles.photoCopy}>These are required for sign up now and stay local in the MVP.</Text>
+        <Text style={styles.photoTitle}>Optional luck photos</Text>
+        <Text style={styles.photoCopy}>You can skip these now and add them later in Settings.</Text>
         <MediaConsentCard accepted={acceptedMediaConsent} onChange={setAcceptedMediaConsent} />
         <ProfilePhotoCapture
           label="Face"
@@ -178,6 +173,10 @@ function updatePhoto(
 ) {
   setUri(uri);
   setUpdatedAt(new Date().toISOString());
+}
+
+function hasAnyPhoto(values: string[]) {
+  return values.some(Boolean);
 }
 
 type FieldProps = {

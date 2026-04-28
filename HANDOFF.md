@@ -36,8 +36,8 @@ First launch:
    - Work
    - Health
    - Luck
-6. User must accept local photo privacy consent.
-7. User must capture all required setup photos. Each photo card shows `Needed` until captured, then `Captured` with an updated date:
+6. User can optionally add photos. If they save photos, they should accept local photo privacy consent.
+7. Optional photo cards show `Optional` until captured, then `Captured` with an updated date:
    - face
    - left palm
    - right palm
@@ -47,7 +47,7 @@ First launch:
 
 Main screens:
 - `app/index.tsx`: welcome/sample reading
-- `app/onboarding.tsx`: local profile setup, multi-focus chips, media consent, photo capture
+- `app/onboarding.tsx`: local profile setup, multi-focus chips, optional media consent, optional photo capture
 - `app/home.tsx`: daily score and summary
 - `app/detail.tsx`: money/love/work/health/warning/action detail
 - `app/feedback.tsx`: local rating and tags
@@ -72,7 +72,7 @@ Photo capture:
 - `src/components/ProfilePhotoCapture.tsx`
 - Uses `expo-image-picker`.
 - Stores local image URIs in AsyncStorage profile data.
-- Shows `Needed` / `Captured` status.
+- Shows `Optional` / `Captured` status.
 - Supports retake and remove actions when a photo already exists.
 - Stores optional `photoTimestamps` on the profile for last-updated display.
 - Handwriting prompt is currently: `Today I choose steady luck.`
@@ -80,7 +80,7 @@ Photo capture:
 
 Consent:
 - `src/components/MediaConsentCard.tsx`
-- Required before onboarding profile save.
+- Required only when optional photos are saved.
 - Says photos stay on-device for the MVP.
 
 Privacy controls:
@@ -131,13 +131,19 @@ npm run export:web
 
 ## Verification Status
 
-Last verified after photo timestamp/delete-photos-only change:
+Last verified after optional-photo onboarding change:
 - `npm run typecheck` passed
 - `npm test` passed: 7 tests
-- `npm run e2e` passed: 2 browser smoke tests
+- `npm run export:web` passed
+
+E2E note:
+- `npm run e2e` now includes 3 browser smoke tests, including onboarding without photos.
+- It was not rerun after the optional-photo change because the sandbox rejected the localhost server escalation due usage limits.
+- Previous e2e verification before this change passed with 2 browser smoke tests.
 
 Known verification gap:
 - Native camera capture has not been tested on a physical iOS/Android device.
+- Browser smoke tests should be rerun when localhost binding is available again.
 
 Note: In the Codex sandbox, `npm run e2e` required permission to bind a localhost server. The e2e setup exports web to `dist` and serves it with `e2e/static-server.js`.
 
@@ -151,7 +157,8 @@ Note: In the Codex sandbox, `npm run e2e` required permission to bind a localhos
 
 ## Recommended Next Steps
 
-1. Test the full onboarding camera flow on a real phone with Expo Go.
+1. Test the full onboarding flow on a real phone with Expo Go.
+   - Verify onboarding can finish without any photos.
    - Verify each capture works.
    - Verify front camera is used for face.
    - Verify photo previews persist after app restart.

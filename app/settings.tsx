@@ -72,11 +72,6 @@ export default function SettingsScreen() {
       return;
     }
 
-    if (!faceUri || !leftPalmUri || !rightPalmUri || !handwritingUri) {
-      Alert.alert('Photos needed', 'Keep your face, left palm, right palm, and handwriting photos on your profile.');
-      return;
-    }
-
     const nextProfile = {
       ...createProfile({
         nickname,
@@ -231,8 +226,8 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.photoStack}>
-        <Text style={styles.photoTitle}>Luck photos</Text>
-        <Text style={styles.photoCopy}>Retake any setup photo when your profile needs a refresh. Photo links are saved locally and are not encrypted in this MVP.</Text>
+        <Text style={styles.photoTitle}>Optional luck photos</Text>
+        <Text style={styles.photoCopy}>Add, retake, or remove photos anytime. Photo links are saved locally and are not encrypted in this MVP.</Text>
         <ProfilePhotoCapture
           label="Face"
           hint="Take a clear photo in soft light."

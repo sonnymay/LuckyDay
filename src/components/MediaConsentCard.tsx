@@ -22,10 +22,10 @@ export function MediaConsentCard({ accepted, onChange }: Props) {
         </Pressable>
       </View>
       <Text style={styles.copy}>
-        LuckyDay uses your face, palm, and handwriting photos only for your local profile in this MVP. They stay on this device unless you choose cloud sync in a future version.
+        Photos are optional. If you add face, palm, or handwriting photos, LuckyDay saves them only for your local profile in this MVP.
       </Text>
       <Pressable onPress={() => onChange(!accepted)} style={styles.consentRow}>
-        <Text style={styles.consentText}>I understand and agree to save these photos on this device.</Text>
+        <Text style={styles.consentText}>I agree to save optional photos on this device.</Text>
       </Pressable>
     </Card>
   );

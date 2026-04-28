@@ -58,7 +58,7 @@ export function ProfilePhotoCapture({
         <View style={styles.titleRow}>
           <Text style={styles.label}>{label}</Text>
           <Text style={[styles.status, value ? styles.completeStatus : styles.neededStatus]}>
-            {value ? 'Captured' : 'Needed'}
+            {value ? 'Captured' : 'Optional'}
           </Text>
         </View>
         <Text style={styles.hint}>{hint}</Text>

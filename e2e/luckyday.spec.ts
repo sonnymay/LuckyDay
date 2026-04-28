@@ -31,7 +31,7 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test('new users see sample reading and consent-gated photo setup', async ({ page }) => {
+test('new users see sample reading and optional photo setup', async ({ page }) => {
   await page.goto('/');
 
   await expect(page.getByText('LuckyDay', { exact: true })).toBeVisible();
@@ -42,13 +42,27 @@ test('new users see sample reading and consent-gated photo setup', async ({ page
   await expect(page.getByText('One-time setup')).toBeVisible();
   await expect(page.getByText('Main focuses')).toBeVisible();
   await expect(page.getByText('Choose one, a few, or all of them.')).toBeVisible();
+  await expect(page.getByText('Optional luck photos')).toBeVisible();
+  await expect(page.getByText('You can skip these now and add them later in Settings.')).toBeVisible();
   await expect(page.getByText('Photo privacy')).toBeVisible();
-  await expect(page.getByText('I understand and agree to save these photos on this device.')).toBeVisible();
+  await expect(page.getByText('I agree to save optional photos on this device.')).toBeVisible();
   await expect(page.getByText('Face', { exact: true })).toBeVisible();
   await expect(page.getByText('Left palm', { exact: true })).toBeVisible();
   await expect(page.getByText('Right palm', { exact: true })).toBeVisible();
   await expect(page.getByText('Handwriting', { exact: true })).toBeVisible();
-  await expect(page.getByText('Needed', { exact: true })).toHaveCount(4);
+  await expect(page.getByText('Optional', { exact: true })).toHaveCount(4);
+});
+
+test('new users can finish onboarding without photos', async ({ page }) => {
+  await page.goto('/');
+
+  await page.getByText('Create my profile').click();
+  await page.getByPlaceholder('Mali').fill('Nok');
+  await page.getByPlaceholder('YYYY-MM-DD').fill('1994-08-12');
+  await page.getByText("Show today's luck").click();
+
+  await expect(page.getByText('Hi, Nok')).toBeVisible();
+  await expect(page.getByText('Today Score')).toBeVisible();
 });
 
 test('saved users can retake all setup photos from settings', async ({ page }) => {
@@ -59,8 +73,8 @@ test('saved users can retake all setup photos from settings', async ({ page }) =
   await page.goto('/settings');
 
   await expect(page.getByText('Your profile', { exact: true })).toBeVisible();
-  await expect(page.getByText('Luck photos')).toBeVisible();
-  await expect(page.getByText('Retake any setup photo when your profile needs a refresh.')).toBeVisible();
+  await expect(page.getByText('Optional luck photos')).toBeVisible();
+  await expect(page.getByText('Add, retake, or remove photos anytime. Photo links are saved locally and are not encrypted in this MVP.')).toBeVisible();
   await expect(page.getByText('Retake photo')).toHaveCount(4);
   await expect(page.getByText('Captured')).toHaveCount(4);
   await expect(page.getByText(/Updated/)).toHaveCount(4);
