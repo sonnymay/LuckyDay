@@ -138,7 +138,7 @@ export default function OnboardingScreen() {
         />
         <ProfilePhotoCapture
           label="Handwriting"
-          hint="Write one short sentence on paper and take a photo."
+          hint="Write: Today I choose steady luck. Then take a photo."
           value={handwritingUri}
           onChange={setHandwritingUri}
         />

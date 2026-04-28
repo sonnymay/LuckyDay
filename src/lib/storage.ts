@@ -17,6 +17,14 @@ export async function resetStoredProfile() {
   await AsyncStorage.removeItem(PROFILE_KEY);
 }
 
+export async function resetStoredFeedback() {
+  await AsyncStorage.removeItem(FEEDBACK_KEY);
+}
+
+export async function resetAllStoredData() {
+  await AsyncStorage.multiRemove([PROFILE_KEY, FEEDBACK_KEY]);
+}
+
 export async function getStoredFeedback() {
   const value = await AsyncStorage.getItem(FEEDBACK_KEY);
   return value ? (JSON.parse(value) as Feedback[]) : [];

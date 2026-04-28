@@ -8,7 +8,7 @@ import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
 import { isValidDateKey } from '../src/lib/date';
 import { createProfile, normalizeMainFocuses } from '../src/lib/luck';
-import { getStoredProfile, resetStoredProfile, saveStoredProfile } from '../src/lib/storage';
+import { getStoredProfile, resetAllStoredData, resetStoredFeedback, resetStoredProfile, saveStoredProfile } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
 import { MainFocus, Profile } from '../src/types';
 
@@ -107,6 +107,34 @@ export default function SettingsScreen() {
     ]);
   }
 
+  function confirmClearFeedback() {
+    Alert.alert('Clear feedback?', 'This removes your saved accuracy ratings and tags from this device.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Clear',
+        style: 'destructive',
+        onPress: async () => {
+          await resetStoredFeedback();
+          Alert.alert('Feedback cleared', 'Your saved feedback has been removed.');
+        },
+      },
+    ]);
+  }
+
+  function confirmDeleteLocalData() {
+    Alert.alert('Delete all local data?', 'This clears your profile, photos, and feedback from this device.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await resetAllStoredData();
+          router.replace('/');
+        },
+      },
+    ]);
+  }
+
   if (!profile) {
     return (
       <View style={styles.loading}>
@@ -160,6 +188,7 @@ export default function SettingsScreen() {
           hint="Take a clear photo in soft light."
           value={faceUri}
           onChange={setFaceUri}
+          onRemove={() => setFaceUri('')}
           cameraType={ImagePicker.CameraType.front}
         />
         <ProfilePhotoCapture
@@ -167,20 +196,34 @@ export default function SettingsScreen() {
           hint="Open your left hand and show the full palm."
           value={leftPalmUri}
           onChange={setLeftPalmUri}
+          onRemove={() => setLeftPalmUri('')}
         />
         <ProfilePhotoCapture
           label="Right palm"
           hint="Open your right hand and show the full palm."
           value={rightPalmUri}
           onChange={setRightPalmUri}
+          onRemove={() => setRightPalmUri('')}
         />
         <ProfilePhotoCapture
           label="Handwriting"
-          hint="Write one short sentence on paper and take a photo."
+          hint="Write: Today I choose steady luck. Then take a photo."
           value={handwritingUri}
           onChange={setHandwritingUri}
+          onRemove={() => setHandwritingUri('')}
         />
       </View>
+
+      <Card style={styles.privacyCard}>
+        <Text style={styles.photoTitle}>Privacy controls</Text>
+        <Text style={styles.photoCopy}>
+          Your profile, photos, and feedback are stored on this device for the MVP.
+        </Text>
+        <View style={styles.privacyActions}>
+          <AppButton label="Clear feedback" variant="secondary" onPress={confirmClearFeedback} />
+          <AppButton label="Delete all local data" variant="danger" onPress={confirmDeleteLocalData} />
+        </View>
+      </Card>
 
       <AppButton label="Save settings" onPress={saveSettings} />
       <AppButton label="Reset profile" variant="danger" onPress={confirmReset} />
@@ -255,6 +298,12 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 15,
     lineHeight: 22,
+  },
+  privacyCard: {
+    gap: spacing.md,
+  },
+  privacyActions: {
+    gap: spacing.sm,
   },
   group: {
     gap: spacing.sm,

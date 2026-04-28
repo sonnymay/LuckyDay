@@ -42,6 +42,7 @@ test('new users see sample reading and consent-gated photo setup', async ({ page
   await expect(page.getByText('Left palm', { exact: true })).toBeVisible();
   await expect(page.getByText('Right palm', { exact: true })).toBeVisible();
   await expect(page.getByText('Handwriting', { exact: true })).toBeVisible();
+  await expect(page.getByText('Needed', { exact: true })).toHaveCount(4);
 });
 
 test('saved users can retake all setup photos from settings', async ({ page }) => {
@@ -55,4 +56,9 @@ test('saved users can retake all setup photos from settings', async ({ page }) =
   await expect(page.getByText('Luck photos')).toBeVisible();
   await expect(page.getByText('Retake any setup photo when your profile needs a refresh.')).toBeVisible();
   await expect(page.getByText('Retake photo')).toHaveCount(4);
+  await expect(page.getByText('Captured')).toHaveCount(4);
+  await expect(page.getByText('Remove')).toHaveCount(4);
+  await expect(page.getByText('Privacy controls')).toBeVisible();
+  await expect(page.getByText('Clear feedback')).toBeVisible();
+  await expect(page.getByText('Delete all local data')).toBeVisible();
 });
