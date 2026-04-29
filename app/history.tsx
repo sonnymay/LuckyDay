@@ -4,7 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Card } from '../src/components/Card';
 import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
-import { getReadingStreak } from '../src/lib/streak';
+import { getMonthActivity, getReadingStreak, MonthActivityDay } from '../src/lib/streak';
 import { getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
 import { colors, spacing } from '../src/styles/theme';
 import { DailyReading } from '../src/types';
@@ -67,9 +67,42 @@ export default function HistoryScreen() {
           <Text style={styles.copy}>Open Home each day to save that day’s luck energy here.</Text>
         </Card>
       ) : (
-        history.map((reading) => <HistoryCard key={reading.date} reading={reading} />)
+        <>
+          <MonthActivityCard history={history} />
+          {history.map((reading) => <HistoryCard key={reading.date} reading={reading} />)}
+        </>
       )}
     </Screen>
+  );
+}
+
+function MonthActivityCard({ history }: { history: DailyReading[] }) {
+  const activity = getMonthActivity(history);
+
+  return (
+    <Card style={styles.monthCard}>
+      <Text style={styles.monthTitle}>{formatMonthTitle()}</Text>
+      <Text style={styles.monthCopy}>Gold marks the days you opened your luck ritual.</Text>
+      <View style={styles.weekdayRow}>
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+          <Text key={`${day}-${index}`} style={styles.weekday}>{day}</Text>
+        ))}
+      </View>
+      <View style={styles.monthGrid}>
+        {Array.from({ length: getMonthStartOffset() }).map((_, index) => (
+          <View key={`blank-${index}`} style={styles.dayCell} />
+        ))}
+        {activity.map((day) => <MonthDay key={day.date} day={day} />)}
+      </View>
+    </Card>
+  );
+}
+
+function MonthDay({ day }: { day: MonthActivityDay }) {
+  return (
+    <View style={[styles.dayCell, day.hasReading && styles.activeDay, day.isToday && styles.todayCell]}>
+      <Text style={[styles.dayText, day.hasReading && styles.activeDayText]}>{day.day}</Text>
+    </View>
   );
 }
 
@@ -107,6 +140,14 @@ function formatHistoryDate(value: string) {
 
 function formatStreak(value: number) {
   return `${value} ${value === 1 ? 'day' : 'days'} streak`;
+}
+
+function formatMonthTitle(date = new Date()) {
+  return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+}
+
+function getMonthStartOffset(date = new Date()) {
+  return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 }
 
 const styles = StyleSheet.create({
@@ -153,6 +194,66 @@ const styles = StyleSheet.create({
   emptyTitle: {
     color: colors.ink,
     fontSize: 20,
+    fontWeight: '900',
+  },
+  monthCard: {
+    backgroundColor: colors.sunrise,
+    borderColor: colors.roseGold,
+  },
+  monthTitle: {
+    color: colors.mauve,
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  monthCopy: {
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: spacing.xs,
+  },
+  weekdayRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+  },
+  weekday: {
+    color: colors.goldDeep,
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  monthGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  dayCell: {
+    alignItems: 'center',
+    aspectRatio: 1,
+    backgroundColor: colors.panel,
+    borderColor: colors.line,
+    borderRadius: 999,
+    borderWidth: 1,
+    flexBasis: '12.3%',
+    justifyContent: 'center',
+  },
+  activeDay: {
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+  },
+  todayCell: {
+    borderColor: colors.mauve,
+    borderWidth: 2,
+  },
+  dayText: {
+    color: colors.faint,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  activeDayText: {
+    color: colors.goldDeep,
     fontWeight: '900',
   },
   historyCard: {

@@ -70,6 +70,7 @@ Daily reading logic lives in `src/lib/luck.ts`.
 Storage lives in `src/lib/storage.ts`.
 - Reading history is saved locally in `luckyday.readingHistory.v1`, capped at 30 readings, and keyed by date so a daily reading updates rather than duplicates.
 - `src/lib/streak.ts` calculates the current daily ritual streak from local reading history.
+- History includes a compact current-month activity grid that marks days with saved readings.
 - `Delete all local data` clears profile, feedback, and reading history.
 
 Supabase is future-ready only:
@@ -162,9 +163,9 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-29 after streak summary pass:
+Last verified on 2026-04-29 after history month view pass:
 - `npm run typecheck` passed
-- `npm test` passed: 12 tests
+- `npm test` passed: 13 tests
 - `npm run export:web` passed
 - `npm run e2e` passed: 3 browser smoke tests
 
@@ -210,9 +211,9 @@ Known verification gap:
    - Add more moon/message variety without AI.
 
 4. Improve reading history.
-   - Add a compact month view.
    - Add clearer empty state if history is unavailable.
    - Consider a non-destructive `Clear history` control later with confirmation.
+   - Consider previous/next month navigation once history spans multiple months.
 
 5. Improve the notification habit loop.
    - Add better reminder copy variants.
