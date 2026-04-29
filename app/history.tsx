@@ -4,6 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Card } from '../src/components/Card';
 import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
+import { getReadingStreak } from '../src/lib/streak';
 import { getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
 import { colors, spacing } from '../src/styles/theme';
 import { DailyReading } from '../src/types';
@@ -55,6 +56,9 @@ export default function HistoryScreen() {
       <Card style={styles.header}>
         <Text style={styles.title}>Reading history ✨</Text>
         <Text style={styles.copy}>Your recent LuckyDay readings stay on this device.</Text>
+        <View style={styles.streakPill}>
+          <Text style={styles.streakText}>{formatStreak(getReadingStreak(history))}</Text>
+        </View>
       </Card>
 
       {history.length === 0 ? (
@@ -101,6 +105,10 @@ function formatHistoryDate(value: string) {
   return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+function formatStreak(value: number) {
+  return `${value} ${value === 1 ? 'day' : 'days'} streak`;
+}
+
 const styles = StyleSheet.create({
   loading: {
     alignItems: 'center',
@@ -122,6 +130,21 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     marginTop: spacing.sm,
+  },
+  streakPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: 999,
+    borderWidth: 1,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  streakText: {
+    color: colors.goldDeep,
+    fontSize: 14,
+    fontWeight: '900',
   },
   emptyCard: {
     backgroundColor: colors.sunrise,

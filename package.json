@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run src/lib/luck.test.ts",
+    "test": "vitest run src/lib/*.test.ts",
     "export:web": "expo export --platform web",
     "e2e": "npm run export:web && playwright test",
     "e2e:server": "node e2e/static-server.js"

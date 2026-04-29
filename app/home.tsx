@@ -13,13 +13,15 @@ import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
 import { generateDailyReading } from '../src/lib/luck';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
-import { getStoredProfile, saveReadingHistoryItem } from '../src/lib/storage';
+import { getReadingStreak } from '../src/lib/streak';
+import { getStoredProfile, getStoredReadingHistory, saveReadingHistoryItem } from '../src/lib/storage';
 import { colors, spacing } from '../src/styles/theme';
 import { DailyReading, Profile } from '../src/types';
 
 export default function HomeScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [reading, setReading] = useState<DailyReading | null>(null);
+  const [streak, setStreak] = useState(0);
   const [savingShareCard, setSavingShareCard] = useState(false);
   const [loading, setLoading] = useState(true);
   const shareCardRef = useRef<ViewShot>(null);
@@ -40,7 +42,13 @@ export default function HomeScreen() {
           const dailyReading = generateDailyReading(storedProfile);
           setProfile(storedProfile);
           setReading(dailyReading);
-          saveReadingHistoryItem(dailyReading).catch(() => undefined);
+          getStoredReadingHistory()
+            .then((history) => {
+              const nextHistory = [dailyReading, ...history.filter((item) => item.date !== dailyReading.date)];
+              setStreak(getReadingStreak(nextHistory));
+              return saveReadingHistoryItem(dailyReading);
+            })
+            .catch(() => undefined);
         })
         .finally(() => {
           if (active) setLoading(false);
@@ -73,6 +81,12 @@ export default function HomeScreen() {
       </View>
 
       <EnergyScoreCard label="✨ Today's luck energy" score={reading.score} message={reading.mainMessage} />
+
+      <Card style={styles.streakCard}>
+        <Text style={styles.streakLabel}>Daily ritual streak</Text>
+        <Text style={styles.streakValue}>{streak} {streak === 1 ? 'day' : 'days'} ✨</Text>
+        <Text style={styles.streakCopy}>Open LuckyDay each morning to keep your luck ritual alive.</Text>
+      </Card>
 
       <AppButton
         label={savingShareCard ? 'Saving your luck...' : "Share today's luck"}
@@ -220,6 +234,28 @@ const styles = StyleSheet.create({
   guidanceCard: {
     backgroundColor: colors.sunrise,
     borderColor: colors.roseGold,
+  },
+  streakCard: {
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+  },
+  streakLabel: {
+    color: colors.goldDeep,
+    fontSize: 13,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  streakValue: {
+    color: colors.mauve,
+    fontSize: 34,
+    fontWeight: '900',
+    marginTop: spacing.xs,
+  },
+  streakCopy: {
+    color: colors.muted,
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: spacing.xs,
   },
   moonCard: {
     backgroundColor: colors.panelStrong,
