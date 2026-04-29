@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-04-28
+Last updated: 2026-04-29
 
 ## Project Summary
 
@@ -18,10 +18,10 @@ GitHub repo:
 https://github.com/sonnymay/LuckyDay
 
 Current branch:
-`main`
+`codex-luckyday-product-polish`
 
 Latest pushed work:
-`Track photo update metadata` (see `git log -1` for the exact commit hash)
+`Add App Store launch docs` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
@@ -161,6 +161,11 @@ Web export:
 npm run export:web
 ```
 
+## Launch Planning Docs
+
+- `docs/APP_STORE_LAUNCH_BRIEF.md`: App Store positioning, subtitle and keyword ideas, description draft, screenshot order, launch blockers, and monetization direction.
+- `docs/REAL_DEVICE_QA.md`: physical-device QA checklist for onboarding, camera/photos, share card, notifications, history, settings, and screenshot readiness.
+
 ## Verification Status
 
 Last verified on 2026-04-29 after history month view pass:
@@ -190,7 +195,7 @@ Known verification gap:
 
 ## Recommended Next Steps
 
-1. Test the full onboarding flow on a real phone with Expo Go.
+1. Run the real-device QA checklist in `docs/REAL_DEVICE_QA.md` on at least one iPhone and one Android phone.
    - Verify onboarding can finish without any photos.
    - Verify each setup step fits comfortably on small iPhone and Android screens.
    - Verify each capture works.
@@ -200,27 +205,32 @@ Known verification gap:
    - Verify `Share today's luck` saves a sharp 9:16 image to Photos and can hand off to Instagram/LINE/WhatsApp.
    - Verify the morning reminder permission prompt, daily delivery, time changes, and disable/reset behavior.
 
-2. Improve photo/privacy UX further.
+2. Prepare App Store screenshots using `docs/APP_STORE_LAUNCH_BRIEF.md`.
+   - Capture the daily reveal first.
+   - Capture the shareable story card second or third.
+   - Avoid screenshots that expose developer copy, placeholder data, or incomplete native permission states.
+
+3. Improve photo/privacy UX further.
    - Add a dedicated “Photos and privacy” screen if Settings gets too long.
    - Consider moving sensitive image files out of plain AsyncStorage URI-only handling before production.
    - Add explicit export/delete copy for future cloud sync.
 
-3. Improve the daily reading model.
+4. Improve the daily reading model.
    - Make multi-focus readings more visibly reflect all selected focuses.
    - Add more Thai day-of-week advice variety.
    - Add more moon/message variety without AI.
 
-4. Improve reading history.
+5. Improve reading history.
    - Add clearer empty state if history is unavailable.
    - Consider a non-destructive `Clear history` control later with confirmation.
    - Consider previous/next month navigation once history spans multiple months.
 
-5. Improve the notification habit loop.
+6. Improve the notification habit loop.
    - Add better reminder copy variants.
    - Consider an in-app preview of the notification teaser.
    - Verify delivery on real devices before App Store screenshots.
 
-6. Prepare future Supabase sync carefully.
+7. Prepare future Supabase sync carefully.
    - Add Auth only when explicitly needed.
    - Add Storage buckets and RLS policies before uploading photos.
    - Add deletion policies before any upload feature.
@@ -228,6 +238,8 @@ Known verification gap:
 ## Files To Inspect First
 
 - `CLAUDE.md`: coding behavior guidance
+- `docs/APP_STORE_LAUNCH_BRIEF.md`: App Store launch positioning and screenshot plan
+- `docs/REAL_DEVICE_QA.md`: physical-device QA checklist
 - `README.md`: basic project overview
 - `src/types.ts`: data model
 - `src/lib/luck.ts`: daily reading generator
