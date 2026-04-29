@@ -78,6 +78,7 @@ test('new users can finish onboarding without photos', async ({ page }) => {
   await expect(page.getByText('Hi, Nok')).toBeVisible();
   await expect(page.getByText("Today's luck energy")).toBeVisible();
   await expect(page.getByText("Share today's luck")).toBeVisible();
+  await expect(page.getByText('Reading history')).toBeVisible();
 });
 
 test('saved users can retake all setup photos from settings', async ({ page }) => {

@@ -54,6 +54,7 @@ Main screens:
 - `app/home.tsx`: daily score, summary, and share-card save/share action
 - `app/detail.tsx`: money/love/work/health/warning/action detail
 - `app/feedback.tsx`: local rating and tags
+- `app/history.tsx`: local reading history
 - `app/settings.tsx`: edit nickname, birthday, multi-focuses, notification time, retake/remove photos, privacy controls, reset profile
 
 ## Important Implementation Notes
@@ -67,6 +68,8 @@ Daily reading logic lives in `src/lib/luck.ts`.
 - Readings include Thai day-of-week color guidance using a local Sunday-Saturday color map.
 
 Storage lives in `src/lib/storage.ts`.
+- Reading history is saved locally in `luckyday.readingHistory.v1`, capped at 30 readings, and keyed by date so a daily reading updates rather than duplicates.
+- `Delete all local data` clears profile, feedback, and reading history.
 
 Supabase is future-ready only:
 - `src/lib/supabase.ts` creates a client only if env vars exist.
@@ -107,7 +110,7 @@ Privacy controls:
 - Settings has a `Privacy controls` card.
 - `Clear feedback` deletes local accuracy ratings and tags only.
 - `Delete photos only` clears saved photo links and photo timestamps while keeping profile details and feedback.
-- `Delete all local data` clears profile, photo URIs, and feedback, then returns to welcome.
+- `Delete all local data` clears profile, photo URIs, feedback, and reading history, then returns to welcome.
 - Storage helpers are in `src/lib/storage.ts`: `resetStoredFeedback` and `resetAllStoredData`.
 - Settings now warns that AsyncStorage is local but not encrypted.
 
@@ -158,7 +161,7 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-28 after Thai day color pass:
+Last verified on 2026-04-29 after reading history pass:
 - `npm run typecheck` passed
 - `npm test` passed: 9 tests
 - `npm run export:web` passed
@@ -205,12 +208,17 @@ Known verification gap:
    - Add more Thai day-of-week advice variety.
    - Add more moon/message variety without AI.
 
-4. Improve the notification habit loop.
+4. Improve reading history.
+   - Add a compact month view or streak summary.
+   - Add clearer empty state if history is unavailable.
+   - Consider a non-destructive `Clear history` control later with confirmation.
+
+5. Improve the notification habit loop.
    - Add better reminder copy variants.
    - Consider an in-app preview of the notification teaser.
    - Verify delivery on real devices before App Store screenshots.
 
-5. Prepare future Supabase sync carefully.
+6. Prepare future Supabase sync carefully.
    - Add Auth only when explicitly needed.
    - Add Storage buckets and RLS policies before uploading photos.
    - Add deletion policies before any upload feature.

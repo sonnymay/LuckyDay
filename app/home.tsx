@@ -13,7 +13,7 @@ import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
 import { generateDailyReading } from '../src/lib/luck';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
-import { getStoredProfile } from '../src/lib/storage';
+import { getStoredProfile, saveReadingHistoryItem } from '../src/lib/storage';
 import { colors, spacing } from '../src/styles/theme';
 import { DailyReading, Profile } from '../src/types';
 
@@ -37,8 +37,10 @@ export default function HomeScreen() {
             return;
           }
 
+          const dailyReading = generateDailyReading(storedProfile);
           setProfile(storedProfile);
-          setReading(generateDailyReading(storedProfile));
+          setReading(dailyReading);
+          saveReadingHistoryItem(dailyReading).catch(() => undefined);
         })
         .finally(() => {
           if (active) setLoading(false);
@@ -107,6 +109,7 @@ export default function HomeScreen() {
 
       <View style={styles.actions}>
         <AppButton label="Daily detail" variant="secondary" onPress={() => router.push('/detail')} />
+        <AppButton label="Reading history" variant="secondary" onPress={() => router.push('/history')} />
         <AppButton label="Was today accurate?" variant="secondary" onPress={() => router.push('/feedback')} />
       </View>
 
