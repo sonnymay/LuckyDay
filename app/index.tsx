@@ -80,8 +80,6 @@ export default function WelcomeScreen() {
 
       <Card style={styles.moonCard}>
         <SectionRow label="🌙 Moon energy" value={`${sample.moonPhase}: ${sample.moonMessage}`} />
-        <View style={styles.divider} />
-        <SectionRow label="🇹🇭 Thai day color" value={`${sample.thaiDayColor}: ${sample.thaiDayColorMessage}`} />
       </Card>
 
       <Card style={styles.guidanceCard}>

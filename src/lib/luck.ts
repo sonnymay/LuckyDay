@@ -95,15 +95,6 @@ const moonPhaseMessages: Record<string, string> = {
   'Last Quarter': 'Let go of one thing that drains your luck.',
   'Waning Crescent': 'Rest, reset, and move gently.',
 };
-const thaiDayColors = [
-  { color: 'Red', message: 'Sunday color for courage and bright energy.' },
-  { color: 'Yellow', message: 'Monday color for warmth, care, and steady luck.' },
-  { color: 'Pink', message: 'Tuesday color for charm, love, and soft confidence.' },
-  { color: 'Green', message: 'Wednesday color for growth, balance, and fresh starts.' },
-  { color: 'Orange', message: 'Thursday color for wisdom, learning, and support.' },
-  { color: 'Blue', message: 'Friday color for calm beauty, harmony, and trust.' },
-  { color: 'Purple', message: 'Saturday color for protection, intuition, and quiet power.' },
-];
 
 export function getChineseZodiac(birthday: string) {
   const year = new Date(`${birthday}T00:00:00`).getFullYear();
@@ -185,10 +176,6 @@ export function getMoonPhase(date = new Date()) {
   ][phaseIndex];
 }
 
-export function getThaiDayColor(date = new Date()) {
-  return thaiDayColors[date.getDay()];
-}
-
 export function generateDailyReading(profile: Profile, date = new Date()): DailyReading {
   const seed = getDailySeed(profile, date);
   const day = date.getDay();
@@ -200,7 +187,6 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
   const focusAvoid = mainFocuses.flatMap((focus) => avoidByFocus[focus]);
   const score = 55 + (Math.abs(seed + day + zodiacBias + mainFocuses.length) % 38);
   const moonPhase = getMoonPhase(date);
-  const thaiDayColor = getThaiDayColor(date);
 
   return {
     date: todayKey(date),
@@ -222,8 +208,6 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
     luckyDirection: pickFromArrayWithSeed(luckyDirections, seed, 7),
     moonPhase,
     moonMessage: moonPhaseMessages[moonPhase],
-    thaiDayColor: thaiDayColor.color,
-    thaiDayColorMessage: thaiDayColor.message,
     chineseZodiac,
     money: pickFromArrayWithSeed(moneyReadings, seed, 8),
     love: pickFromArrayWithSeed(loveReadings, seed, 9),

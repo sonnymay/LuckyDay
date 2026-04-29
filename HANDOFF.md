@@ -4,7 +4,7 @@ Last updated: 2026-04-29
 
 ## Project Summary
 
-LuckyDay is a local-first Expo React Native MVP for a daily luck guide inspired by Thai/Asian-style luck beliefs, Chinese zodiac, lucky colors, lucky numbers, good/bad times, and simple daily advice.
+LuckyDay is a local-first Expo React Native MVP for a daily luck guide inspired by Asian-style luck beliefs, Chinese zodiac, lucky colors, lucky numbers, good/bad times, and simple daily advice.
 
 The product direction is intentionally not a generic horoscope app. The MVP is template-based and cheap to run:
 - no account creation
@@ -26,7 +26,7 @@ Latest pushed work:
 ## Current App Behavior
 
 First launch:
-1. Shows a daily preview with a luck-energy score orb, cute Chinese zodiac animal visual, lucky color swatch, lucky number, lucky time, lucky direction, moon energy, Thai day-of-week color, and simple daily guidance.
+1. Shows a daily preview with a luck-energy score orb, cute Chinese zodiac animal visual, lucky color swatch, lucky number, lucky time, lucky direction, moon energy, and simple daily guidance.
 2. Asks if the user wants a personal LuckyDay.
 3. Opens onboarding.
 4. Onboarding is split into 3 steps with a progress indicator:
@@ -65,7 +65,6 @@ Profile shape is defined in `src/types.ts`.
 
 Daily reading logic lives in `src/lib/luck.ts`.
 - Readings include a deterministic local moon phase and moon guidance message. No network or calendar API is used.
-- Readings include Thai day-of-week color guidance using a local Sunday-Saturday color map.
 - Readings include the user's Chinese zodiac animal from the locally saved birthday/profile.
 - Cute animal display data lives in `src/lib/chineseZodiac.ts`; the reusable visual component is `src/components/ChineseZodiacCard.tsx`.
 
@@ -222,7 +221,6 @@ Known verification gap:
 
 4. Improve the daily reading model.
    - Make multi-focus readings more visibly reflect all selected focuses.
-   - Add more Thai day-of-week advice variety.
    - Add more moon/message variety without AI.
 
 5. Improve reading history.

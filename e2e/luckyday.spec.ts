@@ -40,7 +40,7 @@ test('new users see daily preview and optional photo setup', async ({ page }) =>
   await expect(page.getByText('Lucky color')).toBeVisible();
   await expect(page.getByText('Chinese zodiac')).toBeVisible();
   await expect(page.getByText('Clever, quick, charming luck')).toBeVisible();
-  await expect(page.getByText('Thai day color')).toBeVisible();
+  await expect(page.getByText('Thai day color')).toHaveCount(0);
 
   await page.getByText('Create my lucky profile').click();
 

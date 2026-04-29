@@ -58,7 +58,7 @@ Preferred:
 - [ ] Lucky number display is prominent.
 - [ ] Lucky time and direction fit.
 - [ ] Moon energy appears.
-- [ ] Thai day color appears.
+- [ ] Chinese zodiac animal appears.
 - [ ] Small action appears.
 - [ ] Daily Detail opens and shows all reading sections.
 
@@ -111,7 +111,7 @@ Preferred:
 ## App Store Screenshot Pass
 
 - [ ] Capture Daily Luck Reveal screenshot.
-- [ ] Capture Lucky Color / Moon / Thai color screenshot.
+- [ ] Capture Lucky Color / Zodiac / Moon screenshot.
 - [ ] Capture Share Card screenshot.
 - [ ] Capture Onboarding screenshot.
 - [ ] Capture History / Streak screenshot.

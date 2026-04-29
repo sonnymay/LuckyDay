@@ -45,8 +45,6 @@ export default function DetailScreen() {
         <View style={styles.divider} />
         <SectionRow label="🌙 Moon" value={`${reading.moonPhase}: ${reading.moonMessage}`} />
         <View style={styles.divider} />
-        <SectionRow label="🇹🇭 Thai day color" value={`${reading.thaiDayColor}: ${reading.thaiDayColorMessage}`} />
-        <View style={styles.divider} />
         <SectionRow label="💰 Money" value={reading.money} />
         <View style={styles.divider} />
         <SectionRow label="💗 Love" value={reading.love} />

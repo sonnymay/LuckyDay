@@ -4,7 +4,6 @@ import {
   getChineseZodiac,
   getDailySeed,
   getMoonPhase,
-  getThaiDayColor,
   getWesternZodiac,
   pickFromArrayWithSeed,
 } from './luck';
@@ -73,12 +72,6 @@ describe('luck helpers', () => {
     expect(getMoonPhase(new Date('2000-01-21T12:00:00.000Z'))).toBe('Full Moon');
   });
 
-  it('maps Thai day-of-week colors', () => {
-    expect(getThaiDayColor(new Date('2026-04-26T12:00:00.000Z')).color).toBe('Red');
-    expect(getThaiDayColor(new Date('2026-04-27T12:00:00.000Z')).color).toBe('Yellow');
-    expect(getThaiDayColor(new Date('2026-04-28T12:00:00.000Z')).color).toBe('Pink');
-  });
-
   it('generates stable daily readings in the expected shape', () => {
     const date = new Date('2026-04-28T12:00:00.000Z');
     const reading = generateDailyReading(baseProfile, date);
@@ -91,8 +84,6 @@ describe('luck helpers', () => {
     expect(reading.avoid.length).toBeGreaterThan(0);
     expect(reading.moonPhase).toBeTruthy();
     expect(reading.moonMessage).toBeTruthy();
-    expect(reading.thaiDayColor).toBe('Pink');
-    expect(reading.thaiDayColorMessage).toBeTruthy();
     expect(reading.chineseZodiac).toBe('Rat');
     expect(reading.luckyNumber).toBeGreaterThanOrEqual(1);
     expect(reading.luckyNumber).toBeLessThanOrEqual(9);
