@@ -93,6 +93,7 @@ describe('luck helpers', () => {
     expect(reading.moonMessage).toBeTruthy();
     expect(reading.thaiDayColor).toBe('Pink');
     expect(reading.thaiDayColorMessage).toBeTruthy();
+    expect(reading.chineseZodiac).toBe('Rat');
     expect(reading.luckyNumber).toBeGreaterThanOrEqual(1);
     expect(reading.luckyNumber).toBeLessThanOrEqual(9);
   });

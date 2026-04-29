@@ -8,7 +8,7 @@ LuckyDay is a private daily luck ritual for women who want a gentle, beautiful w
 
 Core promise:
 
-> Every morning, LuckyDay gives you a personal luck energy reading: your lucky color, number, best time, moon energy, Thai day color, and one small action to help you move with intention.
+> Every morning, LuckyDay gives you a personal luck energy reading: your lucky color, number, best time, Chinese zodiac animal, moon energy, Thai day color, and one small action to help you move with intention.
 
 Keep the app away from generic horoscope positioning. The niche is daily luck, color ritual, Asian/Thai-inspired timing, manifestation, and private self-care.
 
@@ -40,18 +40,19 @@ Secondary:
 
 ## Short Description
 
-LuckyDay is your private morning luck ritual. Check today’s luck energy, lucky color, number, best time, moon energy, and Thai day color before you start your day.
+LuckyDay is your private morning luck ritual. Check today’s luck energy, lucky color, number, best time, Chinese zodiac animal, moon energy, and Thai day color before you start your day.
 
 ## App Description Draft
 
 Every morning has its own energy.
 
-LuckyDay helps you start the day with a simple private ritual: open the app, reveal your luck energy, and see the color, number, time, direction, moon phase, and Thai day color that can guide your day.
+LuckyDay helps you start the day with a simple private ritual: open the app, reveal your luck energy, and see the color, number, time, direction, Chinese zodiac animal, moon phase, and Thai day color that can guide your day.
 
 Use LuckyDay to:
 
 - Reveal your daily luck energy score
 - Find your lucky color, number, time, and direction
+- See a cute Chinese zodiac animal based on your birthday
 - See today’s moon energy and Thai day color
 - Choose a small action for better luck
 - Save and share a beautiful 9:16 daily luck card
@@ -77,6 +78,7 @@ Visible app elements:
 - Luck energy orb
 - Lucky color
 - Lucky number
+- Chinese zodiac animal
 - Best time
 - Direction
 
@@ -112,6 +114,7 @@ Visible app elements:
 - Share card
 - Luck orb
 - Daily message
+- Chinese zodiac animal
 - Lucky color and lucky number
 - LuckyDay wordmark
 

@@ -38,6 +38,8 @@ test('new users see daily preview and optional photo setup', async ({ page }) =>
   await expect(page.getByText('A morning ritual for luck, timing, and intention.')).toBeVisible();
   await expect(page.getByText("Today's preview")).toBeVisible();
   await expect(page.getByText('Lucky color')).toBeVisible();
+  await expect(page.getByText('Chinese zodiac')).toBeVisible();
+  await expect(page.getByText('Clever, quick, charming luck')).toBeVisible();
   await expect(page.getByText('Thai day color')).toBeVisible();
 
   await page.getByText('Create my lucky profile').click();
@@ -79,6 +81,7 @@ test('new users can finish onboarding without photos', async ({ page }) => {
   await expect(page.getByText("Today's luck energy")).toBeVisible();
   await expect(page.getByText('Daily ritual streak')).toBeVisible();
   await expect(page.getByText('1 day ✨')).toBeVisible();
+  await expect(page.getByText('Loyal, protective, honest luck')).toBeVisible();
   await expect(page.getByText("Share today's luck")).toBeVisible();
   await expect(page.getByText('Reading history')).toBeVisible();
 });

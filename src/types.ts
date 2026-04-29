@@ -56,6 +56,7 @@ export type DailyReading = {
   moonMessage: string;
   thaiDayColor: string;
   thaiDayColorMessage: string;
+  chineseZodiac: string;
   money: string;
   love: string;
   work: string;

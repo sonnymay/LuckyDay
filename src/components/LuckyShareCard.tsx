@@ -1,4 +1,5 @@
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import { getChineseZodiacDetails } from '../lib/chineseZodiac';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../lib/luckyColor';
 import { colors, radii, spacing } from '../styles/theme';
 import { DailyReading } from '../types';
@@ -13,6 +14,7 @@ const haloDotSize = 9;
 
 export function LuckyShareCard({ reading }: Props) {
   const filledSegments = Math.round((Math.max(0, Math.min(reading.score, 100)) / 100) * haloSegments);
+  const zodiac = getChineseZodiacDetails(reading.chineseZodiac);
   const luckyColor = getLuckyColorHex(reading.luckyColor);
 
   return (
@@ -53,6 +55,14 @@ export function LuckyShareCard({ reading }: Props) {
       </View>
 
       <Text style={styles.message}>{reading.mainMessage}</Text>
+
+      <View style={styles.zodiacPill}>
+        <Text style={styles.zodiacEmoji}>{zodiac.emoji}</Text>
+        <View style={styles.zodiacCopy}>
+          <Text style={styles.zodiacLabel}>Chinese zodiac</Text>
+          <Text style={styles.zodiacAnimal}>{reading.chineseZodiac}</Text>
+        </View>
+      </View>
 
       <View style={styles.miniRow}>
         <View style={styles.colorBlock}>
@@ -169,11 +179,40 @@ const styles = StyleSheet.create({
   },
   message: {
     color: colors.white,
-    fontSize: 28,
+    fontSize: 25,
     fontWeight: '900',
-    lineHeight: 37,
+    lineHeight: 33,
     paddingHorizontal: spacing.sm,
     textAlign: 'center',
+  },
+  zodiacPill: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 240, 199, 0.16)',
+    borderColor: colors.luckyGold,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  zodiacEmoji: {
+    fontSize: 34,
+    lineHeight: 38,
+  },
+  zodiacCopy: {
+    alignItems: 'flex-start',
+  },
+  zodiacLabel: {
+    color: colors.blush,
+    fontSize: 9,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  zodiacAnimal: {
+    color: colors.champagne,
+    fontSize: 17,
+    fontWeight: '900',
   },
   miniRow: {
     alignItems: 'center',

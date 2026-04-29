@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
+import { ChineseZodiacCard } from '../src/components/ChineseZodiacCard';
 import { EnergyScoreCard } from '../src/components/EnergyScoreCard';
 import { LuckyMetricCard } from '../src/components/LuckyMetricCard';
 import { Screen } from '../src/components/Screen';
@@ -62,6 +63,8 @@ export default function WelcomeScreen() {
       </View>
 
       <EnergyScoreCard label="✨ Today's preview" score={sample.score} message={sample.mainMessage} />
+
+      <ChineseZodiacCard animal={sample.chineseZodiac} />
 
       <View style={styles.grid}>
         <LuckyMetricCard

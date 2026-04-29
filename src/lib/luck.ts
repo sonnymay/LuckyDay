@@ -1,20 +1,6 @@
 import { DailyReading, MainFocus, Profile, ProfileInput } from '../types';
+import { chineseZodiacAnimals } from './chineseZodiac';
 import { todayKey } from './date';
-
-const chineseZodiac = [
-  'Rat',
-  'Ox',
-  'Tiger',
-  'Rabbit',
-  'Dragon',
-  'Snake',
-  'Horse',
-  'Goat',
-  'Monkey',
-  'Rooster',
-  'Dog',
-  'Pig',
-];
 
 const focusGoodFor: Record<MainFocus, string[]> = {
   Money: ['saving money', 'checking bills', 'small plans'],
@@ -122,7 +108,7 @@ const thaiDayColors = [
 export function getChineseZodiac(birthday: string) {
   const year = new Date(`${birthday}T00:00:00`).getFullYear();
   const index = ((year - 1900) % 12 + 12) % 12;
-  return chineseZodiac[index];
+  return chineseZodiacAnimals[index];
 }
 
 export function getWesternZodiac(birthday: string) {
@@ -206,7 +192,8 @@ export function getThaiDayColor(date = new Date()) {
 export function generateDailyReading(profile: Profile, date = new Date()): DailyReading {
   const seed = getDailySeed(profile, date);
   const day = date.getDay();
-  const zodiacBias = profile.chineseZodiac.length + profile.westernZodiac.length;
+  const chineseZodiac = profile.chineseZodiac || getChineseZodiac(profile.birthday);
+  const zodiacBias = chineseZodiac.length + profile.westernZodiac.length;
   const mainFocuses = normalizeMainFocuses(profile.mainFocus);
   const primaryFocus = pickFromArrayWithSeed(mainFocuses, seed, 0);
   const focusGood = mainFocuses.flatMap((focus) => focusGoodFor[focus]);
@@ -237,6 +224,7 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
     moonMessage: moonPhaseMessages[moonPhase],
     thaiDayColor: thaiDayColor.color,
     thaiDayColorMessage: thaiDayColor.message,
+    chineseZodiac,
     money: pickFromArrayWithSeed(moneyReadings, seed, 8),
     love: pickFromArrayWithSeed(loveReadings, seed, 9),
     work: pickFromArrayWithSeed(workReadings, seed, 10),

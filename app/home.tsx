@@ -6,6 +6,7 @@ import { router, useFocusEffect } from 'expo-router';
 import ViewShot from 'react-native-view-shot';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
+import { ChineseZodiacCard } from '../src/components/ChineseZodiacCard';
 import { EnergyScoreCard } from '../src/components/EnergyScoreCard';
 import { LuckyMetricCard } from '../src/components/LuckyMetricCard';
 import { LuckyShareCard } from '../src/components/LuckyShareCard';
@@ -81,6 +82,8 @@ export default function HomeScreen() {
       </View>
 
       <EnergyScoreCard label="✨ Today's luck energy" score={reading.score} message={reading.mainMessage} />
+
+      <ChineseZodiacCard animal={reading.chineseZodiac} />
 
       <Card style={styles.streakCard}>
         <Text style={styles.streakLabel}>Daily ritual streak</Text>

@@ -21,12 +21,12 @@ Current branch:
 `codex-luckyday-product-polish`
 
 Latest pushed work:
-`Clean up web QA warnings` (see `git log -1` for the exact commit hash)
+`Add Chinese zodiac animal visual` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
 First launch:
-1. Shows a daily preview with a luck-energy score orb, lucky color swatch, lucky number, lucky time, lucky direction, moon energy, Thai day-of-week color, and simple daily guidance.
+1. Shows a daily preview with a luck-energy score orb, cute Chinese zodiac animal visual, lucky color swatch, lucky number, lucky time, lucky direction, moon energy, Thai day-of-week color, and simple daily guidance.
 2. Asks if the user wants a personal LuckyDay.
 3. Opens onboarding.
 4. Onboarding is split into 3 steps with a progress indicator:
@@ -66,6 +66,8 @@ Profile shape is defined in `src/types.ts`.
 Daily reading logic lives in `src/lib/luck.ts`.
 - Readings include a deterministic local moon phase and moon guidance message. No network or calendar API is used.
 - Readings include Thai day-of-week color guidance using a local Sunday-Saturday color map.
+- Readings include the user's Chinese zodiac animal from the locally saved birthday/profile.
+- Cute animal display data lives in `src/lib/chineseZodiac.ts`; the reusable visual component is `src/components/ChineseZodiacCard.tsx`.
 
 Storage lives in `src/lib/storage.ts`.
 - Reading history is saved locally in `luckyday.readingHistory.v1`, capped at 30 readings, and keyed by date so a daily reading updates rather than duplicates.
@@ -92,6 +94,7 @@ Visual/product direction:
 - The first screen now uses a more feminine premium palette: blush, mauve, rose-gold accents, champagne, and pearl-style panels.
 - The old plain score card was replaced with `EnergyScoreCard`, which leads with the daily message and presents the number as `luck energy` inside a score-based gold segmented halo.
 - Lucky color, number, time, and direction are now visible as metric cards on the landing page and Home.
+- Landing and Home show a cute Chinese zodiac animal card based on the saved birthday-derived animal.
 - Lucky color uses a real swatch and short meaning copy via `src/lib/luckyColor.ts`.
 - Lucky number uses a larger gold display treatment, and direction includes an arrow glyph.
 - The score halo uses bright gold active dots and faded inactive dots so the ring reads as a score, not just decoration.
@@ -99,7 +102,7 @@ Visual/product direction:
 - Primary CTA buttons use a warm gold treatment.
 - Home includes a 9:16 `LuckyShareCard` capture flow. It uses `react-native-view-shot` to render a local PNG, `expo-media-library` to save it to photos, and `expo-sharing` to offer the native share sheet after save.
 - The share card intentionally omits PII: no nickname, birthday, birth time, or photos.
-- The share card includes the moon phase under the date as a subtle content-depth cue.
+- The share card includes the moon phase under the date and the Chinese zodiac animal as subtle content-depth cues.
 - Web falls back to a text share because camera roll save/share-image behavior is native-only.
 - Consumer-facing copy should avoid internal terms like `MVP`; keep developer/product notes in docs only.
 
@@ -168,12 +171,12 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-29 after web QA warning cleanup:
+Last verified on 2026-04-29 after Chinese zodiac animal visual pass:
 - `npm run typecheck` passed
 - `npm test` passed: 13 tests
 - `npm run export:web` passed
 - `npm run e2e` passed: 3 browser smoke tests
-- In-app browser QA passed for landing, 3-step onboarding without photos, Home, visible share action, and hidden share-card render content.
+- In-app browser QA passed for Home showing the Chinese zodiac animal card and hidden share-card render content.
 - Browser console no longer shows project-owned web shadow or `pointerEvents` deprecation warnings after reload. The remaining warning is the expected `expo-notifications` unsupported-on-web listener warning.
 
 E2E note:
