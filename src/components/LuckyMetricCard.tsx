@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { Card } from './Card';
 import { colors, spacing } from '../styles/theme';
 
@@ -67,10 +67,17 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 2,
     height: 44,
-    shadowColor: colors.luckyGold,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    ...Platform.select({
+      web: {
+        boxShadow: `0 0 8px rgba(214, 168, 74, 0.3)`,
+      },
+      default: {
+        shadowColor: colors.luckyGold,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+    }),
     width: 44,
   },
   directionIcon: {

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../lib/luckyColor';
 import { colors, radii, spacing } from '../styles/theme';
 import { DailyReading } from '../types';
@@ -128,10 +128,17 @@ const styles = StyleSheet.create({
     height: 156,
     justifyContent: 'center',
     marginTop: spacing.sm,
-    shadowColor: colors.luckyGold,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 18,
+    ...Platform.select({
+      web: {
+        boxShadow: `0 0 18px rgba(214, 168, 74, 0.45)`,
+      },
+      default: {
+        shadowColor: colors.luckyGold,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.45,
+        shadowRadius: 18,
+      },
+    }),
     width: 156,
   },
   haloDot: {

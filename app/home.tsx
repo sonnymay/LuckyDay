@@ -127,7 +127,7 @@ export default function HomeScreen() {
         <AppButton label="Was today accurate?" variant="secondary" onPress={() => router.push('/feedback')} />
       </View>
 
-      <View style={styles.captureArea} pointerEvents="none">
+      <View style={[styles.captureArea, styles.noPointerEvents]}>
         <ViewShot ref={shareCardRef} options={{ format: 'png', quality: 1, result: 'tmpfile' }}>
           <LuckyShareCard reading={reading} />
         </ViewShot>
@@ -278,5 +278,8 @@ const styles = StyleSheet.create({
     left: -10000,
     position: 'absolute',
     top: 0,
+  },
+  noPointerEvents: {
+    pointerEvents: 'none',
   },
 });

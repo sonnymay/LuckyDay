@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 import { colors, radii, spacing } from '../styles/theme';
 
 type Props = {
@@ -37,10 +37,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.luckyGold,
     borderColor: colors.roseGold,
     borderWidth: 2,
-    shadowColor: colors.luckyGold,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 14,
+    ...Platform.select({
+      web: {
+        boxShadow: `0 8px 14px rgba(214, 168, 74, 0.28)`,
+      },
+      default: {
+        shadowColor: colors.luckyGold,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.28,
+        shadowRadius: 14,
+      },
+    }),
   },
   secondary: {
     backgroundColor: colors.panelStrong,

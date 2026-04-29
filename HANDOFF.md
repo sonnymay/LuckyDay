@@ -21,7 +21,7 @@ Current branch:
 `codex-luckyday-product-polish`
 
 Latest pushed work:
-`Add App Store launch docs` (see `git log -1` for the exact commit hash)
+`Clean up web QA warnings` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
@@ -168,11 +168,13 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-29 after history month view pass:
+Last verified on 2026-04-29 after web QA warning cleanup:
 - `npm run typecheck` passed
 - `npm test` passed: 13 tests
 - `npm run export:web` passed
 - `npm run e2e` passed: 3 browser smoke tests
+- In-app browser QA passed for landing, 3-step onboarding without photos, Home, visible share action, and hidden share-card render content.
+- Browser console no longer shows project-owned web shadow or `pointerEvents` deprecation warnings after reload. The remaining warning is the expected `expo-notifications` unsupported-on-web listener warning.
 
 E2E note:
 - `npm run e2e` now includes 3 browser smoke tests, including onboarding without photos.
