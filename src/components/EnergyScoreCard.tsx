@@ -1,4 +1,5 @@
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 import { Card } from './Card';
 import { colors, radii, spacing } from '../styles/theme';
 
@@ -11,12 +12,41 @@ type Props = {
 const haloSegments = 28;
 const haloRadius = 86;
 const haloDotSize = 10;
+const REVEAL_DURATION = 1200;
 
 export function EnergyScoreCard({ label, score, message }: Props) {
-  const filledSegments = Math.round((Math.max(0, Math.min(score, 100)) / 100) * haloSegments);
+  const progress = useRef(new Animated.Value(0)).current;
+  const [displayScore, setDisplayScore] = useState(0);
+  const [filledSegments, setFilledSegments] = useState(0);
+
+  useEffect(() => {
+    progress.setValue(0);
+    setDisplayScore(0);
+    setFilledSegments(0);
+
+    Animated.timing(progress, {
+      toValue: score,
+      duration: REVEAL_DURATION,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+
+    const listener = progress.addListener(({ value }) => {
+      const rounded = Math.round(value);
+      setDisplayScore(rounded);
+      setFilledSegments(Math.round((Math.max(0, Math.min(rounded, 100)) / 100) * haloSegments));
+    });
+
+    return () => {
+      progress.removeListener(listener);
+    };
+  }, [score]);
 
   return (
     <Card style={styles.card}>
+      {/* Decorative background circles for depth without a gradient package */}
+      <View style={styles.decorCircle1} pointerEvents="none" />
+      <View style={styles.decorCircle2} pointerEvents="none" />
       <Text style={styles.label}>{label}</Text>
       <Text style={styles.message}>{message}</Text>
       <View style={styles.orb}>
@@ -40,7 +70,7 @@ export function EnergyScoreCard({ label, score, message }: Props) {
           );
         })}
         <View style={styles.orbInner}>
-          <Text style={styles.score}>{score}</Text>
+          <Text style={styles.score}>{displayScore}</Text>
           <Text style={styles.scoreUnit}>luck energy</Text>
         </View>
       </View>
@@ -55,19 +85,40 @@ const styles = StyleSheet.create({
     borderColor: colors.roseGold,
     borderWidth: 2,
     gap: spacing.md,
+    overflow: 'hidden',
     paddingVertical: spacing.lg,
   },
+  decorCircle1: {
+    backgroundColor: 'rgba(255, 255, 255, 0.13)',
+    borderRadius: 999,
+    height: 180,
+    position: 'absolute',
+    right: -50,
+    top: -50,
+    width: 180,
+  },
+  decorCircle2: {
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderRadius: 999,
+    bottom: -40,
+    height: 120,
+    left: -30,
+    position: 'absolute',
+    width: 120,
+  },
   label: {
-    color: colors.champagne,
-    fontSize: 13,
+    color: 'rgba(255, 240, 199, 0.9)',
+    fontSize: 12,
     fontWeight: '900',
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
   message: {
     color: colors.white,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
-    lineHeight: 30,
+    lineHeight: 28,
+    paddingHorizontal: spacing.md,
     textAlign: 'center',
   },
   orb: {

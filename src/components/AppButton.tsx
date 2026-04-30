@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: radii.pill,
     justifyContent: 'center',
-    minHeight: 52,
+    minHeight: 54,
     paddingHorizontal: spacing.lg,
   },
   primary: {
@@ -39,29 +39,34 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     ...Platform.select({
       web: {
-        boxShadow: `0 8px 14px rgba(214, 168, 74, 0.28)`,
+        boxShadow: `0 8px 18px rgba(214, 168, 74, 0.32)`,
       },
       default: {
         shadowColor: colors.luckyGold,
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.28,
-        shadowRadius: 14,
+        shadowOpacity: 0.32,
+        shadowRadius: 18,
       },
     }),
   },
   secondary: {
     backgroundColor: colors.panelStrong,
+    borderColor: colors.line,
+    borderWidth: 1.5,
   },
   ghost: {
     backgroundColor: 'transparent',
     borderColor: colors.line,
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   danger: {
     backgroundColor: colors.pink,
+    borderColor: colors.roseGold,
+    borderWidth: 1.5,
   },
   pressed: {
-    opacity: 0.78,
+    opacity: 0.76,
+    transform: [{ scale: 0.98 }],
   },
   label: {
     color: colors.ink,

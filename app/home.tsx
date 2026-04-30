@@ -297,17 +297,17 @@ const styles = StyleSheet.create({
   navCard: {
     alignItems: 'center',
     backgroundColor: colors.panelStrong,
-    borderColor: colors.line,
-    borderRadius: 22,
-    borderWidth: 1,
+    borderColor: colors.roseGold,
+    borderRadius: 20,
+    borderWidth: 1.5,
     flex: 1,
     gap: spacing.xs,
     justifyContent: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
   },
   navEmoji: {
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: 30,
+    lineHeight: 36,
   },
   navLabel: {
     color: colors.mauve,

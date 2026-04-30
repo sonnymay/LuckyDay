@@ -35,7 +35,7 @@ test('new users see daily preview and optional photo setup', async ({ page }) =>
   await page.goto('/');
 
   await expect(page.getByText('LuckyDay', { exact: true })).toBeVisible();
-  await expect(page.getByText('A morning ritual for luck, timing, and intention.')).toBeVisible();
+  await expect(page.getByText('Your daily ritual for luck, timing, and intention')).toBeVisible();
   await expect(page.getByText("Today's preview")).toBeVisible();
   await expect(page.getByText('Lucky color')).toBeVisible();
   await expect(page.getByText('Chinese zodiac')).toBeVisible();
@@ -47,9 +47,9 @@ test('new users see daily preview and optional photo setup', async ({ page }) =>
   await expect(page.getByText('Step 1 of 3')).toBeVisible();
   await expect(page.getByText('Tell LuckyDay about you')).toBeVisible();
   await page.getByPlaceholder('Mali').fill('Nok');
-  await page.getByPlaceholder('YYYY').fill('1994');
-  await page.getByPlaceholder('MM').fill('08');
-  await page.getByPlaceholder('DD').fill('12');
+  await page.getByText('2013', { exact: true }).click();
+  await page.getByText('Jan', { exact: true }).click();
+  await page.getByText('1', { exact: true }).click();
   await page.getByText('Continue').click();
 
   await expect(page.getByText('Step 2 of 3')).toBeVisible();
@@ -74,9 +74,9 @@ test('new users can finish onboarding without photos', async ({ page }) => {
 
   await page.getByText('Create my lucky profile').click();
   await page.getByPlaceholder('Mali').fill('Nok');
-  await page.getByPlaceholder('YYYY').fill('1994');
-  await page.getByPlaceholder('MM').fill('08');
-  await page.getByPlaceholder('DD').fill('12');
+  await page.getByText('2013', { exact: true }).click();
+  await page.getByText('Jan', { exact: true }).click();
+  await page.getByText('1', { exact: true }).click();
   await page.getByText('Continue').click();
   await page.getByText('Continue').click();
   await page.getByText("Show today's luck").click();
@@ -85,7 +85,7 @@ test('new users can finish onboarding without photos', async ({ page }) => {
   await expect(page.getByText("Today's luck energy")).toBeVisible();
   await expect(page.getByText('Daily ritual streak')).toBeVisible();
   await expect(page.getByText('1 day ✨')).toBeVisible();
-  await expect(page.getByText('Loyal, protective, deeply honest')).toBeVisible();
+  await expect(page.getByText('Magnetic, powerful, golden energy')).toBeVisible();
   await expect(page.getByText("Share today's luck")).toBeVisible();
   await expect(page.getByText('Reading history')).toBeVisible();
 });

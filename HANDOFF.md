@@ -66,6 +66,8 @@ Profile shape is defined in `src/types.ts`.
 Daily reading logic lives in `src/lib/luck.ts`.
 - Readings include a deterministic local moon phase and moon guidance message. No network or calendar API is used.
 - Readings include the user's Chinese zodiac animal from the locally saved birthday/profile.
+- Chinese zodiac assignment now respects Lunar New Year boundaries for supported birth years, so January and early-February birthdays do not get the wrong animal by simple Gregorian year.
+- Core daily luck stays deterministic/local for privacy, speed, and consistency. Future AI/API work should be reserved for premium deeper readings, especially optional photo-based interpretation with explicit consent.
 - Cute animal display data lives in `src/lib/chineseZodiac.ts`; the reusable visual component is `src/components/ChineseZodiacCard.tsx`.
 
 Storage lives in `src/lib/storage.ts`.
@@ -105,6 +107,20 @@ Visual/product direction:
 - Web falls back to a text share because camera roll save/share-image behavior is native-only.
 - Consumer-facing copy should avoid internal terms like `MVP`; keep developer/product notes in docs only.
 
+UI redesign pass — "Sakura Bloom" palette (2026-04-30):
+- Core color overhaul: `colors.mauve` changed from `#6E365B` (muddy dark maroon-purple) to `#A8467C` (clear rose-pink). This single change cascades across all hero cards, chip selections, labels, and accent text. The old color read as dated/heavy; the new one reads as feminine and vibrant.
+- Supporting palette softened: `background` → `#FFF5F9`, `panelStrong` → `#FFF0F7`, `muted` → `#9B6B88`, `faint` → `#D4A8C0`, `line` → `#EDD8E8`, `roseGold` → `#E8A8C0`.
+- Border radii increased across the board (sm: 8→10, md: 14→16, lg: 22→24) for a rounder, cuter feel.
+- Card shadows changed from dark ink shadow to rose-tinted (`colors.mauve` shadow at 8% opacity on native; `rgba(168,70,124,0.08)` on web). Cards feel softer and warmer.
+- `EnergyScoreCard` hero card now has two decorative translucent white circles (absolute-positioned) that simulate a gradient/depth effect — no new packages needed, pure React Native View styling.
+- Onboarding intro card gets the same decorative circle treatment. Progress bar changed from champagne/28% opacity to white/22% opacity for cleaner contrast on the rose background. Title line-height tightened.
+- `AppButton` primary button: shadow slightly increased (28%→32% opacity, radius 14→18). All button variants now have 1.5px borders. Pressed state adds a subtle `scale: 0.98` transform for tactile feedback.
+- Landing page hero tagline now ends with ✨. App name font size increased from 48→52.
+- Home nav grid cards: border updated to `colors.roseGold`, padding increased to `spacing.lg` for a more prominent feel.
+- Chip unselected text color changed from `colors.ink` to `colors.muted` so unselected state is clearly softer than selected (rose-pink filled).
+- Input border width increased from 1→1.5px for a crisper look on the white card background.
+- All changes are backward-compatible — no new packages installed, all existing tests continue to pass.
+
 UI polish pass (2026-04-29):
 - Home screen content reordered: 2×2 lucky metric grid now appears directly after EnergyScoreCard so the hero and its specifics are visible in one scroll without burying them below fold.
 - Home streak empty state fixed: shows "Start your ritual today ✨" instead of "0 days ✨" on first visit.
@@ -114,7 +130,7 @@ UI polish pass (2026-04-29):
 - Feedback rating buttons now show an emoji above the label (🍀/🌙/🌧️) and use mauve selected state to match the app palette.
 - Feedback tags label changed to "What was in the energy today?" and selected tags now use mauve background with white text.
 - Chinese zodiac tone copy varied across all 12 animals — endings are now qualities/energies/descriptors, no longer all end in "luck".
-- Birthday input replaced with `BirthdayPicker` component in both onboarding and settings: three segmented number inputs (YYYY / MM / DD) with numeric keyboard, auto-advance between segments. No new npm packages required.
+- Birthday input replaced with `BirthdayPicker` component in both onboarding and settings: a scroll-and-tap year/month/day picker. No new npm packages required.
 - Notification time input replaced with `TimePickerInput` component in both onboarding and settings: two segmented inputs (HH / MM) with a "24-hr" badge. No new npm packages required.
 - New components: `src/components/BirthdayPicker.tsx`, `src/components/TimePickerInput.tsx`.
 
@@ -183,21 +199,21 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-29 after Claude UI polish pass:
+Last verified on 2026-04-30 after scroll birthday picker and Lunar New Year zodiac accuracy pass:
 - `npm run typecheck` passed
-- `npm test` passed: 12 tests
+- `npm test` passed: 13 tests
 - `npm run export:web` passed
 - `npm run e2e` passed: 3 browser smoke tests
 - In-app browser QA passed for Home showing the reordered lucky metric grid, Chinese zodiac card, updated streak/nav area, and hidden share-card render content.
-- In-app browser QA passed for Onboarding Step 1 showing the segmented birthday picker.
+- In-app browser QA passed for Onboarding Step 1 showing the scroll birthday picker.
 - Browser console no longer shows project-owned web shadow or `pointerEvents` deprecation warnings after reload. The remaining warning is the expected `expo-notifications` unsupported-on-web listener warning.
 
 Post UI polish pass note:
-- The onboarding e2e tests were updated for the segmented birthday picker.
-- Real-device QA of BirthdayPicker and TimePickerInput should be prioritized — segmented numeric keyboard behavior on small screens needs physical device confirmation.
+- The onboarding e2e tests were updated for the scroll birthday picker.
+- Real-device QA of BirthdayPicker and TimePickerInput should be prioritized — scroll picker and segmented time behavior on small screens need physical device confirmation.
 
 E2E note:
-- `npm run e2e` now includes 3 browser smoke tests, including onboarding without photos.
+- `npm run e2e` includes 3 browser smoke tests, including onboarding without photos and the scroll birthday picker.
 - The browser smoke tests use exact text matches where screen copy repeats terms like `Remove` or `Your profile`.
 - In the Codex sandbox, `npm run e2e` requires permission to bind a localhost server.
 
@@ -265,7 +281,7 @@ Known verification gap:
 - `src/types.ts`: data model
 - `src/lib/luck.ts`: daily reading generator
 - `src/lib/chineseZodiac.ts`: zodiac animal display data (emoji + tone)
-- `src/components/BirthdayPicker.tsx`: segmented YYYY/MM/DD date input
+- `src/components/BirthdayPicker.tsx`: scroll-and-tap birthday picker
 - `src/components/TimePickerInput.tsx`: segmented HH/MM time input
 - `app/onboarding.tsx`: first-time flow
 - `app/settings.tsx`: profile editing and photo retake

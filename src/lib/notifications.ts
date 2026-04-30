@@ -46,10 +46,28 @@ export async function syncLocalDailyReminder(time?: string): Promise<ReminderSyn
   }
 
   const [hour, minute] = reminderTime.split(':').map(Number);
+  const notificationBodies = [
+    "Your lucky color and number are waiting. Open to reveal.",
+    "Today's luck energy is ready for you. ✨",
+    "A new reading is ready. Start your morning ritual.",
+    "Your Chinese zodiac energy is in. Open LuckyDay.",
+    "Today's lucky moment is here. Don't miss it.",
+    "The moon has something to say today. Open to find out.",
+    "Your daily luck ritual is ready. One tap to reveal.",
+    "Something good is lined up for you today. Open to see.",
+    "Your lucky color is chosen. Your number is set. Go.",
+    "A quiet moment of luck is waiting for you this morning.",
+    "Today's energy reading is fresh. Rise and reveal. ✨",
+    "Your ritual is ready. Lucky color, number, and more.",
+    "The day's fortune is ready. A few seconds to start it right.",
+    "Open LuckyDay to see what today's energy holds.",
+    "Your morning luck reading is waiting. ✨",
+  ];
+  const bodyIndex = (hour + minute + new Date().getDate()) % notificationBodies.length;
   const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Your LuckyDay is ready ✨',
-      body: "Open today's luck energy, color, and number.",
+      body: notificationBodies[bodyIndex],
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,

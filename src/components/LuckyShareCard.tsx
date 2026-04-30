@@ -19,6 +19,9 @@ export function LuckyShareCard({ reading }: Props) {
 
   return (
     <View style={styles.card}>
+      {/* Decorative depth circles */}
+      <View style={styles.decorCircle1} pointerEvents="none" />
+      <View style={styles.decorCircle2} pointerEvents="none" />
       <View style={styles.topRow}>
         <Text style={styles.decor}>☾ ✦</Text>
         <View style={styles.dateBlock}>
@@ -103,6 +106,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: 42,
     width: 360,
+  },
+  decorCircle1: {
+    backgroundColor: 'rgba(255, 255, 255, 0.11)',
+    borderRadius: 999,
+    height: 260,
+    position: 'absolute',
+    right: -70,
+    top: -70,
+    width: 260,
+  },
+  decorCircle2: {
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderRadius: 999,
+    bottom: -50,
+    height: 180,
+    left: -50,
+    position: 'absolute',
+    width: 180,
   },
   topRow: {
     alignItems: 'center',

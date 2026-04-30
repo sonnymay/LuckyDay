@@ -57,9 +57,9 @@ export default function WelcomeScreen() {
   return (
     <Screen contentStyle={styles.screen}>
       <View style={styles.hero}>
-        <Text style={styles.sparkles}>☾ ✦ ✧</Text>
+        <Text style={styles.sparkles}>🌸 ✦ 🌸</Text>
         <Text style={styles.name}>LuckyDay</Text>
-        <Text style={styles.tagline}>A morning ritual for luck, timing, and intention.</Text>
+        <Text style={styles.tagline}>Your daily ritual for luck, timing, and intention ✨</Text>
       </View>
 
       <EnergyScoreCard label="✨ Today's preview" score={sample.score} message={sample.mainMessage} />
@@ -115,20 +115,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sparkles: {
-    color: colors.roseGold,
-    fontSize: 28,
-    fontWeight: '900',
+    fontSize: 24,
+    letterSpacing: 6,
   },
   name: {
     color: colors.mauve,
-    fontSize: 48,
+    fontSize: 52,
     fontWeight: '900',
+    letterSpacing: -0.5,
     textAlign: 'center',
   },
   tagline: {
     color: colors.muted,
-    fontSize: 18,
-    lineHeight: 26,
+    fontSize: 17,
+    lineHeight: 25,
     textAlign: 'center',
   },
   grid: {

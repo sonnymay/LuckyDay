@@ -131,7 +131,7 @@ Why this birthday: 1997 = Ox year. Ox tone is "Steady, patient, deeply grounded"
 2. Tap "Create my lucky profile" from the landing page.
 3. You are on Step 1 of 3.
 4. Type "Mali" in the nickname field.
-5. Fill in birthday: 1997 / 11 / 19.
+5. Scroll and tap birthday: 1997 / Nov / 19.
 6. Scroll so the progress bar and birthday fields are visible.
 7. Take screenshot before tapping Continue.
 

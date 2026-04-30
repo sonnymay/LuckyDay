@@ -121,6 +121,9 @@ export default function OnboardingScreen() {
   return (
     <Screen>
       <Card style={styles.intro}>
+        {/* Decorative circles for depth */}
+        <View style={styles.decorCircle1} pointerEvents="none" />
+        <View style={styles.decorCircle2} pointerEvents="none" />
         <Text style={styles.stepLabel}>Step {step} of {totalSteps}</Text>
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${(step / totalSteps) * 100}%` }]} />
@@ -280,34 +283,55 @@ const styles = StyleSheet.create({
     backgroundColor: colors.mauve,
     borderColor: colors.roseGold,
     borderWidth: 2,
+    overflow: 'hidden',
+  },
+  decorCircle1: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 999,
+    height: 160,
+    position: 'absolute',
+    right: -40,
+    top: -40,
+    width: 160,
+  },
+  decorCircle2: {
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderRadius: 999,
+    bottom: -30,
+    height: 100,
+    left: -20,
+    position: 'absolute',
+    width: 100,
   },
   stepLabel: {
-    color: colors.champagne,
-    fontSize: 13,
+    color: 'rgba(255, 240, 199, 0.85)',
+    fontSize: 12,
     fontWeight: '900',
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
   progressTrack: {
-    backgroundColor: 'rgba(255, 240, 199, 0.28)',
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
     borderRadius: radii.pill,
-    height: 8,
+    height: 6,
     marginVertical: spacing.md,
     overflow: 'hidden',
   },
   progressFill: {
-    backgroundColor: colors.luckyGold,
+    backgroundColor: colors.champagne,
     borderRadius: radii.pill,
     height: '100%',
   },
   title: {
     color: colors.white,
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '900',
+    lineHeight: 33,
   },
   copy: {
-    color: colors.sunrise,
-    fontSize: 16,
-    lineHeight: 23,
+    color: 'rgba(255, 240, 230, 0.88)',
+    fontSize: 15,
+    lineHeight: 22,
     marginTop: spacing.sm,
   },
   form: {
@@ -345,7 +369,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.panel,
     borderColor: colors.line,
     borderRadius: radii.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     color: colors.ink,
     fontSize: 17,
     minHeight: 54,
@@ -360,7 +384,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.panel,
     borderColor: colors.line,
     borderRadius: radii.pill,
-    borderWidth: 1,
+    borderWidth: 1.5,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
@@ -369,7 +393,7 @@ const styles = StyleSheet.create({
     borderColor: colors.mauve,
   },
   chipText: {
-    color: colors.ink,
+    color: colors.muted,
     fontSize: 15,
     fontWeight: '700',
   },

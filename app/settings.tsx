@@ -9,7 +9,7 @@ import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
 import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
-import { createProfile, normalizeMainFocuses } from '../src/lib/luck';
+import { createProfile, getChineseZodiac, normalizeMainFocuses } from '../src/lib/luck';
 import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
 import { getStoredProfile, resetAllStoredData, resetStoredFeedback, resetStoredProfile, saveStoredProfile } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
@@ -202,12 +202,21 @@ export default function SettingsScreen() {
     );
   }
 
+  const currentChineseZodiac = getChineseZodiac(profile.birthday);
+
   return (
     <Screen>
       <Card style={styles.card}>
         <Text style={styles.title}>Your profile ✨</Text>
         <Text style={styles.copy}>
-          {profile.westernZodiac} and {profile.chineseZodiac}. LuckyDay stays local for now.
+          {profile.westernZodiac} and {currentChineseZodiac}. LuckyDay stays local for now.
+        </Text>
+      </Card>
+
+      <Card style={styles.howItWorksCard}>
+        <Text style={styles.photoTitle}>How LuckyDay works</Text>
+        <Text style={styles.photoCopy}>
+          Your reading blends your birthday-based Chinese zodiac, your chosen focuses, today's moon phase, and local daily timing patterns. It is a gentle ritual guide, not a guarantee.
         </Text>
       </Card>
 
@@ -379,6 +388,11 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 15,
     lineHeight: 22,
+  },
+  howItWorksCard: {
+    backgroundColor: colors.sunrise,
+    borderColor: colors.roseGold,
+    gap: spacing.sm,
   },
   privacyCard: {
     gap: spacing.md,

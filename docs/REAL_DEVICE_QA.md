@@ -1,6 +1,6 @@
 # LuckyDay Real Device QA
 
-Last updated: 2026-04-29 (updated for UI polish pass)
+Last updated: 2026-04-30 (updated for scroll birthday picker and Lunar New Year zodiac logic)
 
 Run this checklist before App Store submission or screenshots.
 
@@ -27,11 +27,11 @@ Preferred:
 
 ## Onboarding
 
-- [ ] Step 1 shows nickname, birthday (segmented YYYY / MM / DD), optional birth time, optional birthplace.
-- [ ] Birthday picker: tapping YYYY field opens numeric keyboard.
-- [ ] Birthday picker: after 4 digits in YYYY, focus auto-advances to MM.
-- [ ] Birthday picker: after 2 digits in MM, focus auto-advances to DD.
-- [ ] Birthday picker: entering an invalid date (e.g. month 99) shows the "Fill in a valid year, month, and day" alert on Continue.
+- [ ] Step 1 shows nickname, scroll birthday picker, optional birth time, optional birthplace.
+- [ ] Birthday picker: year, month, and day columns scroll smoothly.
+- [ ] Birthday picker: tapping a year/month/day highlights the selected value.
+- [ ] Birthday picker: February day options update correctly for leap years.
+- [ ] Birthday picker: leaving the birthday incomplete shows the "Fill in a valid year, month, and day" alert on Continue.
 - [ ] Step 2 shows focus chips and morning reminder (segmented HH / MM with 24-hr badge).
 - [ ] Time picker: skipping both HH and MM fields allows Continue (empty = no reminder).
 - [ ] Time picker: entering an invalid time (e.g. hour 25) shows the reminder alert on Continue.
@@ -64,6 +64,7 @@ Preferred:
 - [ ] Lucky number display is prominent.
 - [ ] Lucky time and direction fit on small screens.
 - [ ] Chinese zodiac animal card appears below the metric grid.
+- [ ] Chinese zodiac is correct for early-year birthdays around Lunar New Year boundaries.
 - [ ] Moon energy appears.
 - [ ] Small action appears.
 - [ ] First-visit streak card reads "Start your ritual today ✨" (not "0 days").
@@ -111,7 +112,7 @@ Preferred:
 ## Settings And Privacy
 
 - [ ] Settings loads profile details.
-- [ ] Birthday picker pre-fills from saved profile (YYYY / MM / DD segments are populated).
+- [ ] Birthday picker pre-fills from saved profile (saved year/month/day are highlighted).
 - [ ] Morning reminder picker pre-fills from saved profile (HH / MM segments are populated).
 - [ ] Editing birthday and saving settings persists the updated birthday.
 - [ ] Saving settings preserves profile id and created date.

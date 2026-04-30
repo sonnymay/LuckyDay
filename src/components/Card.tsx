@@ -19,13 +19,13 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     ...Platform.select({
       web: {
-        boxShadow: `0 10px 18px rgba(44, 23, 38, 0.09)`,
+        boxShadow: `0 8px 20px rgba(168, 70, 124, 0.08)`,
       },
       default: {
-        shadowColor: colors.ink,
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.09,
-        shadowRadius: 18,
+        shadowColor: colors.mauve,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.08,
+        shadowRadius: 20,
       },
     }),
   },

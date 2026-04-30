@@ -42,6 +42,15 @@ describe('luck helpers', () => {
     expect(getChineseZodiac('2000-04-13')).toBe('Dragon');
   });
 
+  it('uses Lunar New Year boundaries for Chinese zodiac', () => {
+    expect(getChineseZodiac('1997-02-06')).toBe('Rat');
+    expect(getChineseZodiac('1997-02-07')).toBe('Ox');
+    expect(getChineseZodiac('2000-02-04')).toBe('Rabbit');
+    expect(getChineseZodiac('2000-02-05')).toBe('Dragon');
+    expect(getChineseZodiac('2024-02-09')).toBe('Rabbit');
+    expect(getChineseZodiac('2024-02-10')).toBe('Dragon');
+  });
+
   it('maps Western zodiac boundary dates', () => {
     expect(getWesternZodiac('1996-03-21')).toBe('Aries');
     expect(getWesternZodiac('1996-04-19')).toBe('Aries');
