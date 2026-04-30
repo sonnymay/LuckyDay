@@ -22,6 +22,10 @@ export function LuckyShareCard({ reading }: Props) {
       {/* Decorative depth circles */}
       <View style={styles.decorCircle1} pointerEvents="none" />
       <View style={styles.decorCircle2} pointerEvents="none" />
+      <Text style={styles.sparkleOne}>✦</Text>
+      <Text style={styles.sparkleTwo}>✧</Text>
+      <Text style={styles.flowerOne}>✿</Text>
+      <Text style={styles.flowerTwo}>❀</Text>
       <View style={styles.topRow}>
         <Text style={styles.decor}>☾ ✦</Text>
         <View style={styles.dateBlock}>
@@ -30,6 +34,8 @@ export function LuckyShareCard({ reading }: Props) {
         </View>
         <Text style={styles.decor}>✧ ☽</Text>
       </View>
+
+      <Text style={styles.ritualBadge}>A little luck for today</Text>
 
       <View style={styles.orb}>
         {Array.from({ length: haloSegments }).map((_, index) => {
@@ -128,6 +134,36 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 180,
   },
+  sparkleOne: {
+    color: 'rgba(255, 240, 199, 0.58)',
+    fontSize: 22,
+    fontWeight: '900',
+    left: 42,
+    position: 'absolute',
+    top: 118,
+  },
+  sparkleTwo: {
+    color: 'rgba(255, 228, 240, 0.72)',
+    fontSize: 18,
+    fontWeight: '900',
+    position: 'absolute',
+    right: 52,
+    top: 188,
+  },
+  flowerOne: {
+    color: 'rgba(255, 240, 199, 0.42)',
+    fontSize: 24,
+    left: 38,
+    position: 'absolute',
+    top: 478,
+  },
+  flowerTwo: {
+    color: 'rgba(255, 228, 240, 0.5)',
+    fontSize: 22,
+    position: 'absolute',
+    right: 44,
+    top: 456,
+  },
   topRow: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -152,6 +188,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '900',
     marginTop: 3,
+  },
+  ritualBadge: {
+    backgroundColor: 'rgba(255, 240, 199, 0.18)',
+    borderColor: 'rgba(255, 240, 199, 0.36)',
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    color: colors.champagne,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1,
+    overflow: 'hidden',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    textTransform: 'uppercase',
   },
   orb: {
     alignItems: 'center',

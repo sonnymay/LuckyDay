@@ -120,7 +120,16 @@ export default function HomeScreen() {
 
       <Card style={styles.sharePromptCard}>
         <View style={styles.sharePromptHeader}>
-          <Text style={styles.sharePromptEmoji}>💌</Text>
+          <View style={styles.shareMiniCard} pointerEvents="none">
+            <Text style={styles.shareMiniStars}>✦ ✧</Text>
+            <View style={styles.shareMiniOrb}>
+              <Text style={styles.shareMiniScore}>{reading.score}</Text>
+            </View>
+            <View style={styles.shareMiniFooter}>
+              <View style={[styles.shareMiniSwatch, { backgroundColor: getLuckyColorHex(reading.luckyColor) }]} />
+              <Text style={styles.shareMiniNumber}>{reading.luckyNumber}</Text>
+            </View>
+          </View>
           <View style={styles.sharePromptCopy}>
             <Text style={styles.sharePromptTitle}>Send a little luck</Text>
             <Text style={styles.sharePromptText}>
@@ -315,20 +324,57 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
   },
-  sharePromptEmoji: {
-    backgroundColor: colors.blush,
-    borderColor: colors.roseGold,
-    borderRadius: 28,
-    borderWidth: 1.5,
-    fontSize: 30,
-    height: 56,
-    lineHeight: 52,
-    overflow: 'hidden',
-    textAlign: 'center',
-    width: 56,
-  },
   sharePromptCopy: {
     flex: 1,
+  },
+  shareMiniCard: {
+    alignItems: 'center',
+    backgroundColor: colors.mauve,
+    borderColor: colors.roseGold,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    height: 102,
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+    padding: spacing.xs,
+    width: 68,
+  },
+  shareMiniStars: {
+    color: colors.champagne,
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  shareMiniOrb: {
+    alignItems: 'center',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  shareMiniScore: {
+    color: colors.goldDeep,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  shareMiniFooter: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  shareMiniSwatch: {
+    borderColor: colors.luckyGold,
+    borderRadius: 7,
+    borderWidth: 1,
+    height: 14,
+    width: 14,
+  },
+  shareMiniNumber: {
+    color: colors.champagne,
+    fontSize: 14,
+    fontWeight: '900',
   },
   sharePromptTitle: {
     color: colors.mauve,

@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-04-30 (shareability polish verified)
+Last updated: 2026-04-30 (visual share polish verified)
 
 ## Project Summary
 
@@ -21,7 +21,7 @@ Current branch:
 `codex-luckyday-product-polish`
 
 Latest pushed work:
-`Shareability polish` (see `git log -1` for the exact commit hash)
+`Visual share polish` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
@@ -103,8 +103,9 @@ Visual/product direction:
 - Primary CTA buttons use a warm gold treatment.
 - Home includes a 9:16 `LuckyShareCard` capture flow. It uses `react-native-view-shot` to render a local PNG, `expo-media-library` to save it to photos, and `expo-sharing` to offer the native share sheet after save.
 - Home now includes a "Send a little luck" prompt before the share button to make sharing feel like a cute social ritual instead of a utility action. The prompt uses the lucky color meaning to suggest sending the card to someone who could use that energy today.
+- The share prompt includes a tiny story-card preview so the share action feels visual and desirable before the user taps it.
 - The share card intentionally omits PII: no nickname, birthday, birth time, or photos.
-- The share card includes the moon phase under the date, the Chinese zodiac animal, and a small "daily luck ritual" brand line as subtle content-depth and word-of-mouth cues.
+- The share card includes the moon phase under the date, the Chinese zodiac animal, soft sparkle/floral decorations, a "little luck" badge, and a small "daily luck ritual" brand line as subtle content-depth and word-of-mouth cues.
 - Web falls back to a text share because camera roll save/share-image behavior is native-only.
 - Consumer-facing copy should avoid internal terms like `MVP`; keep developer/product notes in docs only.
 
@@ -215,7 +216,7 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-30 after shareability polish:
+Last verified on 2026-04-30 after visual share polish:
 - `npm run typecheck` passed
 - `npm test` passed: 14 tests
 - `npm run export:web` passed
