@@ -87,7 +87,7 @@ test('new users can finish onboarding without photos', async ({ page }) => {
   await expect(page.getByText('1 day ✨')).toBeVisible();
   await expect(page.getByText('Magnetic, powerful, golden energy')).toBeVisible();
   await expect(page.getByText('Send a little luck')).toBeVisible();
-  await expect(page.getByText("Share today's luck")).toBeVisible();
+  await expect(page.getByText('Save & share my luck')).toBeVisible();
   await expect(page.getByText('Reading history')).toBeVisible();
 });
 

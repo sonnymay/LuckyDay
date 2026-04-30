@@ -102,7 +102,7 @@ Visual/product direction:
 - Landing/Home guidance cards now use the champagne/rose-gold treatment for visual continuity.
 - Primary CTA buttons use a warm gold treatment.
 - Home includes a 9:16 `LuckyShareCard` capture flow. It uses `react-native-view-shot` to render a local PNG, `expo-media-library` to save it to photos, and `expo-sharing` to offer the native share sheet after save.
-- Home now includes a "Send a little luck" prompt before the share button to make sharing feel like a cute social ritual instead of a utility action.
+- Home now includes a "Send a little luck" prompt before the share button to make sharing feel like a cute social ritual instead of a utility action. The prompt uses the lucky color meaning to suggest sending the card to someone who could use that energy today.
 - The share card intentionally omits PII: no nickname, birthday, birth time, or photos.
 - The share card includes the moon phase under the date, the Chinese zodiac animal, and a small "daily luck ritual" brand line as subtle content-depth and word-of-mouth cues.
 - Web falls back to a text share because camera roll save/share-image behavior is native-only.

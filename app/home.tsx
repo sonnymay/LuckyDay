@@ -124,18 +124,18 @@ export default function HomeScreen() {
           <View style={styles.sharePromptCopy}>
             <Text style={styles.sharePromptTitle}>Send a little luck</Text>
             <Text style={styles.sharePromptText}>
-              Save a cute story card for your group chat or morning check-in. No birthday, photos, or private details.
+              {getShareNudge(reading)} No birthday, photos, or private details.
             </Text>
           </View>
         </View>
         <View style={styles.sharePills}>
-          <Text style={styles.sharePill}>Story-ready</Text>
-          <Text style={styles.sharePill}>Private by default</Text>
+          <Text style={styles.sharePill}>IG / LINE ready</Text>
+          <Text style={styles.sharePill}>No private details</Text>
         </View>
       </Card>
 
       <AppButton
-        label={savingShareCard ? 'Saving your luck...' : "Share today's luck"}
+        label={savingShareCard ? 'Saving your luck...' : 'Save & share my luck'}
         onPress={() => saveShareCard(reading, shareCardRef, setSavingShareCard)}
       />
 
@@ -185,7 +185,7 @@ async function saveShareCard(
 ) {
   if (savingFallbackNeeded()) {
     await Share.share({
-      message: `My LuckyDay energy is ${reading.score}. ${reading.mainMessage} Lucky color: ${reading.luckyColor}. Lucky number: ${reading.luckyNumber}.`,
+      message: `A little luck for today ✨ My LuckyDay energy is ${reading.score}. ${reading.mainMessage} Lucky color: ${reading.luckyColor}. Lucky number: ${reading.luckyNumber}.`,
     });
     return;
   }
@@ -218,7 +218,7 @@ async function saveShareCard(
     Alert.alert('Saved to your photos ✨', 'Your LuckyDay card is ready. Want to share it now?', [
       { text: 'Not now', style: 'cancel' },
       {
-        text: 'Share now',
+        text: 'Send luck',
         onPress: () => {
           Sharing.shareAsync(uri, {
             dialogTitle: "Share today's LuckyDay",
@@ -237,6 +237,11 @@ async function saveShareCard(
 
 function savingFallbackNeeded() {
   return Platform.OS === 'web';
+}
+
+function getShareNudge(reading: DailyReading) {
+  const colorMeaning = getLuckyColorMeaning(reading.luckyColor).toLowerCase();
+  return `Save a cute story card for someone who could use ${colorMeaning} today.`;
 }
 
 const styles = StyleSheet.create({
