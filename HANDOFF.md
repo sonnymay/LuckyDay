@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-04-30 (visual share polish verified)
+Last updated: 2026-04-30 (hero score polish verified)
 
 ## Project Summary
 
@@ -21,7 +21,7 @@ Current branch:
 `codex-luckyday-product-polish`
 
 Latest pushed work:
-`Visual share polish` (see `git log -1` for the exact commit hash)
+`Hero score polish` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
@@ -94,6 +94,7 @@ Photo capture:
 Visual/product direction:
 - The first screen now uses a more feminine premium palette: blush, mauve, rose-gold accents, champagne, and pearl-style panels.
 - The old plain score card was replaced with `EnergyScoreCard`, which leads with the daily message and presents the number as `luck energy` inside a score-based gold segmented halo.
+- `EnergyScoreCard` now has a softer message panel, champagne label pill, sparkle/floral accents, an orb glow, and a small energy mood label so the score feels like a reveal rather than a grade.
 - Lucky color, number, time, and direction are now visible as metric cards on the landing page and Home.
 - Landing and Home show a cute Chinese zodiac animal card based on the saved birthday-derived animal.
 - Lucky color uses a real swatch and short meaning copy via `src/lib/luckyColor.ts`.
@@ -216,7 +217,7 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-30 after visual share polish:
+Last verified on 2026-04-30 after hero score polish:
 - `npm run typecheck` passed
 - `npm test` passed: 14 tests
 - `npm run export:web` passed

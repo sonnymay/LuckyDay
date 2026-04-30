@@ -47,9 +47,17 @@ export function EnergyScoreCard({ label, score, message }: Props) {
       {/* Decorative background circles for depth without a gradient package */}
       <View style={styles.decorCircle1} pointerEvents="none" />
       <View style={styles.decorCircle2} pointerEvents="none" />
-      <Text style={styles.label}>{label}</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.sparkleOne}>✦</Text>
+      <Text style={styles.sparkleTwo}>✧</Text>
+      <Text style={styles.flower}>❀</Text>
+      <View style={styles.labelPill}>
+        <Text style={styles.label}>{label}</Text>
+      </View>
+      <View style={styles.messagePanel}>
+        <Text style={styles.message}>{message}</Text>
+      </View>
       <View style={styles.orb}>
+        <View style={styles.orbGlow} pointerEvents="none" />
         {Array.from({ length: haloSegments }).map((_, index) => {
           const angle = (index / haloSegments) * Math.PI * 2 - Math.PI / 2;
           const isFilled = index < filledSegments;
@@ -74,8 +82,16 @@ export function EnergyScoreCard({ label, score, message }: Props) {
           <Text style={styles.scoreUnit}>luck energy</Text>
         </View>
       </View>
+      <Text style={styles.moodPill}>{energyMood(displayScore)}</Text>
     </Card>
   );
+}
+
+function energyMood(score: number) {
+  if (score >= 82) return 'Golden flow';
+  if (score >= 70) return 'Bright momentum';
+  if (score >= 60) return 'Soft steady luck';
+  return 'Gentle reset energy';
 }
 
 const styles = StyleSheet.create({
@@ -106,12 +122,52 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 120,
   },
+  sparkleOne: {
+    color: 'rgba(255, 240, 199, 0.56)',
+    fontSize: 22,
+    fontWeight: '900',
+    left: 34,
+    position: 'absolute',
+    top: 36,
+  },
+  sparkleTwo: {
+    color: 'rgba(255, 228, 240, 0.72)',
+    fontSize: 18,
+    fontWeight: '900',
+    position: 'absolute',
+    right: 42,
+    top: 126,
+  },
+  flower: {
+    bottom: 34,
+    color: 'rgba(255, 240, 199, 0.34)',
+    fontSize: 26,
+    position: 'absolute',
+    right: 42,
+  },
+  labelPill: {
+    backgroundColor: 'rgba(255, 240, 199, 0.15)',
+    borderColor: 'rgba(255, 240, 199, 0.32)',
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
   label: {
-    color: 'rgba(255, 240, 199, 0.9)',
+    color: colors.champagne,
     fontSize: 12,
     fontWeight: '900',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
+  },
+  messagePanel: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 240, 199, 0.18)',
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    marginHorizontal: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   message: {
     color: colors.white,
@@ -142,6 +198,13 @@ const styles = StyleSheet.create({
     }),
     width: 172,
   },
+  orbGlow: {
+    backgroundColor: 'rgba(255, 240, 199, 0.22)',
+    borderRadius: 96,
+    height: 192,
+    position: 'absolute',
+    width: 192,
+  },
   haloDot: {
     borderRadius: haloDotSize / 2,
     height: haloDotSize,
@@ -165,6 +228,20 @@ const styles = StyleSheet.create({
     color: colors.goldDeep,
     fontSize: 13,
     fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  moodPill: {
+    backgroundColor: 'rgba(255, 240, 199, 0.16)',
+    borderColor: 'rgba(255, 240, 199, 0.34)',
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    color: colors.champagne,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1,
+    overflow: 'hidden',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
     textTransform: 'uppercase',
   },
 });
