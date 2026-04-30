@@ -1,6 +1,6 @@
 # LuckyDay Real Device QA
 
-Last updated: 2026-04-29
+Last updated: 2026-04-29 (updated for UI polish pass)
 
 Run this checklist before App Store submission or screenshots.
 
@@ -27,9 +27,14 @@ Preferred:
 
 ## Onboarding
 
-- [ ] Step 1 shows nickname, birthday, optional birth time, optional birthplace.
-- [ ] Birthday example is understandable.
-- [ ] Step 2 shows focus chips and morning reminder.
+- [ ] Step 1 shows nickname, birthday (segmented YYYY / MM / DD), optional birth time, optional birthplace.
+- [ ] Birthday picker: tapping YYYY field opens numeric keyboard.
+- [ ] Birthday picker: after 4 digits in YYYY, focus auto-advances to MM.
+- [ ] Birthday picker: after 2 digits in MM, focus auto-advances to DD.
+- [ ] Birthday picker: entering an invalid date (e.g. month 99) shows the "Fill in a valid year, month, and day" alert on Continue.
+- [ ] Step 2 shows focus chips and morning reminder (segmented HH / MM with 24-hr badge).
+- [ ] Time picker: skipping both HH and MM fields allows Continue (empty = no reminder).
+- [ ] Time picker: entering an invalid time (e.g. hour 25) shows the reminder alert on Continue.
 - [ ] Step 3 makes photos clearly optional.
 - [ ] User can finish onboarding without photos.
 - [ ] User can finish onboarding with photos after consent.
@@ -54,12 +59,17 @@ Preferred:
 
 - [ ] Home loads after onboarding.
 - [ ] Luck energy orb is visible and sharp.
+- [ ] 2×2 metric grid (lucky number, color, time, direction) appears directly below the orb — no excessive scrolling to reach it.
 - [ ] Lucky color swatch is legible.
 - [ ] Lucky number display is prominent.
-- [ ] Lucky time and direction fit.
+- [ ] Lucky time and direction fit on small screens.
+- [ ] Chinese zodiac animal card appears below the metric grid.
 - [ ] Moon energy appears.
-- [ ] Chinese zodiac animal appears.
 - [ ] Small action appears.
+- [ ] First-visit streak card reads "Start your ritual today ✨" (not "0 days").
+- [ ] After first reading saved: streak card reads "1 day ✨".
+- [ ] Nav row at bottom shows three card tiles: Daily detail / Reading history / Rate today.
+- [ ] All three nav tiles tap through to correct screens.
 - [ ] Daily Detail opens and shows all reading sections.
 
 ## Share Card
@@ -101,6 +111,9 @@ Preferred:
 ## Settings And Privacy
 
 - [ ] Settings loads profile details.
+- [ ] Birthday picker pre-fills from saved profile (YYYY / MM / DD segments are populated).
+- [ ] Morning reminder picker pre-fills from saved profile (HH / MM segments are populated).
+- [ ] Editing birthday and saving settings persists the updated birthday.
 - [ ] Saving settings preserves profile id and created date.
 - [ ] Clear feedback works.
 - [ ] Delete photos only keeps profile and feedback.

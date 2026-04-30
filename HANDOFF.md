@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-04-29
+Last updated: 2026-04-29 (UI polish pass verified)
 
 ## Project Summary
 
@@ -21,7 +21,7 @@ Current branch:
 `codex-luckyday-product-polish`
 
 Latest pushed work:
-`Add Chinese zodiac animal visual` (see `git log -1` for the exact commit hash)
+`Apply Claude UI polish pass` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
@@ -105,6 +105,19 @@ Visual/product direction:
 - Web falls back to a text share because camera roll save/share-image behavior is native-only.
 - Consumer-facing copy should avoid internal terms like `MVP`; keep developer/product notes in docs only.
 
+UI polish pass (2026-04-29):
+- Home screen content reordered: 2×2 lucky metric grid now appears directly after EnergyScoreCard so the hero and its specifics are visible in one scroll without burying them below fold.
+- Home streak empty state fixed: shows "Start your ritual today ✨" instead of "0 days ✨" on first visit.
+- Home nav buttons replaced with a horizontal 3-column card grid (Daily detail, Reading history, Rate today) with emoji + mauve label — matches the app palette and reads as navigation, not secondary text buttons.
+- Feedback screen title changed from "Was today accurate?" to "Did today feel lucky? ✨" — removes A/B-test language.
+- Feedback screen now includes a subtitle: "Your rating helps shape future readings." — adds a clear value exchange.
+- Feedback rating buttons now show an emoji above the label (🍀/🌙/🌧️) and use mauve selected state to match the app palette.
+- Feedback tags label changed to "What was in the energy today?" and selected tags now use mauve background with white text.
+- Chinese zodiac tone copy varied across all 12 animals — endings are now qualities/energies/descriptors, no longer all end in "luck".
+- Birthday input replaced with `BirthdayPicker` component in both onboarding and settings: three segmented number inputs (YYYY / MM / DD) with numeric keyboard, auto-advance between segments. No new npm packages required.
+- Notification time input replaced with `TimePickerInput` component in both onboarding and settings: two segmented inputs (HH / MM) with a "24-hr" badge. No new npm packages required.
+- New components: `src/components/BirthdayPicker.tsx`, `src/components/TimePickerInput.tsx`.
+
 Consent:
 - `src/components/MediaConsentCard.tsx`
 - Required only when optional photos are saved.
@@ -170,13 +183,18 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-29 after Chinese zodiac animal visual pass:
+Last verified on 2026-04-29 after Claude UI polish pass:
 - `npm run typecheck` passed
-- `npm test` passed: 13 tests
+- `npm test` passed: 12 tests
 - `npm run export:web` passed
 - `npm run e2e` passed: 3 browser smoke tests
-- In-app browser QA passed for Home showing the Chinese zodiac animal card and hidden share-card render content.
+- In-app browser QA passed for Home showing the reordered lucky metric grid, Chinese zodiac card, updated streak/nav area, and hidden share-card render content.
+- In-app browser QA passed for Onboarding Step 1 showing the segmented birthday picker.
 - Browser console no longer shows project-owned web shadow or `pointerEvents` deprecation warnings after reload. The remaining warning is the expected `expo-notifications` unsupported-on-web listener warning.
+
+Post UI polish pass note:
+- The onboarding e2e tests were updated for the segmented birthday picker.
+- Real-device QA of BirthdayPicker and TimePickerInput should be prioritized — segmented numeric keyboard behavior on small screens needs physical device confirmation.
 
 E2E note:
 - `npm run e2e` now includes 3 browser smoke tests, including onboarding without photos.
@@ -209,7 +227,7 @@ Known verification gap:
    - Verify `Share today's luck` saves a sharp 9:16 image to Photos and can hand off to Instagram/LINE/WhatsApp.
    - Verify the morning reminder permission prompt, daily delivery, time changes, and disable/reset behavior.
 
-2. Prepare App Store screenshots using `docs/APP_STORE_LAUNCH_BRIEF.md`.
+2. Prepare App Store screenshots using `docs/APP_STORE_LAUNCH_BRIEF.md` and `docs/SCREENSHOT_GUIDE.md`.
    - Capture the daily reveal first.
    - Capture the shareable story card second or third.
    - Avoid screenshots that expose developer copy, placeholder data, or incomplete native permission states.
@@ -246,8 +264,12 @@ Known verification gap:
 - `README.md`: basic project overview
 - `src/types.ts`: data model
 - `src/lib/luck.ts`: daily reading generator
+- `src/lib/chineseZodiac.ts`: zodiac animal display data (emoji + tone)
+- `src/components/BirthdayPicker.tsx`: segmented YYYY/MM/DD date input
+- `src/components/TimePickerInput.tsx`: segmented HH/MM time input
 - `app/onboarding.tsx`: first-time flow
 - `app/settings.tsx`: profile editing and photo retake
+- `app/feedback.tsx`: daily rating screen
 - `supabase/schema.sql`: future database structure
 - `src/lib/luck.test.ts`: unit test coverage
 - `e2e/luckyday.spec.ts`: browser smoke tests

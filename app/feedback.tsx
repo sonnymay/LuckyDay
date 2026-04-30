@@ -10,6 +10,12 @@ import { colors, radii, spacing } from '../src/styles/theme';
 import { FeedbackRating } from '../src/types';
 
 const ratings: FeedbackRating[] = ['Yes', 'Somewhat', 'No'];
+
+function ratingEmoji(rating: FeedbackRating) {
+  if (rating === 'Yes') return '🍀';
+  if (rating === 'Somewhat') return '🌙';
+  return '🌧️';
+}
 const tagOptions = ['Money', 'Love', 'Work', 'Stress', 'Good luck', 'Bad luck'];
 
 export default function FeedbackScreen() {
@@ -52,8 +58,9 @@ export default function FeedbackScreen() {
 
   return (
     <Screen>
-      <Card>
-        <Text style={styles.title}>Was today accurate?</Text>
+      <Card style={styles.headerCard}>
+        <Text style={styles.title}>Did today feel lucky? ✨</Text>
+        <Text style={styles.subtitle}>Your rating helps shape future readings.</Text>
         <View style={styles.ratingRow}>
           {ratings.map((item) => (
             <Pressable
@@ -61,6 +68,7 @@ export default function FeedbackScreen() {
               onPress={() => setRating(item)}
               style={[styles.rating, rating === item && styles.selectedRating]}
             >
+              <Text style={styles.ratingEmoji}>{ratingEmoji(item)}</Text>
               <Text style={[styles.ratingText, rating === item && styles.selectedRatingText]}>{item}</Text>
             </Pressable>
           ))}
@@ -68,7 +76,7 @@ export default function FeedbackScreen() {
       </Card>
 
       <Card>
-        <Text style={styles.label}>Optional tags</Text>
+        <Text style={styles.label}>What was in the energy today?</Text>
         <View style={styles.tags}>
           {tagOptions.map((tag) => (
             <Pressable key={tag} onPress={() => toggleTag(tag)} style={[styles.tag, tags.includes(tag) && styles.selectedTag]}>
@@ -84,10 +92,20 @@ export default function FeedbackScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerCard: {
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+  },
   title: {
-    color: colors.ink,
+    color: colors.mauve,
     fontSize: 28,
     fontWeight: '900',
+  },
+  subtitle: {
+    color: colors.muted,
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: spacing.xs,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -96,21 +114,26 @@ const styles = StyleSheet.create({
   },
   rating: {
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: colors.panel,
     borderColor: colors.line,
     borderRadius: radii.md,
     borderWidth: 1,
     flex: 1,
-    minHeight: 56,
+    gap: spacing.xs,
     justifyContent: 'center',
+    minHeight: 72,
   },
   selectedRating: {
-    backgroundColor: colors.ink,
-    borderColor: colors.ink,
+    backgroundColor: colors.mauve,
+    borderColor: colors.mauve,
+  },
+  ratingEmoji: {
+    fontSize: 26,
+    lineHeight: 30,
   },
   ratingText: {
     color: colors.ink,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
   },
   selectedRatingText: {
@@ -129,7 +152,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   tag: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.panel,
     borderColor: colors.line,
     borderRadius: radii.pill,
     borderWidth: 1,
@@ -137,14 +160,15 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   selectedTag: {
-    backgroundColor: colors.panelStrong,
-    borderColor: colors.gold,
+    backgroundColor: colors.mauve,
+    borderColor: colors.mauve,
   },
   tagText: {
     color: colors.ink,
+    fontSize: 14,
     fontWeight: '700',
   },
   selectedTagText: {
-    color: colors.ink,
+    color: colors.white,
   },
 });

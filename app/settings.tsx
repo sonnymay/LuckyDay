@@ -3,9 +3,11 @@ import { Alert, ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View 
 import { router, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { AppButton } from '../src/components/AppButton';
+import { BirthdayPicker } from '../src/components/BirthdayPicker';
 import { Card } from '../src/components/Card';
 import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
+import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
 import { createProfile, normalizeMainFocuses } from '../src/lib/luck';
 import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
@@ -64,7 +66,7 @@ export default function SettingsScreen() {
     }
 
     if (!isValidDateKey(birthday.trim())) {
-      Alert.alert('Birthday needed', 'Use the format YYYY-MM-DD.');
+      Alert.alert('Birthday needed', 'Fill in a valid year, month, and day.');
       return;
     }
 
@@ -211,7 +213,10 @@ export default function SettingsScreen() {
 
       <View style={styles.form}>
         <Field label="Nickname" value={nickname} onChangeText={setNickname} placeholder="Mali" />
-        <Field label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="YYYY-MM-DD" />
+        <View style={styles.group}>
+          <Text style={styles.label}>Birthday</Text>
+          <BirthdayPicker value={birthday} onChange={setBirthday} />
+        </View>
 
         <View style={styles.group}>
           <Text style={styles.label}>Main focuses</Text>
@@ -229,12 +234,11 @@ export default function SettingsScreen() {
           <Text style={styles.helpText}>Choose one, a few, or all of them.</Text>
         </View>
 
-        <Field
-          label="Morning reminder optional"
-          value={notificationTime}
-          onChangeText={setNotificationTime}
-          placeholder="08:00"
-        />
+        <View style={styles.group}>
+          <Text style={styles.label}>Morning reminder optional</Text>
+          <TimePickerInput value={notificationTime} onChange={setNotificationTime} />
+          <Text style={styles.helpText}>Leave empty to skip reminders.</Text>
+        </View>
       </View>
 
       <View style={styles.photoStack}>

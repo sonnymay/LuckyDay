@@ -83,25 +83,6 @@ export default function HomeScreen() {
 
       <EnergyScoreCard label="✨ Today's luck energy" score={reading.score} message={reading.mainMessage} />
 
-      <ChineseZodiacCard animal={reading.chineseZodiac} />
-
-      <Card style={styles.streakCard}>
-        <Text style={styles.streakLabel}>Daily ritual streak</Text>
-        <Text style={styles.streakValue}>{streak} {streak === 1 ? 'day' : 'days'} ✨</Text>
-        <Text style={styles.streakCopy}>Open LuckyDay each morning to keep your luck ritual alive.</Text>
-      </Card>
-
-      <AppButton
-        label={savingShareCard ? 'Saving your luck...' : "Share today's luck"}
-        onPress={() => saveShareCard(reading, shareCardRef, setSavingShareCard)}
-      />
-
-      <Card style={styles.luckyCard}>
-        <SectionRow label="🌿 Good for" value={reading.goodFor.join(', ')} />
-        <View style={styles.divider} />
-        <SectionRow label="🧿 Avoid" value={reading.avoid.join(', ')} />
-      </Card>
-
       <View style={styles.grid}>
         <LuckyMetricCard label="🔢 Lucky number" value={String(reading.luckyNumber)} variant="number" />
         <LuckyMetricCard
@@ -114,6 +95,14 @@ export default function HomeScreen() {
         <LuckyMetricCard label="🧭 Direction" value={reading.luckyDirection} variant="direction" />
       </View>
 
+      <ChineseZodiacCard animal={reading.chineseZodiac} />
+
+      <Card style={styles.luckyCard}>
+        <SectionRow label="🌿 Good for" value={reading.goodFor.join(', ')} />
+        <View style={styles.divider} />
+        <SectionRow label="🧿 Avoid" value={reading.avoid.join(', ')} />
+      </Card>
+
       <Card style={styles.moonCard}>
         <SectionRow label="🌙 Moon energy" value={`${reading.moonPhase}: ${reading.moonMessage}`} />
       </Card>
@@ -122,10 +111,39 @@ export default function HomeScreen() {
         <SectionRow label="🍀 Small action" value={reading.action} />
       </Card>
 
-      <View style={styles.actions}>
-        <AppButton label="Daily detail" variant="secondary" onPress={() => router.push('/detail')} />
-        <AppButton label="Reading history" variant="secondary" onPress={() => router.push('/history')} />
-        <AppButton label="Was today accurate?" variant="secondary" onPress={() => router.push('/feedback')} />
+      <AppButton
+        label={savingShareCard ? 'Saving your luck...' : "Share today's luck"}
+        onPress={() => saveShareCard(reading, shareCardRef, setSavingShareCard)}
+      />
+
+      <Card style={styles.streakCard}>
+        <Text style={styles.streakLabel}>Daily ritual streak</Text>
+        {streak === 0 ? (
+          <>
+            <Text style={styles.streakValue}>Start your ritual today ✨</Text>
+            <Text style={styles.streakCopy}>Open LuckyDay each morning to build your streak.</Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.streakValue}>{streak} {streak === 1 ? 'day' : 'days'} ✨</Text>
+            <Text style={styles.streakCopy}>Keep your morning ritual alive — open LuckyDay each day.</Text>
+          </>
+        )}
+      </Card>
+
+      <View style={styles.navGrid}>
+        <Pressable style={styles.navCard} onPress={() => router.push('/detail')}>
+          <Text style={styles.navEmoji}>📋</Text>
+          <Text style={styles.navLabel}>Daily{'\n'}detail</Text>
+        </Pressable>
+        <Pressable style={styles.navCard} onPress={() => router.push('/history')}>
+          <Text style={styles.navEmoji}>📖</Text>
+          <Text style={styles.navLabel}>Reading{'\n'}history</Text>
+        </Pressable>
+        <Pressable style={styles.navCard} onPress={() => router.push('/feedback')}>
+          <Text style={styles.navEmoji}>⭐</Text>
+          <Text style={styles.navLabel}>Rate{'\n'}today</Text>
+        </Pressable>
       </View>
 
       <View style={[styles.captureArea, styles.noPointerEvents]}>
@@ -272,8 +290,31 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.md,
   },
-  actions: {
+  navGrid: {
+    flexDirection: 'row',
     gap: spacing.sm,
+  },
+  navCard: {
+    alignItems: 'center',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.line,
+    borderRadius: 22,
+    borderWidth: 1,
+    flex: 1,
+    gap: spacing.xs,
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+  },
+  navEmoji: {
+    fontSize: 28,
+    lineHeight: 34,
+  },
+  navLabel: {
+    color: colors.mauve,
+    fontSize: 11,
+    fontWeight: '900',
+    textAlign: 'center',
+    textTransform: 'uppercase',
   },
   captureArea: {
     left: -10000,

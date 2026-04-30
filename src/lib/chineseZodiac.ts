@@ -14,18 +14,18 @@ export const chineseZodiacAnimals = [
 ];
 
 const zodiacDetails: Record<string, { emoji: string; tone: string }> = {
-  Rat: { emoji: '🐭', tone: 'Clever, quick, charming luck' },
-  Ox: { emoji: '🐮', tone: 'Steady, patient, grounded luck' },
-  Tiger: { emoji: '🐯', tone: 'Brave, bold, radiant luck' },
-  Rabbit: { emoji: '🐰', tone: 'Gentle, graceful, soft luck' },
-  Dragon: { emoji: '🐲', tone: 'Magnetic, powerful, golden luck' },
-  Snake: { emoji: '🐍', tone: 'Wise, intuitive, quiet luck' },
-  Horse: { emoji: '🐴', tone: 'Free, bright, moving luck' },
-  Goat: { emoji: '🐐', tone: 'Creative, kind, peaceful luck' },
-  Monkey: { emoji: '🐵', tone: 'Playful, smart, lucky timing' },
-  Rooster: { emoji: '🐔', tone: 'Polished, clear, confident luck' },
-  Dog: { emoji: '🐶', tone: 'Loyal, protective, honest luck' },
-  Pig: { emoji: '🐷', tone: 'Abundant, warm, generous luck' },
+  Rat: { emoji: '🐭', tone: 'Clever, quick, full of charm' },
+  Ox: { emoji: '🐮', tone: 'Steady, patient, deeply grounded' },
+  Tiger: { emoji: '🐯', tone: 'Brave, bold, radiant spirit' },
+  Rabbit: { emoji: '🐰', tone: 'Gentle, graceful, softly luminous' },
+  Dragon: { emoji: '🐲', tone: 'Magnetic, powerful, golden energy' },
+  Snake: { emoji: '🐍', tone: 'Wise, intuitive, quietly powerful' },
+  Horse: { emoji: '🐴', tone: 'Free-spirited, bright, always moving' },
+  Goat: { emoji: '🐐', tone: 'Creative, kind, peacefully abundant' },
+  Monkey: { emoji: '🐵', tone: 'Playful, sharp, perfectly timed' },
+  Rooster: { emoji: '🐔', tone: 'Polished, clear, quietly confident' },
+  Dog: { emoji: '🐶', tone: 'Loyal, protective, deeply honest' },
+  Pig: { emoji: '🐷', tone: 'Warm, generous, abundantly open' },
 };
 
 export function getChineseZodiacDetails(animal: string) {

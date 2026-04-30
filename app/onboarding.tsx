@@ -3,10 +3,12 @@ import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { AppButton } from '../src/components/AppButton';
+import { BirthdayPicker } from '../src/components/BirthdayPicker';
 import { Card } from '../src/components/Card';
 import { MediaConsentCard } from '../src/components/MediaConsentCard';
 import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
+import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
 import { createProfile } from '../src/lib/luck';
 import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
@@ -58,7 +60,7 @@ export default function OnboardingScreen() {
     }
 
     if (!isValidDateKey(birthday.trim())) {
-      Alert.alert('Birthday needed', 'Use the format YYYY-MM-DD, like 1995-03-22.');
+      Alert.alert('Birthday needed', 'Fill in a valid year, month, and day.');
       return false;
     }
 
@@ -131,7 +133,10 @@ export default function OnboardingScreen() {
 
       {step === 1 ? <View style={styles.form}>
         <Field label="Nickname" value={nickname} onChangeText={setNickname} placeholder="Mali" />
-        <Field label="Birthday" value={birthday} onChangeText={setBirthday} placeholder="e.g. 1995-03-22" />
+        <View style={styles.group}>
+          <Text style={styles.label}>Birthday</Text>
+          <BirthdayPicker value={birthday} onChange={setBirthday} />
+        </View>
         <Field label="Birth time optional" value={birthTime} onChangeText={setBirthTime} placeholder="08:30" />
         <Field label="Birthplace optional" value={birthplace} onChangeText={setBirthplace} placeholder="Bangkok" />
       </View> : null}
@@ -153,12 +158,11 @@ export default function OnboardingScreen() {
           <Text style={styles.helpText}>Choose one, a few, or all of them.</Text>
         </View>
 
-        <Field
-          label="Morning reminder optional"
-          value={notificationTime}
-          onChangeText={setNotificationTime}
-          placeholder="08:00"
-        />
+        <View style={styles.group}>
+          <Text style={styles.label}>Morning reminder optional</Text>
+          <TimePickerInput value={notificationTime} onChange={setNotificationTime} />
+          <Text style={styles.helpText}>Leave empty to skip reminders.</Text>
+        </View>
       </View> : null}
 
       {step === 3 ? <View style={styles.photoStack}>
