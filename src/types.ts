@@ -48,6 +48,10 @@ export type DailyReading = {
   mainMessage: string;
   goodFor: string[];
   avoid: string[];
+  /** Lunar calendar date, e.g. "三月初三" — from real almanac data */
+  lunarDate: string;
+  /** Bilingual solar term if today is one of the 24 节气, e.g. "谷雨 · Grain Rain" */
+  solarTerm: string | undefined;
   luckyNumber: number;
   luckyColor: string;
   luckyTime: string;

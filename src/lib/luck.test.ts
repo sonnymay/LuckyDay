@@ -89,8 +89,13 @@ describe('luck helpers', () => {
     expect(reading.date).toBe('2026-04-28');
     expect(reading.score).toBeGreaterThanOrEqual(55);
     expect(reading.score).toBeLessThanOrEqual(92);
+    // goodFor and avoid come from the real Chinese almanac for this calendar date
     expect(reading.goodFor.length).toBeGreaterThan(0);
     expect(reading.avoid.length).toBeGreaterThan(0);
+    expect(reading.goodFor.every((item) => typeof item === 'string' && item.length > 0)).toBe(true);
+    expect(reading.avoid.every((item) => typeof item === 'string' && item.length > 0)).toBe(true);
+    // lunarDate is populated by the almanac module
+    expect(typeof reading.lunarDate).toBe('string');
     expect(reading.moonPhase).toBeTruthy();
     expect(reading.moonMessage).toBeTruthy();
     expect(reading.chineseZodiac).toBe('Rat');
@@ -98,11 +103,23 @@ describe('luck helpers', () => {
     expect(reading.luckyNumber).toBeLessThanOrEqual(9);
   });
 
+  it('almanac goodFor and avoid are shared across users on the same date', () => {
+    const date = new Date('2026-04-28T12:00:00.000Z');
+    const maliReading = generateDailyReading(baseProfile, date);
+    const nokReading = generateDailyReading({ ...baseProfile, id: 'other', nickname: 'Nok' }, date);
+
+    // Almanac data is date-based (same for everyone on a given day), not user-specific
+    expect(maliReading.goodFor).toEqual(nokReading.goodFor);
+    expect(maliReading.avoid).toEqual(nokReading.avoid);
+    expect(maliReading.lunarDate).toEqual(nokReading.lunarDate);
+  });
+
   it('supports more than one main focus', () => {
     const date = new Date('2026-04-28T12:00:00.000Z');
     const reading = generateDailyReading({ ...baseProfile, mainFocus: ['Money', 'Love', 'Work', 'Health', 'Luck'] }, date);
 
-    expect(reading.goodFor.some((item) => ['money', 'love', 'work', 'health', 'luck'].includes(item))).toBe(true);
+    // goodFor comes from the almanac — check it has content regardless of mainFocus
+    expect(reading.goodFor.length).toBeGreaterThan(0);
     expect(reading.avoid.length).toBeGreaterThan(0);
   });
 
@@ -111,6 +128,8 @@ describe('luck helpers', () => {
     const maliReading = generateDailyReading(baseProfile, date);
     const nokReading = generateDailyReading({ ...baseProfile, id: 'other', nickname: 'Nok' }, date);
 
-    expect(nokReading).not.toEqual(maliReading);
+    // Score, message, lucky color/number/direction remain personalized by seed
+    expect(nokReading.score).not.toBe(maliReading.score);
+    expect(nokReading.mainMessage).not.toBe(maliReading.mainMessage);
   });
 });

@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-04-29 (UI polish pass verified)
+Last updated: 2026-04-30 (Chinese almanac integration verified)
 
 ## Project Summary
 
@@ -21,7 +21,7 @@ Current branch:
 `codex-luckyday-product-polish`
 
 Latest pushed work:
-`Apply Claude UI polish pass` (see `git log -1` for the exact commit hash)
+`Chinese almanac integration` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
@@ -106,6 +106,19 @@ Visual/product direction:
 - The share card includes the moon phase under the date and the Chinese zodiac animal as subtle content-depth cues.
 - Web falls back to a text share because camera roll save/share-image behavior is native-only.
 - Consumer-facing copy should avoid internal terms like `MVP`; keep developer/product notes in docs only.
+
+Chinese almanac integration (2026-04-30):
+- `goodFor` and `avoid` in the daily reading now come from real Chinese almanac (通勝 Tung Shing) data, not random seeded picks.
+- Uses the `lunar-javascript` npm package (~300 KB, pure JS, no native dependencies, no API calls). Install: `npm install lunar-javascript`.
+- New module: `src/lib/almanac.ts`. Calls `Lunar.Solar.fromYmd()` → `.getLunar()` → `.getDayYi()` / `.getDayJi()` to get the day's real 宜 (appropriate) and 忌 (avoid) activity lists. Maps Chinese terms to modern English phrases using embedded translation tables.
+- The almanac data is date-based, not user-seed-based — everyone on the same date gets the same goodFor/avoid (this is how the real almanac works). Score, message, lucky color/number/direction/time remain personalized per user via the seed.
+- `DailyReading` has two new fields: `lunarDate: string` (e.g. "三月初三") and `solarTerm?: string` (e.g. "谷雨 · Grain Rain" — only populated on one of the 24 solar term days).
+- Home screen "Good for / Avoid" card now shows a "📖 Chinese Almanac" provenance badge + the lunar date. Solar term days show an extra accent line.
+- The 24 solar terms are bilingual: Chinese + English translation (e.g. "清明 · Clear & Bright").
+- `almanac.ts` has a try/catch fallback — if the library fails for any reason, the app returns sensible default values and continues working.
+- Unit tests updated: the old test checking `goodFor` items include focus names (money/love/work) was replaced with checks that verify non-empty string arrays and that two different users on the same date get identical almanac data.
+- Run `npm install lunar-javascript` once before running typecheck or tests.
+- `lunar-javascript` ships no TypeScript types. A minimal ambient declaration is at `src/types/lunar-javascript.d.ts` — covers the five methods the app uses (`getDayYi`, `getDayJi`, `getMonthInChinese`, `getDayInChinese`, `getJieQi`). TypeScript picks it up automatically via the default `include` in `tsconfig.json`.
 
 UI redesign pass — "Sakura Bloom" palette (2026-04-30):
 - Core color overhaul: `colors.mauve` changed from `#6E365B` (muddy dark maroon-purple) to `#A8467C` (clear rose-pink). This single change cascades across all hero cards, chip selections, labels, and accent text. The old color read as dated/heavy; the new one reads as feminine and vibrant.
@@ -199,9 +212,9 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-30 after scroll birthday picker and Lunar New Year zodiac accuracy pass:
+Last verified on 2026-04-30 after Chinese almanac integration pass:
 - `npm run typecheck` passed
-- `npm test` passed: 13 tests
+- `npm test` passed: 14 tests
 - `npm run export:web` passed
 - `npm run e2e` passed: 3 browser smoke tests
 - In-app browser QA passed for Home showing the reordered lucky metric grid, Chinese zodiac card, updated streak/nav area, and hidden share-card render content.

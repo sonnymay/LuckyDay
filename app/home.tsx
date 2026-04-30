@@ -98,9 +98,16 @@ export default function HomeScreen() {
       <ChineseZodiacCard animal={reading.chineseZodiac} />
 
       <Card style={styles.luckyCard}>
-        <SectionRow label="🌿 Good for" value={reading.goodFor.join(', ')} />
+        {/* Almanac provenance badge */}
+        <View style={styles.almanacRow}>
+          <Text style={styles.almanacBadge}>📖 Chinese Almanac</Text>
+          {reading.lunarDate ? <Text style={styles.almanacDate}>{reading.lunarDate}</Text> : null}
+        </View>
+        {reading.solarTerm ? <Text style={styles.solarTerm}>✦ {reading.solarTerm}</Text> : null}
         <View style={styles.divider} />
-        <SectionRow label="🧿 Avoid" value={reading.avoid.join(', ')} />
+        <SectionRow label="🌿 Good for today" value={reading.goodFor.join(' · ')} />
+        <View style={styles.divider} />
+        <SectionRow label="🧿 Avoid today" value={reading.avoid.join(' · ')} />
       </Card>
 
       <Card style={styles.moonCard}>
@@ -249,6 +256,29 @@ const styles = StyleSheet.create({
   },
   luckyCard: {
     backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+  },
+  almanacRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  almanacBadge: {
+    color: colors.mauve,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  almanacDate: {
+    color: colors.goldDeep,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  solarTerm: {
+    color: colors.mauve,
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: spacing.xs,
   },
   guidanceCard: {
     backgroundColor: colors.sunrise,

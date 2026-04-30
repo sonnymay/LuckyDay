@@ -1,22 +1,7 @@
 import { DailyReading, MainFocus, Profile, ProfileInput } from '../types';
+import { getAlmanacDay } from './almanac';
 import { chineseZodiacAnimals } from './chineseZodiac';
 import { todayKey } from './date';
-
-const focusGoodFor: Record<MainFocus, string[]> = {
-  Money: ['saving money', 'checking bills', 'small plans'],
-  Love: ['kind words', 'slow replies', 'listening'],
-  Work: ['work', 'planning', 'finishing old tasks'],
-  Health: ['rest', 'simple food', 'quiet movement'],
-  Luck: ['trying once', 'asking for help', 'clean starts'],
-};
-
-const avoidByFocus: Record<MainFocus, string[]> = {
-  Money: ['impulse spending', 'risky deals', 'showing off'],
-  Love: ['cold messages', 'testing people', 'old arguments'],
-  Work: ['rushing', 'office gossip', 'late starts'],
-  Health: ['skipping meals', 'too much screen time', 'heavy plans'],
-  Luck: ['forcing things', 'lending money', 'angry choices'],
-};
 
 const mainMessages = [
   // General energy
@@ -174,8 +159,6 @@ const actions = [
 const luckyColors = ['Green', 'White', 'Gold', 'Blue', 'Red', 'Black', 'Pink', 'Yellow', 'Silver'];
 const luckyDirections = ['North', 'South', 'East', 'West', 'Northeast', 'Northwest', 'Southeast', 'Southwest'];
 const luckyTimes = ['7 AM - 9 AM', '9 AM - 11 AM', '11 AM - 1 PM', '1 PM - 3 PM', '3 PM - 5 PM', '6 PM - 8 PM'];
-const goodForPool = ['work', 'planning', 'saving money', 'family calls', 'cleaning', 'study', 'short trips'];
-const avoidPool = ['arguing', 'impulse spending', 'late replies', 'big promises', 'rushing', 'gossip', 'heavy food'];
 const moonPhaseMessages: Record<string, string> = {
   'New Moon': 'A fresh cycle begins. Set one quiet intention and protect it.',
   'Waxing Crescent': 'The energy is building. One small step forward is enough.',
@@ -391,26 +374,22 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
   const chineseZodiac = getChineseZodiac(profile.birthday);
   const zodiacBias = chineseZodiac.length + profile.westernZodiac.length;
   const mainFocuses = normalizeMainFocuses(profile.mainFocus);
-  const primaryFocus = pickFromArrayWithSeed(mainFocuses, seed, 0);
-  const focusGood = mainFocuses.flatMap((focus) => focusGoodFor[focus]);
-  const focusAvoid = mainFocuses.flatMap((focus) => avoidByFocus[focus]);
   const score = 55 + (Math.abs(seed + day + zodiacBias + mainFocuses.length) % 38);
   const moonPhase = getMoonPhase(date);
+
+  // Real Chinese almanac data — same for everyone on this calendar day.
+  // goodFor and avoid come from the 通勝 (Tung Shing) almanac's 宜/忌 lists,
+  // not from random seeded picks.
+  const almanac = getAlmanacDay(date);
 
   return {
     date: todayKey(date),
     score,
     mainMessage: pickFromArrayWithSeed(mainMessages, seed, day),
-    goodFor: unique([
-      primaryFocus.toLowerCase(),
-      ...mainFocuses.map((focus) => focus.toLowerCase()),
-      pickFromArrayWithSeed(focusGood, seed, 1),
-      pickFromArrayWithSeed(goodForPool, seed, 2),
-    ]).slice(0, 3),
-    avoid: unique([
-      pickFromArrayWithSeed(focusAvoid, seed, 3),
-      pickFromArrayWithSeed(avoidPool, seed, 4),
-    ]).slice(0, 2),
+    goodFor: almanac.goodFor,
+    avoid: almanac.avoid,
+    lunarDate: almanac.lunarDate,
+    solarTerm: almanac.solarTerm,
     luckyNumber: 1 + (Math.abs(seed + zodiacBias) % 9),
     luckyColor: pickFromArrayWithSeed(luckyColors, seed, 5),
     luckyTime: pickFromArrayWithSeed(luckyTimes, seed, 6),
