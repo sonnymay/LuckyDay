@@ -62,7 +62,7 @@ const YI_EN: Record<string, string> = {
 const JI_EN: Record<string, string> = {
   '嫁娶': 'Love commitments',
   '动土': 'Starting big projects',
-  '开市': 'Big money moves',
+  '开市': 'Large financial decisions',
   '出行': 'Long-distance travel',
   '安葬': 'Difficult closures',
   '修造': 'Major renovations',
@@ -144,11 +144,11 @@ export function getAlmanacDay(date: Date): AlmanacDay {
     );
     const lunar = solar.getLunar();
 
-    // Translate 宜 list — take up to 4 that have English mappings
+    // Translate 宜 list — take up to 3 that have English mappings
     const goodFor = (lunar.getDayYi() as string[])
       .map((item) => YI_EN[item])
       .filter((item): item is string => item !== undefined)
-      .slice(0, 4);
+      .slice(0, 3);
 
     // Translate 忌 list — take up to 3 that have English mappings
     const avoid = (lunar.getDayJi() as string[])

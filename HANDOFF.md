@@ -113,7 +113,9 @@ Chinese almanac integration (2026-04-30):
 - New module: `src/lib/almanac.ts`. Calls `Lunar.Solar.fromYmd()` → `.getLunar()` → `.getDayYi()` / `.getDayJi()` to get the day's real 宜 (appropriate) and 忌 (avoid) activity lists. Maps Chinese terms to modern English phrases using embedded translation tables.
 - The almanac data is date-based, not user-seed-based — everyone on the same date gets the same goodFor/avoid (this is how the real almanac works). Score, message, lucky color/number/direction/time remain personalized per user via the seed.
 - `DailyReading` has two new fields: `lunarDate: string` (e.g. "三月初三") and `solarTerm?: string` (e.g. "谷雨 · Grain Rain" — only populated on one of the 24 solar term days).
-- Home screen "Good for / Avoid" card now shows a "📖 Chinese Almanac" provenance badge + the lunar date. Solar term days show an extra accent line.
+- Home screen "Good for / Avoid" card now shows a "📖 From the Chinese Almanac" provenance badge + the lunar date. Solar term days show an extra accent line.
+- The almanac card uses a warmer cream background (`#FBF5E8`) so the real almanac guidance feels distinct from the other reading cards.
+- The "Good for today" list is intentionally capped at 3 translated items for mobile scanability.
 - The 24 solar terms are bilingual: Chinese + English translation (e.g. "清明 · Clear & Bright").
 - `almanac.ts` has a try/catch fallback — if the library fails for any reason, the app returns sensible default values and continues working.
 - Unit tests updated: the old test checking `goodFor` items include focus names (money/love/work) was replaced with checks that verify non-empty string arrays and that two different users on the same date get identical almanac data.
@@ -212,7 +214,7 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-30 after Chinese almanac integration pass:
+Last verified on 2026-04-30 after Chinese almanac card polish:
 - `npm run typecheck` passed
 - `npm test` passed: 14 tests
 - `npm run export:web` passed

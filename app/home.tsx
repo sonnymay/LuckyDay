@@ -100,7 +100,7 @@ export default function HomeScreen() {
       <Card style={styles.luckyCard}>
         {/* Almanac provenance badge */}
         <View style={styles.almanacRow}>
-          <Text style={styles.almanacBadge}>📖 Chinese Almanac</Text>
+          <Text style={styles.almanacBadge}>📖  From the Chinese Almanac</Text>
           {reading.lunarDate ? <Text style={styles.almanacDate}>{reading.lunarDate}</Text> : null}
         </View>
         {reading.solarTerm ? <Text style={styles.solarTerm}>✦ {reading.solarTerm}</Text> : null}
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   luckyCard: {
-    backgroundColor: colors.panelStrong,
+    backgroundColor: '#FBF5E8',
     borderColor: colors.roseGold,
   },
   almanacRow: {
