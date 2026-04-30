@@ -82,7 +82,10 @@ export function LuckyShareCard({ reading }: Props) {
         </View>
       </View>
 
-      <Text style={styles.wordmark}>LuckyDay</Text>
+      <View style={styles.brandBlock}>
+        <Text style={styles.wordmark}>LuckyDay</Text>
+        <Text style={styles.wordmarkSub}>daily luck ritual</Text>
+      </View>
     </View>
   );
 }
@@ -300,5 +303,16 @@ const styles = StyleSheet.create({
     color: colors.champagne,
     fontSize: 25,
     fontWeight: '900',
+  },
+  brandBlock: {
+    alignItems: 'center',
+  },
+  wordmarkSub: {
+    color: colors.blush,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+    marginTop: 2,
+    textTransform: 'uppercase',
   },
 });

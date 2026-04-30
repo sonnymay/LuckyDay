@@ -118,6 +118,22 @@ export default function HomeScreen() {
         <SectionRow label="🍀 Small action" value={reading.action} />
       </Card>
 
+      <Card style={styles.sharePromptCard}>
+        <View style={styles.sharePromptHeader}>
+          <Text style={styles.sharePromptEmoji}>💌</Text>
+          <View style={styles.sharePromptCopy}>
+            <Text style={styles.sharePromptTitle}>Send a little luck</Text>
+            <Text style={styles.sharePromptText}>
+              Save a cute story card for your group chat or morning check-in. No birthday, photos, or private details.
+            </Text>
+          </View>
+        </View>
+        <View style={styles.sharePills}>
+          <Text style={styles.sharePill}>Story-ready</Text>
+          <Text style={styles.sharePill}>Private by default</Text>
+        </View>
+      </Card>
+
       <AppButton
         label={savingShareCard ? 'Saving your luck...' : "Share today's luck"}
         onPress={() => saveShareCard(reading, shareCardRef, setSavingShareCard)}
@@ -283,6 +299,60 @@ const styles = StyleSheet.create({
   guidanceCard: {
     backgroundColor: colors.sunrise,
     borderColor: colors.roseGold,
+  },
+  sharePromptCard: {
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    gap: spacing.md,
+  },
+  sharePromptHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  sharePromptEmoji: {
+    backgroundColor: colors.blush,
+    borderColor: colors.roseGold,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    fontSize: 30,
+    height: 56,
+    lineHeight: 52,
+    overflow: 'hidden',
+    textAlign: 'center',
+    width: 56,
+  },
+  sharePromptCopy: {
+    flex: 1,
+  },
+  sharePromptTitle: {
+    color: colors.mauve,
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  sharePromptText: {
+    color: colors.muted,
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+    marginTop: spacing.xs,
+  },
+  sharePills: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  sharePill: {
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: 999,
+    borderWidth: 1,
+    color: colors.goldDeep,
+    fontSize: 12,
+    fontWeight: '900',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    textTransform: 'uppercase',
   },
   streakCard: {
     backgroundColor: colors.champagne,
