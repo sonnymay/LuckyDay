@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-04-30 (hero score polish verified)
+Last updated: 2026-05-01 (metric card polish verified)
 
 ## Project Summary
 
@@ -21,7 +21,7 @@ Current branch:
 `codex-luckyday-product-polish`
 
 Latest pushed work:
-`Hero score polish` (see `git log -1` for the exact commit hash)
+`Metric card polish` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
@@ -99,6 +99,7 @@ Visual/product direction:
 - Landing and Home show a cute Chinese zodiac animal card based on the saved birthday-derived animal.
 - Lucky color uses a real swatch and short meaning copy via `src/lib/luckyColor.ts`.
 - Lucky number uses a larger gold display treatment, and direction includes an arrow glyph.
+- `LuckyMetricCard` now styles each first-viewport metric as a mini fortune object: decorative accents, framed color swatch, gold number treatment, direction badge, and short context copy for time/direction.
 - The score halo uses bright gold active dots and faded inactive dots so the ring reads as a score, not just decoration.
 - Landing/Home guidance cards now use the champagne/rose-gold treatment for visual continuity.
 - Primary CTA buttons use a warm gold treatment.
@@ -217,7 +218,7 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-04-30 after hero score polish:
+Last verified on 2026-05-01 after metric card polish:
 - `npm run typecheck` passed
 - `npm test` passed: 14 tests
 - `npm run export:web` passed
