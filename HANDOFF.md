@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-05-01 (metric card polish verified)
+Last updated: 2026-05-01 (Moon Energy UI removed)
 
 ## Project Summary
 
@@ -21,12 +21,12 @@ Current branch:
 `codex-luckyday-product-polish`
 
 Latest pushed work:
-`Metric card polish` (see `git log -1` for the exact commit hash)
+`Remove Moon Energy UI` (see `git log -1` for the exact commit hash)
 
 ## Current App Behavior
 
 First launch:
-1. Shows a daily preview with a luck-energy score orb, cute Chinese zodiac animal visual, lucky color swatch, lucky number, lucky time, lucky direction, moon energy, and simple daily guidance.
+1. Shows a daily preview with a luck-energy score orb, cute Chinese zodiac animal visual, lucky color swatch, lucky number, lucky time, lucky direction, Chinese almanac guidance, and simple daily advice.
 2. Asks if the user wants a personal LuckyDay.
 3. Opens onboarding.
 4. Onboarding is split into 3 steps with a progress indicator:
@@ -64,7 +64,7 @@ Profile shape is defined in `src/types.ts`.
 `mainFocus` is now `MainFocus[]`, not a string. Older local profiles may still have a single string from earlier builds, so `normalizeMainFocuses` in `src/lib/luck.ts` keeps compatibility.
 
 Daily reading logic lives in `src/lib/luck.ts`.
-- Readings include a deterministic local moon phase and moon guidance message. No network or calendar API is used.
+- Moon data is still generated internally for backward-compatible saved readings, but Moon Energy is no longer shown in the visible product experience.
 - Readings include the user's Chinese zodiac animal from the locally saved birthday/profile.
 - Chinese zodiac assignment now respects Lunar New Year boundaries for supported birth years, so January and early-February birthdays do not get the wrong animal by simple Gregorian year.
 - Core daily luck stays deterministic/local for privacy, speed, and consistency. Future AI/API work should be reserved for premium deeper readings, especially optional photo-based interpretation with explicit consent.
@@ -107,7 +107,7 @@ Visual/product direction:
 - Home now includes a "Send a little luck" prompt before the share button to make sharing feel like a cute social ritual instead of a utility action. The prompt uses the lucky color meaning to suggest sending the card to someone who could use that energy today.
 - The share prompt includes a tiny story-card preview so the share action feels visual and desirable before the user taps it.
 - The share card intentionally omits PII: no nickname, birthday, birth time, or photos.
-- The share card includes the moon phase under the date, the Chinese zodiac animal, soft sparkle/floral decorations, a "little luck" badge, and a small "daily luck ritual" brand line as subtle content-depth and word-of-mouth cues.
+- The share card includes the Chinese zodiac animal, soft sparkle/floral decorations, a "little luck" badge, and a small "daily luck ritual" brand line as subtle content-depth and word-of-mouth cues.
 - Web falls back to a text share because camera roll save/share-image behavior is native-only.
 - Consumer-facing copy should avoid internal terms like `MVP`; keep developer/product notes in docs only.
 
@@ -218,7 +218,7 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-05-01 after metric card polish:
+Last verified on 2026-05-01 after Moon Energy UI removal:
 - `npm run typecheck` passed
 - `npm test` passed: 14 tests
 - `npm run export:web` passed
@@ -274,7 +274,7 @@ Known verification gap:
 
 4. Improve the daily reading model.
    - Make multi-focus readings more visibly reflect all selected focuses.
-   - Add more moon/message variety without AI.
+   - Add more luck/message variety without AI.
 
 5. Improve reading history.
    - Add clearer empty state if history is unavailable.

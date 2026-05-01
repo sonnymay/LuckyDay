@@ -1,6 +1,6 @@
 # LuckyDay Real Device QA
 
-Last updated: 2026-04-30 (updated for scroll birthday picker and Lunar New Year zodiac logic)
+Last updated: 2026-05-01 (updated after Moon Energy UI removal)
 
 Run this checklist before App Store submission or screenshots.
 
@@ -65,7 +65,6 @@ Preferred:
 - [ ] Lucky time and direction fit on small screens.
 - [ ] Chinese zodiac animal card appears below the metric grid.
 - [ ] Chinese zodiac is correct for early-year birthdays around Lunar New Year boundaries.
-- [ ] Moon energy appears.
 - [ ] Small action appears.
 - [ ] First-visit streak card reads "Start your ritual today ✨" (not "0 days").
 - [ ] After first reading saved: streak card reads "1 day ✨".
@@ -75,7 +74,7 @@ Preferred:
 
 ## Share Card
 
-- [ ] `Share today's luck` is visible without excessive scrolling.
+- [ ] `Save & share my luck` is visible without excessive scrolling.
 - [ ] Photo permission request appears when saving the first time.
 - [ ] Denying permission shows friendly copy.
 - [ ] Granting permission saves the 9:16 image to Photos.
@@ -106,7 +105,7 @@ Preferred:
 - [ ] Reading History opens from Home.
 - [ ] Streak shows `1 day` after first saved reading.
 - [ ] Month activity grid marks today.
-- [ ] Reading history cards show score, message, color, moon, and action.
+- [ ] Reading history cards show score, message, color, zodiac, and action.
 - [ ] Delete all local data clears history.
 
 ## Settings And Privacy
@@ -125,7 +124,7 @@ Preferred:
 ## App Store Screenshot Pass
 
 - [ ] Capture Daily Luck Reveal screenshot.
-- [ ] Capture Lucky Color / Zodiac / Moon screenshot.
+- [ ] Capture Lucky Color / Zodiac / Almanac screenshot.
 - [ ] Capture Share Card screenshot.
 - [ ] Capture Onboarding screenshot.
 - [ ] Capture History / Streak screenshot.

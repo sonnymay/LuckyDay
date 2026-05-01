@@ -124,8 +124,6 @@ function HistoryCard({ reading }: { reading: DailyReading }) {
       <View style={styles.divider} />
       <SectionRow label="🐲 Chinese zodiac" value={reading.chineseZodiac || 'Your animal'} />
       <View style={styles.divider} />
-      <SectionRow label="🌙 Moon" value={reading.moonPhase} />
-      <View style={styles.divider} />
       <SectionRow label="🍀 Small action" value={reading.action} />
     </Card>
   );

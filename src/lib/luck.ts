@@ -40,8 +40,6 @@ const mainMessages = [
   'Speak your needs clearly — someone around you is ready to listen.',
   'A small action now opens a bigger door than you expect.',
   'This is a good day to say the thing you have been holding back.',
-  // Moon-adjacent
-  'The moon is reading your intentions today. Make them clear.',
   'What you do before noon today sets the tone for the week.',
   'Someone around you carries good news. Stay close to warmth.',
   'The energy around money and plans is clearer than usual today.',

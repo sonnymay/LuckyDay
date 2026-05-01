@@ -67,16 +67,16 @@ Why this birthday: 1997 = Ox year. Ox tone is "Steady, patient, deeply grounded"
 **Screen:** Home (scrolled slightly)
 
 **Overlay copy to add in post:**
-> Your color, moon, and timing
+> Your color, zodiac, and timing
 
 **What must be visible:**
 - Lucky color card with color swatch and name
-- Moon energy card
+- Chinese almanac card
 - Chinese zodiac animal and tone copy
 - Small action card
 
 **Capture steps:**
-1. Scroll Home so the zodiac card, moon card, and action card are all visible.
+1. Scroll Home so the zodiac card, almanac card, and action card are all visible.
 2. Take screenshot.
 
 ---
@@ -154,7 +154,7 @@ Why this birthday: 1997 = Ox year. Ox tone is "Steady, patient, deeply grounded"
 **What must be visible:**
 - Streak pill showing a multi-day streak (ideally 5+ days)
 - Month activity grid with several gold dots
-- 2–3 recent history cards with score, lucky color, zodiac, moon
+- 2–3 recent history cards with score, lucky color, zodiac, and action
 
 **Capture steps:**
 
@@ -178,8 +178,6 @@ To fake a multi-day streak for the screenshot:
     "luckyNumber": 8,
     "luckyTime": "10:00–12:00",
     "luckyDirection": "South",
-    "moonPhase": "Waxing Gibbous",
-    "moonMessage": "Growing energy supports new intentions.",
     "goodFor": ["Focus", "Planning"],
     "avoid": ["Arguments"],
     "action": "Write down one thing you are grateful for.",
@@ -194,8 +192,6 @@ To fake a multi-day streak for the screenshot:
     "luckyNumber": 3,
     "luckyTime": "08:00–10:00",
     "luckyDirection": "East",
-    "moonPhase": "First Quarter",
-    "moonMessage": "Take the first step, even a small one.",
     "goodFor": ["Creativity", "Conversation"],
     "avoid": ["Rushing"],
     "action": "Light a candle and breathe for one minute.",
@@ -210,8 +206,6 @@ To fake a multi-day streak for the screenshot:
     "luckyNumber": 6,
     "luckyTime": "07:00–09:00",
     "luckyDirection": "North",
-    "moonPhase": "Waxing Crescent",
-    "moonMessage": "Plant seeds of intention now.",
     "goodFor": ["Decisions", "Learning"],
     "avoid": ["Indecision"],
     "action": "Choose one small task and finish it completely.",
@@ -226,8 +220,6 @@ To fake a multi-day streak for the screenshot:
     "luckyNumber": 9,
     "luckyTime": "09:00–11:00",
     "luckyDirection": "Southeast",
-    "moonPhase": "New Moon",
-    "moonMessage": "A fresh cycle begins — set your intention.",
     "goodFor": ["New beginnings", "Health"],
     "avoid": ["Overthinking"],
     "action": "Drink a full glass of water before checking your phone.",
@@ -242,8 +234,6 @@ To fake a multi-day streak for the screenshot:
     "luckyNumber": 4,
     "luckyTime": "14:00–16:00",
     "luckyDirection": "West",
-    "moonPhase": "Waning Crescent",
-    "moonMessage": "Release what no longer serves you.",
     "goodFor": ["Rest", "Reflection"],
     "avoid": ["Big decisions"],
     "action": "Spend five minutes outside before noon.",

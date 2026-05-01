@@ -52,7 +52,7 @@ export async function syncLocalDailyReminder(time?: string): Promise<ReminderSyn
     "A new reading is ready. Start your morning ritual.",
     "Your Chinese zodiac energy is in. Open LuckyDay.",
     "Today's lucky moment is here. Don't miss it.",
-    "The moon has something to say today. Open to find out.",
+    "Your Chinese almanac guidance is ready. Open to find out.",
     "Your daily luck ritual is ready. One tap to reveal.",
     "Something good is lined up for you today. Open to see.",
     "Your lucky color is chosen. Your number is set. Go.",

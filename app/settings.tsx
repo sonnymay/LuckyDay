@@ -216,7 +216,7 @@ export default function SettingsScreen() {
       <Card style={styles.howItWorksCard}>
         <Text style={styles.photoTitle}>How LuckyDay works</Text>
         <Text style={styles.photoCopy}>
-          Your reading blends your birthday-based Chinese zodiac, your chosen focuses, today's moon phase, and local daily timing patterns. It is a gentle ritual guide, not a guarantee.
+          Your reading blends your birthday-based Chinese zodiac, your chosen focuses, Chinese almanac guidance, and local daily timing patterns. It is a gentle ritual guide, not a guarantee.
         </Text>
       </Card>
 

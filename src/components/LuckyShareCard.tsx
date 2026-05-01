@@ -27,12 +27,12 @@ export function LuckyShareCard({ reading }: Props) {
       <Text style={styles.flowerOne}>✿</Text>
       <Text style={styles.flowerTwo}>❀</Text>
       <View style={styles.topRow}>
-        <Text style={styles.decor}>☾ ✦</Text>
+        <Text style={styles.decor}>✿ ✦</Text>
         <View style={styles.dateBlock}>
           <Text style={styles.date}>✨ {formatShareDate(reading.date)}</Text>
-          <Text style={styles.moon}>{reading.moonPhase}</Text>
+          <Text style={styles.dateSub}>Today's lucky ritual</Text>
         </View>
-        <Text style={styles.decor}>✧ ☽</Text>
+        <Text style={styles.decor}>✧ ❀</Text>
       </View>
 
       <Text style={styles.ritualBadge}>A little luck for today</Text>
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   dateBlock: {
     alignItems: 'center',
   },
-  moon: {
+  dateSub: {
     color: colors.blush,
     fontSize: 12,
     fontWeight: '900',

@@ -110,10 +110,6 @@ export default function HomeScreen() {
         <SectionRow label="🧿 Avoid today" value={reading.avoid.join(' · ')} />
       </Card>
 
-      <Card style={styles.moonCard}>
-        <SectionRow label="🌙 Moon energy" value={`${reading.moonPhase}: ${reading.moonMessage}`} />
-      </Card>
-
       <Card style={styles.guidanceCard}>
         <SectionRow label="🍀 Small action" value={reading.action} />
       </Card>
@@ -426,10 +422,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     marginTop: spacing.xs,
-  },
-  moonCard: {
-    backgroundColor: colors.panelStrong,
-    borderColor: colors.roseGold,
   },
   divider: {
     backgroundColor: colors.line,

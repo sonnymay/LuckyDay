@@ -8,16 +8,16 @@ LuckyDay is a private daily luck ritual for women who want a gentle, beautiful w
 
 Core promise:
 
-> Every morning, LuckyDay gives you a personal luck energy reading: your lucky color, number, best time, Chinese zodiac animal, moon energy, and one small action to help you move with intention.
+> Every morning, LuckyDay gives you a personal luck energy reading: your lucky color, number, best time, Chinese zodiac animal, Chinese almanac guidance, and one small action to help you move with intention.
 
-Keep the app away from generic horoscope positioning. The niche is daily luck, color ritual, Chinese zodiac, moon timing, manifestation, and private self-care.
+Keep the app away from generic horoscope positioning. The niche is daily luck, color ritual, Chinese zodiac, almanac timing, manifestation, and private self-care.
 
 ## App Store Subtitle Options
 
 Apple subtitle limit is 30 characters.
 
 - Daily luck & color ritual
-- Daily luck and moon guide
+- Daily luck and color guide
 - Lucky color, number, timing
 - Your morning luck ritual
 - Daily fortune and lucky color
@@ -32,7 +32,7 @@ Use a focused keyword set rather than stuffing every spiritual term.
 
 Primary:
 
-`luck, lucky color, daily luck, fortune, daily reading, manifestation, moon phase, lucky number, Chinese zodiac`
+`luck, lucky color, daily luck, fortune, daily reading, manifestation, lucky number, Chinese zodiac, almanac`
 
 Secondary:
 
@@ -40,20 +40,20 @@ Secondary:
 
 ## Short Description
 
-LuckyDay is your private morning luck ritual. Check today’s luck energy, lucky color, number, best time, Chinese zodiac animal, and moon energy before you start your day.
+LuckyDay is your private morning luck ritual. Check today’s luck energy, lucky color, number, best time, Chinese zodiac animal, and almanac guidance before you start your day.
 
 ## App Description Draft
 
 Every morning has its own energy.
 
-LuckyDay helps you start the day with a simple private ritual: open the app, reveal your luck energy, and see the color, number, time, direction, Chinese zodiac animal, and moon phase that can guide your day.
+LuckyDay helps you start the day with a simple private ritual: open the app, reveal your luck energy, and see the color, number, time, direction, Chinese zodiac animal, and Chinese almanac guidance that can guide your day.
 
 Use LuckyDay to:
 
 - Reveal your daily luck energy score
 - Find your lucky color, number, time, and direction
 - See a cute Chinese zodiac animal based on your birthday
-- See today’s moon energy and Chinese zodiac animal
+- See Chinese almanac guidance for today
 - Choose a small action for better luck
 - Save and share a beautiful 9:16 daily luck card
 - Track your daily ritual streak and reading history
@@ -86,16 +86,16 @@ Goal: This is the conversion screenshot. It should immediately communicate the p
 
 ### 2. Lucky Color And Daily Ritual
 
-Screen: Home, showing lucky color, Chinese zodiac animal, and moon energy.
+Screen: Home, showing lucky color, Chinese zodiac animal, and almanac guidance.
 
 Overlay copy:
 
-> Your color, moon, and timing
+> Your color, zodiac, and timing
 
 Visible app elements:
 
 - Lucky color swatch and meaning
-- Moon energy
+- Chinese almanac guidance
 - Chinese zodiac animal
 - Small action
 
@@ -171,7 +171,7 @@ Free:
 
 - Daily luck energy
 - Lucky color, number, time, direction
-- Moon energy
+- Chinese almanac guidance
 - Chinese zodiac animal
 - One share card template
 - Reading history and streak
