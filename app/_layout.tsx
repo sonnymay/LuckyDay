@@ -22,6 +22,7 @@ export default function RootLayout() {
         <Stack.Screen name="detail" options={{ title: 'Daily Detail' }} />
         <Stack.Screen name="feedback" options={{ title: 'Feedback' }} />
         <Stack.Screen name="history" options={{ title: 'Reading History' }} />
+        <Stack.Screen name="paywall" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
       </Stack>
     </SafeAreaProvider>

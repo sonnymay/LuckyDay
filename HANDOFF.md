@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-05-02 (Home monetization softened + buildability fix)
+Last updated: 2026-05-02 (Premium paywall visual polish)
 
 ## Project Summary
 
@@ -135,6 +135,7 @@ Conversion, retention, content depth & visual polish (2026-05-01):
   - CTA changed to "Try free for 3 days →" (clearer trial framing).
   - Trial note: "3-day free trial · No charge until Day 4 · Cancel anytime".
   - Footer "Not now" now routes to `/home`, so users who skip the paywall after onboarding land cleanly in the app.
+  - Visual polish pass on 2026-05-02: paywall route header hidden in `app/_layout.tsx`; hero now uses a champagne Premium Energy orb, softer headline ("Make every morning feel chosen"), and a three-row ritual preview before pricing.
 - Streak milestones:
   - `getStreakMilestone(streak)` in `src/lib/streak.ts` — returns emoji + message for 7, 14, 30, 60, 100-day milestones, null otherwise.
   - `shouldRequestRating(streak)` returns true at 7 days — triggers `expo-store-review`.
@@ -329,6 +330,7 @@ Last verified on 2026-05-02 after Home monetization softening:
 - `npm test` passed: 14 tests
 - `npm run e2e` passed: 3 browser smoke tests, including the onboarding → paywall → Not now → Home path
 - In-app browser QA passed for Home showing the core ritual visible to free users, no repeated PremiumGate overlays, share prompt, and single "Go deeper when you're ready" Premium teaser.
+- In-app browser QA passed for Paywall showing the hidden route header, Premium Energy orb hero, ritual preview rows, pricing cards, CTA, and footer links.
 - In-app browser QA passed for Onboarding Step 1 showing the scroll birthday picker.
 - Browser console no longer shows project-owned web shadow or `pointerEvents` deprecation warnings after reload. The remaining warning is the expected `expo-notifications` unsupported-on-web listener warning.
 

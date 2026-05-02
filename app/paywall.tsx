@@ -30,6 +30,12 @@ const FEATURES = [
   { emoji: '🔥', label: 'Extra streak celebrations' },
 ];
 
+const RITUAL_PREVIEW = [
+  { emoji: '🌅', title: 'Morning signal', copy: 'A clearer read on what to pursue, protect, and postpone.' },
+  { emoji: '💌', title: 'Shareable charm', copy: 'Prettier story cards designed for IG, LINE, and close friends.' },
+  { emoji: '🔮', title: 'Deeper pattern', copy: 'History and future photo insights help the ritual feel personal.' },
+];
+
 export default function PaywallScreen() {
   const [packages, setPackages] = useState<PurchasePackage[]>([]);
   const [selected, setSelected] = useState<PurchasePackage | null>(null);
@@ -128,16 +134,39 @@ export default function PaywallScreen() {
       <View style={styles.hero}>
         <View style={styles.decorCircle1} pointerEvents="none" />
         <View style={styles.decorCircle2} pointerEvents="none" />
+        <View style={styles.decorSparkleTop} pointerEvents="none">
+          <Text style={styles.decorSparkleText}>✦</Text>
+        </View>
+        <View style={styles.decorSparkleBottom} pointerEvents="none">
+          <Text style={styles.decorSparkleText}>✧</Text>
+        </View>
         <Text style={styles.badge}>✨ LuckyDay Premium</Text>
-        <Text style={styles.headline}>Your full daily{'\n'}luck ritual</Text>
+        <View style={styles.heroOrb}>
+          <Text style={styles.heroOrbStars}>✦ ✧ ✦</Text>
+          <Text style={styles.heroOrbNumber}>88</Text>
+          <Text style={styles.heroOrbLabel}>PREMIUM ENERGY</Text>
+        </View>
+        <Text style={styles.headline}>Make every morning{'\n'}feel chosen</Text>
         <Text style={styles.subhead}>
-          Real Chinese almanac guidance, personalized lucky metrics, and daily rituals — every
-          morning.
+          Unlock deeper readings, prettier share cards, and a luck history that starts to feel like
+          your private oracle.
         </Text>
         <View style={styles.socialProof}>
           <Text style={styles.socialProofStar}>★★★★★</Text>
-          <Text style={styles.socialProofText}>Trusted by thousands of daily practitioners</Text>
+          <Text style={styles.socialProofText}>Built for a soft, intentional daily ritual</Text>
         </View>
+      </View>
+
+      <View style={styles.previewStack}>
+        {RITUAL_PREVIEW.map((item) => (
+          <View key={item.title} style={styles.previewRow}>
+            <Text style={styles.previewEmoji}>{item.emoji}</Text>
+            <View style={styles.previewCopy}>
+              <Text style={styles.previewTitle}>{item.title}</Text>
+              <Text style={styles.previewText}>{item.copy}</Text>
+            </View>
+          </View>
+        ))}
       </View>
 
       {/* Value nudge — what changes today */}
@@ -156,7 +185,7 @@ export default function PaywallScreen() {
 
       {/* Feature list */}
       <Card style={styles.featuresCard}>
-        <Text style={styles.featuresHeading}>Everything unlocked</Text>
+        <Text style={styles.featuresHeading}>Premium includes</Text>
         {FEATURES.map((f) => (
           <View key={f.label} style={styles.featureRow}>
             <Text style={styles.featureEmoji}>{f.emoji}</Text>
@@ -267,7 +296,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.mauve,
     borderRadius: radii.lg,
-    gap: spacing.sm,
+    gap: spacing.md,
     overflow: 'hidden',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xl,
@@ -299,6 +328,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 140,
   },
+  decorSparkleTop: {
+    position: 'absolute',
+    left: spacing.lg,
+    top: spacing.xl,
+  },
+  decorSparkleBottom: {
+    bottom: spacing.xl,
+    position: 'absolute',
+    right: spacing.lg,
+  },
+  decorSparkleText: {
+    color: 'rgba(255, 240, 199, 0.7)',
+    fontSize: 26,
+    fontWeight: '900',
+  },
   badge: {
     color: colors.champagne,
     fontSize: 13,
@@ -306,11 +350,50 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
+  heroOrb: {
+    alignItems: 'center',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: 86,
+    borderWidth: 2,
+    height: 152,
+    justifyContent: 'center',
+    width: 152,
+    ...Platform.select({
+      web: { boxShadow: `0 0 0 12px rgba(237, 186, 64, 0.16), 0 16px 40px rgba(45, 22, 53, 0.24)` },
+      default: {
+        shadowColor: colors.ink,
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.2,
+        shadowRadius: 28,
+      },
+    }),
+  },
+  heroOrbStars: {
+    color: colors.luckyGold,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 5,
+    marginBottom: 2,
+  },
+  heroOrbNumber: {
+    color: colors.goldDeep,
+    fontSize: 50,
+    fontWeight: '900',
+    lineHeight: 56,
+  },
+  heroOrbLabel: {
+    color: colors.goldDeep,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
   headline: {
     color: colors.white,
-    fontSize: 38,
+    fontSize: 34,
     fontWeight: '900',
-    letterSpacing: -0.5,
+    lineHeight: 40,
     textAlign: 'center',
   },
   subhead: {
@@ -335,6 +418,60 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  previewStack: {
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    gap: spacing.sm,
+    padding: spacing.md,
+    ...Platform.select({
+      web: { boxShadow: `0 8px 24px rgba(192, 58, 120, 0.10)` },
+      default: {
+        shadowColor: colors.mauve,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.1,
+        shadowRadius: 22,
+      },
+    }),
+  },
+  previewRow: {
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    padding: spacing.sm,
+  },
+  previewEmoji: {
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: 20,
+    borderWidth: 1,
+    fontSize: 20,
+    height: 40,
+    lineHeight: 38,
+    overflow: 'hidden',
+    textAlign: 'center',
+    width: 40,
+  },
+  previewCopy: {
+    flex: 1,
+  },
+  previewTitle: {
+    color: colors.mauve,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  previewText: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+    marginTop: 2,
   },
   nudgeCard: {
     backgroundColor: colors.panelStrong,
