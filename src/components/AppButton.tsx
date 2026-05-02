@@ -20,7 +20,9 @@ export function AppButton({ label, onPress, variant = 'primary', style }: Props)
         style,
       ]}
     >
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, variant === 'primary' ? styles.primaryLabel : styles.defaultLabel]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -30,19 +32,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: radii.pill,
     justifyContent: 'center',
-    minHeight: 54,
+    minHeight: 56,
     paddingHorizontal: spacing.lg,
   },
   primary: {
-    backgroundColor: colors.luckyGold,
+    backgroundColor: colors.mauve,
     borderColor: colors.roseGold,
     borderWidth: 2,
     ...Platform.select({
       web: {
-        boxShadow: `0 8px 18px rgba(214, 168, 74, 0.32)`,
+        boxShadow: `0 8px 20px rgba(192, 58, 120, 0.32)`,
       },
       default: {
-        shadowColor: colors.luckyGold,
+        shadowColor: colors.mauve,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.32,
         shadowRadius: 18,
@@ -69,8 +71,14 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
   },
   label: {
-    color: colors.ink,
     fontSize: 16,
     fontWeight: '900',
+    letterSpacing: 0.4,
+  },
+  primaryLabel: {
+    color: colors.white,
+  },
+  defaultLabel: {
+    color: colors.ink,
   },
 });

@@ -4,7 +4,7 @@ import { chineseZodiacAnimals } from './chineseZodiac';
 import { todayKey } from './date';
 
 const mainMessages = [
-  // General energy
+  // Energy & timing
   'Your energy is quiet and strong today. Use it wisely.',
   'Something small you do this morning will matter more than it looks.',
   'The timing is on your side right now.',
@@ -44,6 +44,104 @@ const mainMessages = [
   'Someone around you carries good news. Stay close to warmth.',
   'The energy around money and plans is clearer than usual today.',
   'Your lucky color is working quietly in the background.',
+  // Abundance & attraction
+  'Today you are the energy you want to attract. Show up as it.',
+  'Abundance finds people who notice what they already have.',
+  'The door you have been waiting to open will respond to a gentler knock.',
+  'Your best luck today is not luck at all — it is your own readiness.',
+  'Something is aligning behind the scenes. Trust the quiet.',
+  'The universe is paying attention to your effort right now.',
+  'Small wins today are building toward something you cannot see yet.',
+  'Your energy today is contagious — in the best possible way.',
+  'Receive what comes easily. Not everything has to be earned through struggle.',
+  'What you put out today returns with interest. Make it good.',
+  // Clarity & decision
+  'Clarity is coming. Do not make the decision until it arrives.',
+  'The answer you have been looking for is closer than you think.',
+  'Say less. Listen more. Today the information you need is already around you.',
+  'Your instinct today is more accurate than any plan.',
+  'Before you decide, ask how you want to feel afterward.',
+  'Do not let the urgent crowd out the important today.',
+  'The wisest thing you can do today is to slow down enough to see clearly.',
+  'What feels complicated today may simply be asking for more time.',
+  'One quiet moment of honesty with yourself opens everything.',
+  'The decision is not as hard as the fear of making it.',
+  // Relationships
+  'The people who love you want to hear from you. Reach out.',
+  'Someone today will show you something you did not expect. Stay open.',
+  'The best thing you can give someone today is your full attention.',
+  'A relationship that feels quiet may simply need a small moment of warmth.',
+  'Let people help you today. It is not weakness — it is wisdom.',
+  'Someone around you has been thinking of you. They just need a small signal.',
+  'The connection you almost wrote off has something left to offer.',
+  'Today is good for repairs — in friendships, plans, or promises.',
+  // Growth & change
+  'The version of you six months from now will thank today\'s choices.',
+  'Growth happens in the moments you choose differently than you did before.',
+  'Discomfort today is not a bad sign. It means something is expanding.',
+  'You are closer to what you want than the waiting makes it feel.',
+  'Something that felt like a setback was actually a redirection.',
+  'The work you are doing quietly is the work that lasts.',
+  'Every slow day is preparation for a fast one. This is that day.',
+  'Change arrives gently before it arrives completely.',
+  // Joy & self-care
+  'Let yourself enjoy today without making it mean anything more.',
+  'Beauty in small things is today\'s most underrated source of luck.',
+  'Your needs matter. State them clearly today.',
+  'Pleasure is not a reward for finishing everything. It is part of the plan.',
+  'Treat yourself with at least as much care as you give others.',
+  'Today is asking you to rest without calling it quitting.',
+  'Laughter today is not a distraction. It is a signal that you are aligned.',
+  // Practical wisdom
+  'The boring, reliable choice today is the one that wins.',
+  'Do not overexplain yourself today. Short and clear is your power.',
+  'Finish before you begin. Close what is open before adding more.',
+  'Today rewards the person who shows up, not the one who overthinks.',
+  'Check one thing you have been assuming without confirming.',
+  'Your follow-through today matters more than any new idea.',
+  'The simplest version of your plan is probably the best one.',
+  'Do what you said you would do. That alone will set you apart today.',
+  // Mindset
+  'The story you tell yourself this morning becomes the day you live.',
+  'Worry is planning for the worst. Intention is planning for the best. Choose.',
+  'What you focus on expands. Choose what you water today.',
+  'Your reaction today is more important than what you are reacting to.',
+  'Today\'s peace is tomorrow\'s foundation. Guard it.',
+  // Seasons & flow
+  'Rivers do not force. They find the way that already exists. Follow that today.',
+  'A tree that bends does not break. Flexibility is power today.',
+  'The seed does not rush the season. Your timing is already correct.',
+  'Even the moon has phases. You do not have to be full today.',
+  'Winter stores the energy that spring will use. Rest is also preparation.',
+  'What blooms today was quietly growing before you noticed.',
+  'Rain and sun are both needed. Whatever today brings is part of the plan.',
+  // Luck & readiness
+  'Luck is not random. It is readiness meeting the right moment.',
+  'You do not find luck. You become the kind of person luck recognizes.',
+  'Fortune favors the one who acts before they feel fully ready.',
+  'A small door held open today becomes a large one by evening.',
+  'Today\'s luck lives inside the first brave thing you do.',
+  'The luckiest people you know are not lucky. They are consistent.',
+  'Opportunity arrives quietly. It does not knock loudly.',
+  'Good timing is often just good attention. Pay attention today.',
+  // Chinese almanac wisdom
+  'The almanac says today carries earth energy. Stay grounded and move forward.',
+  'What is good for today favors action. Do the thing, then rest.',
+  'Today\'s energy supports beginnings. Start something, even something small.',
+  'The ancient calendar marks today as favorable. Trust the old wisdom.',
+  'Movement and stillness both have their season. Today honors balance.',
+  'The almanac calls this a day for alignment. Check your direction.',
+  // Wealth & abundance
+  'Gratitude is the original wealth. Count what you already hold.',
+  'The person who values what they have always seems to have more.',
+  'Wealth is not about having everything — it is about needing less than you have.',
+  'Generosity is not giving what you can spare. It is giving and trusting.',
+  // Action & courage
+  'One honest email, call, or conversation today changes more than you expect.',
+  'Do not let the size of the goal stop you from the size of the step.',
+  'Courage is not the absence of fear — it is the decision that something matters more.',
+  'Begin without a full plan. Plans are made for roads already walked.',
+  'Say yes before you are ready. Say no before you feel guilty.',
 ];
 
 const moneyReadings = [
@@ -57,6 +155,27 @@ const moneyReadings = [
   'Notice where your money is going before deciding where it should go.',
   'Avoid big purchases made from emotion rather than need.',
   'A small saving habit started today is worth more than a big plan started later.',
+  // Expanded
+  'Review one subscription or recurring cost today. Is it still worth it?',
+  'Wealth grows through awareness first, action second.',
+  'The money conversation you have been avoiding is worth having today.',
+  'One small financial boundary set today protects weeks of effort.',
+  'Invest in one thing that improves your ability to earn — a skill, a tool, a connection.',
+  'Paying down one small debt feels lighter than you expect. Try it.',
+  'Track your spending today, not to judge it, but to understand it.',
+  'A money goal needs a number and a date, not just a feeling.',
+  'Today is a good day to ask about rates, prices, or negotiation.',
+  'What you save quietly today compounds into something visible later.',
+  'Avoid split decisions about shared finances today. One voice, one plan.',
+  'Something you wrote off as an expense may actually be an investment.',
+  'The simplest budget is the one you will actually follow. Make it simple.',
+  'Money flows toward people who take it seriously without being afraid of it.',
+  'Today rewards financial honesty, even the uncomfortable kind.',
+  'Check your account before you spend. Awareness is the first wealth.',
+  'A small generosity today returns in unexpected ways.',
+  'Do not confuse income with wealth. One is speed, one is distance.',
+  'The money pattern worth changing is the one you repeat without thinking.',
+  'Spend on experience before things when given the choice today.',
 ];
 
 const loveReadings = [
@@ -70,6 +189,27 @@ const loveReadings = [
   'A small act of care — a message, a snack, a remembering — goes far today.',
   'Avoid trying to fix what the other person simply wants you to witness.',
   'Today is a good day to love quietly rather than loudly.',
+  // Expanded
+  'Your relationship with yourself sets the tone for every other one.',
+  'Let someone show up for you today. Receiving is also an act of love.',
+  'A kind word costs nothing but is remembered long after the day ends.',
+  'Do not keep score today. Give freely and trust the balance.',
+  'The most attractive thing you can be today is genuinely yourself.',
+  'Check in — not with a long message, but with one honest question.',
+  'Love that is not expressed is love that does not fully land.',
+  'The relationship worth tending today may be a friendship, not a romance.',
+  'Jealousy today is information, not instruction. Notice it but do not follow it.',
+  'Say thank you to someone who often goes unacknowledged.',
+  'The apology you have been holding is lighter than the weight of holding it.',
+  'Do not make the person you love guess what you need. Tell them.',
+  'Admire something specific about someone out loud today.',
+  'Give your full attention to one person today. No phone, no half-presence.',
+  'Love is also practical. Offer help, not just affection.',
+  'The smallest gesture from the right person means more than grand ones.',
+  'Trust is rebuilt in the quiet moments between events.',
+  'Today\'s energy supports honest conversations about what you both want.',
+  'Protect your relationship from outside opinions today.',
+  'Sometimes love means waiting without pushing. Today is that day.',
 ];
 
 const workReadings = [
@@ -83,6 +223,27 @@ const workReadings = [
   'Do the quiet work today. Not everything that matters makes noise.',
   'Trust the preparation you already did. Deliver without second-guessing.',
   'Good day to close, confirm, or complete — not to start something new.',
+  // Expanded
+  'Protect two hours of deep work today. Turn off notifications.',
+  'Your best work comes from clarity of purpose, not quantity of effort.',
+  'Send the follow-up you have been putting off. Timing is right.',
+  'One conversation today can unblock two weeks of solo effort.',
+  'Document something before you forget it. Your future self will thank you.',
+  'Today rewards specificity. Vague plans stay vague.',
+  'Say no to one thing today so you can say yes fully to another.',
+  'Collaboration today produces something better than solo effort would.',
+  'Check in on a project you have been assuming is fine.',
+  'Your reputation is built in the unremarkable moments of following through.',
+  'Ask for feedback before you think you are ready to hear it.',
+  'The meeting that could be an email will drain more than it gives. Protect your time.',
+  'Prioritize the task with a real deadline over the one that feels urgent.',
+  'Show up for the person on your team who never asks for support.',
+  'Learn one small new skill or shortcut today. Compound knowledge wins.',
+  'Proofread once more before sending. The detail matters.',
+  'Your next career move starts with the work you do when no one is watching.',
+  'Today is excellent for proposals, pitches, and making your case clearly.',
+  'Focus on contribution, not recognition. The results speak eventually.',
+  'Finish the week strong. Tomorrow\'s momentum starts with today\'s close.',
 ];
 
 const healthReadings = [
@@ -96,6 +257,27 @@ const healthReadings = [
   'Stretch, breathe, or step outside. A small reset changes the whole afternoon.',
   'The best thing for your health today is the one you have been skipping.',
   'Treat your body like it is already the version you want to become.',
+  // Expanded
+  'Ten minutes of movement is enough to shift the entire day\'s energy.',
+  'Your gut feeling and your gut health are connected. Feed both well.',
+  'Hydration changes your mood before you notice the change.',
+  'Rest is productive. Build it in intentionally today.',
+  'The stress you carry in your shoulders can be released with one conscious breath.',
+  'One vegetable, one fruit, one full glass of water. Start there.',
+  'Your nervous system needs calm as much as your body needs food.',
+  'Go to bed before you are exhausted. Sleep quality starts with timing.',
+  'A five-minute walk outside resets more than a twenty-minute scroll.',
+  'Your body keeps score. Check in before it forces you to.',
+  'Reduce one source of daily irritation — physical or emotional — today.',
+  'Cooking your own food today, even simply, is an act of care.',
+  'Breathe slowly and deeply before the next difficult moment arrives.',
+  'Your skin, hair, and energy all respond to how much water you drink. Drink more.',
+  'Moving your body after sitting is not optional — it is maintenance.',
+  'The ache you have been ignoring deserves at least one question today.',
+  'Mental health is health. Name what you are feeling before it names you.',
+  'Caffeine is borrowing energy from tomorrow. Balance it today.',
+  'Stillness is a skill. Practice it for five minutes without your phone.',
+  'Your body is trying to tell you something. Today is a good day to listen.',
 ];
 
 const warnings = [
@@ -119,6 +301,22 @@ const warnings = [
   'Avoid places or people that leave you feeling drained.',
   'Big spending today may feel good now but regret later.',
   'Protect your plans — not everyone wishes you the best.',
+  // Expanded
+  'Someone may push you to move faster than feels right. Slow is still forward.',
+  'Be wary of advice from people who do not share your circumstances.',
+  'A feeling of urgency today may be manufactured, not real. Verify first.',
+  'Avoid comparing your pace to someone else\'s chapter.',
+  'The shortcut that looks attractive today may cost more than the long route.',
+  'Watch for small dishonesties in agreements — the details matter.',
+  'Protect your time from people who chronically underestimate it.',
+  'If something feels too fast, it probably is. Slow down and look again.',
+  'The drama nearby is not yours to solve. Create distance.',
+  'Do not make a permanent change based on a temporary feeling.',
+  'Someone may ask for more than you are able to give. It is okay to say not today.',
+  'Social comparison today costs you more than it gives. Look inward instead.',
+  'An impulsive reaction today could require a week to repair. Pause first.',
+  'Protect your sleep tonight — tomorrow needs you sharp.',
+  'The conversation that feels like small talk may carry a bigger test. Stay aware.',
 ];
 
 const actions = [
@@ -152,11 +350,65 @@ const actions = [
   'Put one coin or bill aside today as a symbol of growing wealth.',
   'Say your lucky number three times quietly before a decision.',
   'Do one thing today that is only for you, not for anyone else.',
+  // Expanded
+  'Choose an outfit that makes you feel powerful, not just comfortable.',
+  'Clear your notifications and give yourself a clean start.',
+  'Write the name of something you are releasing. Then let it go.',
+  'Make your bed as the first act of taking your day seriously.',
+  'Place something beautiful — a flower, a crystal, a fruit — somewhere you will see it.',
+  'Say no to one thing today without over-explaining.',
+  'Open a window and breathe in fresh air for sixty seconds.',
+  'Do a five-minute tidy of your phone — delete what drains you.',
+  'Write your top one priority for today on paper. Just one.',
+  'Smile at a stranger or hold a door. Small generosity opens bigger doors.',
+  'Wash your face and look at yourself. Tell yourself one true good thing.',
+  'Reach out to someone you admire with a genuine compliment.',
+  'Take a different route today. Novelty invites new energy.',
+  'Silence your phone for the first thirty minutes of your morning.',
+  'Wear or carry something that belonged to someone who loves you.',
+  'Cook or prepare something from scratch today, however simple.',
+  'Light your space with natural light before turning to screens.',
+  'Move your body for ten minutes — walk, stretch, or dance alone.',
+  'Read one page of something that makes you think differently.',
+  'List five things your body does well that you take for granted.',
+  'Clean one surface completely — desk, counter, or shelf.',
+  'Call a family member you have not spoken to in a while.',
+  'Set an intention before your next meeting or task. Say it aloud.',
+  'Photograph something that represents where you want to be.',
+  'Drink tea or water slowly, with both hands, as a moment of intention.',
+  'Write a short letter to your future self. Seal it.',
+  'Do one errand you have been avoiding. The relief is worth it.',
+  'Say thank you today to someone you rarely thank.',
+  'Spend two minutes visualizing what a great version of today looks like.',
+  'Find the thing in your space that no longer belongs and let it go.',
+  'Create a small ritual to mark the end of your work day today.',
+  'Buy or pick one flower for your space.',
+  'Unfollow or mute one account that lowers your energy.',
+  'Write down something you are proud of that nobody knows about.',
+  'Give yourself permission to be imperfect in one specific area today.',
+  'Rewrite your to-do list — but this time with only three items.',
+  'Bless your meal before eating, whatever that means to you.',
+  'Put a glass of water by your bed tonight. Reset starts at bedtime.',
+  'Find one small thing to celebrate today. Celebrate it properly.',
+  'Look up at the sky for one full minute. Then continue your day.',
+  'Send an encouraging message to someone working hard right now.',
 ];
 
-const luckyColors = ['Green', 'White', 'Gold', 'Blue', 'Red', 'Black', 'Pink', 'Yellow', 'Silver'];
+const luckyColors = ['Green', 'White', 'Gold', 'Blue', 'Red', 'Black', 'Pink', 'Yellow', 'Silver', 'Purple', 'Orange', 'Cream'];
 const luckyDirections = ['North', 'South', 'East', 'West', 'Northeast', 'Northwest', 'Southeast', 'Southwest'];
-const luckyTimes = ['7 AM - 9 AM', '9 AM - 11 AM', '11 AM - 1 PM', '1 PM - 3 PM', '3 PM - 5 PM', '6 PM - 8 PM'];
+const luckyTimes = [
+  '6 AM - 8 AM',
+  '7 AM - 9 AM',
+  '9 AM - 11 AM',
+  '10 AM - 12 PM',
+  '11 AM - 1 PM',
+  '1 PM - 3 PM',
+  '2 PM - 4 PM',
+  '3 PM - 5 PM',
+  '5 PM - 7 PM',
+  '6 PM - 8 PM',
+  '7 PM - 9 PM',
+];
 const moonPhaseMessages: Record<string, string> = {
   'New Moon': 'A fresh cycle begins. Set one quiet intention and protect it.',
   'Waxing Crescent': 'The energy is building. One small step forward is enough.',
@@ -366,6 +618,53 @@ export function getMoonPhase(date = new Date()) {
   ][phaseIndex];
 }
 
+/** Pick a focus-aware reading: weight toward selected focuses, fall back to general. */
+function pickFocusReading(
+  focuses: MainFocus[],
+  seed: number,
+  offset: number,
+  pools: Partial<Record<MainFocus, string[]>>,
+  fallback: string[],
+): string {
+  // Use deterministic focus selection based on seed
+  const activeFocus = focuses[Math.abs(seed + offset) % focuses.length];
+  const pool = pools[activeFocus] ?? fallback;
+  return pickFromArrayWithSeed(pool, seed, offset);
+}
+
+const fortuneQuotes = [
+  'A gem cannot be polished without friction, nor a person without trials.',
+  'The journey of a thousand miles begins with a single step.',
+  'He who asks a question is a fool for five minutes; he who does not ask remains a fool forever.',
+  'Fall seven times, rise eight.',
+  'When the wind of change blows, some build walls, others build windmills.',
+  'Better to light a candle than to curse the darkness.',
+  'The best time to plant a tree was twenty years ago. The second best time is now.',
+  'Do not use a hatchet to remove a fly from your friend\'s forehead.',
+  'A wise man adapts to circumstances as water shapes itself to the vessel.',
+  'The man who moves a mountain begins by carrying small stones.',
+  'Opportunities multiply as they are seized.',
+  'Gold cannot be pure and people cannot be perfect.',
+  'Give a man a fish and you feed him for a day. Teach a man to fish and you feed him for a lifetime.',
+  'The temptation to quit will be greatest just before you are about to succeed.',
+  'Life is not about waiting for the storm to pass, but learning to dance in the rain.',
+  'If you must play, decide on three things at the start: rules of the game, stakes, and quitting time.',
+  'A bird does not sing because it has an answer. It sings because it has a song.',
+  'Do not wait to strike until the iron is hot, but make it hot by striking.',
+  'Great souls have wills; feeble ones have only wishes.',
+  'One generation plants the trees; another gets the shade.',
+  'The palest ink is better than the best memory.',
+  'Tension is who you think you should be. Relaxation is who you are.',
+  'Teachers open the door but you must enter by yourself.',
+  'Before enlightenment: chop wood, carry water. After enlightenment: chop wood, carry water.',
+  'The quieter you become, the more you can hear.',
+  'To know the road ahead, ask those coming back.',
+  'When you change the way you look at things, the things you look at change.',
+  'He who knows others is wise; he who knows himself is enlightened.',
+  'A good laugh and a long sleep are the two best cures for anything.',
+  'Do not judge each day by the harvest you reap but by the seeds you plant.',
+];
+
 export function generateDailyReading(profile: Profile, date = new Date()): DailyReading {
   const seed = getDailySeed(profile, date);
   const day = date.getDay();
@@ -376,14 +675,13 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
   const moonPhase = getMoonPhase(date);
 
   // Real Chinese almanac data — same for everyone on this calendar day.
-  // goodFor and avoid come from the 通勝 (Tung Shing) almanac's 宜/忌 lists,
-  // not from random seeded picks.
   const almanac = getAlmanacDay(date);
 
   return {
     date: todayKey(date),
     score,
     mainMessage: pickFromArrayWithSeed(mainMessages, seed, day),
+    fortuneQuote: pickFromArrayWithSeed(fortuneQuotes, seed, 14),
     goodFor: almanac.goodFor,
     avoid: almanac.avoid,
     lunarDate: almanac.lunarDate,
@@ -395,17 +693,13 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
     moonPhase,
     moonMessage: moonPhaseMessages[moonPhase],
     chineseZodiac,
-    money: pickFromArrayWithSeed(moneyReadings, seed, 8),
-    love: pickFromArrayWithSeed(loveReadings, seed, 9),
-    work: pickFromArrayWithSeed(workReadings, seed, 10),
-    health: pickFromArrayWithSeed(healthReadings, seed, 11),
+    money: pickFocusReading(mainFocuses, seed, 8, { Money: moneyReadings }, moneyReadings),
+    love: pickFocusReading(mainFocuses, seed, 9, { Love: loveReadings }, loveReadings),
+    work: pickFocusReading(mainFocuses, seed, 10, { Work: workReadings }, workReadings),
+    health: pickFocusReading(mainFocuses, seed, 11, { Health: healthReadings }, healthReadings),
     warning: pickFromArrayWithSeed(warnings, seed, 12),
     action: pickFromArrayWithSeed(actions, seed, 13),
   };
-}
-
-function unique(values: string[]) {
-  return Array.from(new Set(values));
 }
 
 function hashString(value: string) {

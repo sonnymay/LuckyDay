@@ -111,20 +111,21 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sparkles: {
-    fontSize: 24,
-    letterSpacing: 6,
+    fontSize: 26,
+    letterSpacing: 10,
   },
   name: {
     color: colors.mauve,
-    fontSize: 52,
+    fontSize: 54,
     fontWeight: '900',
-    letterSpacing: -0.5,
+    letterSpacing: -1,
     textAlign: 'center',
   },
   tagline: {
     color: colors.muted,
     fontSize: 17,
-    lineHeight: 25,
+    fontWeight: '600',
+    lineHeight: 26,
     textAlign: 'center',
   },
   grid: {
@@ -133,8 +134,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   guidanceCard: {
-    backgroundColor: colors.sunrise,
-    borderColor: colors.roseGold,
+    backgroundColor: colors.lavender,
+    borderColor: '#C8BFEE',
   },
   divider: {
     backgroundColor: colors.line,
@@ -146,8 +147,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   prompt: {
-    color: colors.mauve,
-    fontSize: 22,
+    color: colors.ink,
+    fontSize: 24,
     fontWeight: '800',
+    lineHeight: 32,
   },
 });

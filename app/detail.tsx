@@ -40,6 +40,13 @@ export default function DetailScreen() {
         <Text style={styles.title}>{reading.mainMessage}</Text>
       </Card>
 
+      {/* Daily fortune quote */}
+      <Card style={styles.quoteCard}>
+        <Text style={styles.quoteDecor}>❝</Text>
+        <Text style={styles.quoteText}>{reading.fortuneQuote}</Text>
+        <Text style={styles.quoteSource}>— Daily wisdom</Text>
+      </Card>
+
       <Card style={styles.stack}>
         <SectionRow label="🐲 Chinese zodiac" value={reading.chineseZodiac} />
         <View style={styles.divider} />
@@ -81,6 +88,35 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     lineHeight: 34,
     marginTop: spacing.sm,
+  },
+  quoteCard: {
+    backgroundColor: colors.lavender,
+    borderColor: '#C8BFEE',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.lg,
+  },
+  quoteDecor: {
+    color: '#7B6CB8',
+    fontSize: 32,
+    lineHeight: 36,
+    opacity: 0.6,
+  },
+  quoteText: {
+    color: '#3D2D80',
+    fontSize: 16,
+    fontStyle: 'italic',
+    fontWeight: '500',
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  quoteSource: {
+    color: '#7B6CB8',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginTop: 2,
+    textTransform: 'uppercase',
   },
   stack: {
     gap: 0,

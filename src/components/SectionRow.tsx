@@ -20,14 +20,16 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   label: {
-    color: colors.goldDeep,
-    fontSize: 13,
+    color: colors.mauve,
+    fontSize: 12,
     fontWeight: '900',
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
   value: {
     color: colors.ink,
     fontSize: 17,
-    lineHeight: 24,
+    fontWeight: '500',
+    lineHeight: 25,
   },
 });

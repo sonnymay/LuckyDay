@@ -81,6 +81,9 @@ test('new users can finish onboarding without photos', async ({ page }) => {
   await page.getByText('Continue').click();
   await page.getByText("Show today's luck").click();
 
+  await expect(page.getByText('LuckyDay Premium')).toBeVisible();
+  await page.getByText('Not now').click();
+
   await expect(page.getByText('Hi, Nok')).toBeVisible();
   await expect(page.getByText("Today's luck energy")).toBeVisible();
   await expect(page.getByText('Daily ritual streak')).toBeVisible();

@@ -46,6 +46,7 @@ export type DailyReading = {
   date: string;
   score: number;
   mainMessage: string;
+  fortuneQuote: string;
   goodFor: string[];
   avoid: string[];
   /** Lunar calendar date, e.g. "三月初三" — from real almanac data */

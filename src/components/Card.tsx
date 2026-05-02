@@ -15,17 +15,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.panel,
     borderColor: colors.line,
     borderRadius: radii.lg,
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: spacing.md,
     ...Platform.select({
       web: {
-        boxShadow: `0 8px 20px rgba(168, 70, 124, 0.08)`,
+        boxShadow: `0 8px 24px rgba(192, 58, 120, 0.12)`,
       },
       default: {
         shadowColor: colors.mauve,
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.08,
-        shadowRadius: 20,
+        shadowOpacity: 0.13,
+        shadowRadius: 22,
       },
     }),
   },

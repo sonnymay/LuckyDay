@@ -12,7 +12,7 @@ import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
 import { createProfile } from '../src/lib/luck';
 import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
-import { saveStoredProfile } from '../src/lib/storage';
+import { getHasSeenPaywall, saveStoredProfile, setHasSeenPaywall } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
 import { MainFocus } from '../src/types';
 
@@ -115,7 +115,15 @@ export default function OnboardingScreen() {
 
     await saveStoredProfile(profile);
     await showReminderStatus(syncLocalDailyReminder(notificationTime));
-    router.replace('/home');
+
+    // First-time users see the paywall right after onboarding — highest conversion moment
+    const hasSeenPaywall = await getHasSeenPaywall();
+    if (!hasSeenPaywall) {
+      await setHasSeenPaywall();
+      router.replace('/paywall');
+    } else {
+      router.replace('/home');
+    }
   }
 
   return (

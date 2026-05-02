@@ -16,8 +16,8 @@ export function LuckyMetricCard({ label, note, value, swatchColor, variant = 'de
   const isTime = label.includes('time') || label.includes('Time');
 
   return (
-    <Card style={[styles.card, isNumber && styles.numberCard, isDirection && styles.directionCard]}>
-      <Text style={styles.decor} pointerEvents="none">{isNumber ? '✦' : isDirection ? '⌁' : '✧'}</Text>
+    <Card style={[styles.card, isNumber && styles.numberCard, isDirection && styles.directionCard, isTime && styles.timeCard]}>
+      <Text style={styles.decor} pointerEvents="none">{isNumber ? '✦' : isDirection ? '⌁' : isTime ? '✺' : '✧'}</Text>
       <Text style={styles.label}>{label}</Text>
       <View style={[styles.valueRow, isNumber && styles.centeredRow]}>
         {swatchColor ? (
@@ -30,11 +30,18 @@ export function LuckyMetricCard({ label, note, value, swatchColor, variant = 'de
             <Text style={styles.directionIcon}>{directionArrow(value)}</Text>
           </View>
         ) : null}
-        <Text style={[styles.value, isNumber && styles.numberValue, isTime && styles.timeValue]}>{value}</Text>
+        <Text style={[
+          styles.value,
+          isNumber && styles.numberValue,
+          isTime && styles.timeValue,
+          isDirection && styles.directionValue,
+        ]}>
+          {value}
+        </Text>
       </View>
       {isNumber ? <Text style={styles.numberNote}>Lucky number</Text> : null}
       {isDirection ? <Text style={styles.miniNote}>Move with this direction today</Text> : null}
-      {isTime ? <Text style={styles.miniNote}>Best window for lucky little moves</Text> : null}
+      {isTime ? <Text style={[styles.miniNote, styles.timeMiniNote]}>Best window for lucky little moves</Text> : null}
       {note ? <Text style={styles.note}>{note}</Text> : null}
     </Card>
   );
@@ -68,10 +75,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.champagne,
   },
   directionCard: {
-    backgroundColor: '#FFF7E6',
+    backgroundColor: '#FFF6E0',
+    borderColor: colors.luckyGold,
+  },
+  timeCard: {
+    backgroundColor: colors.lavender,
+    borderColor: '#C8BFEE',
   },
   decor: {
-    color: 'rgba(214, 168, 74, 0.22)',
+    color: 'rgba(192, 58, 120, 0.12)',
     fontSize: 44,
     fontWeight: '900',
     position: 'absolute',
@@ -82,7 +94,7 @@ const styles = StyleSheet.create({
     color: colors.mauve,
     fontSize: 12,
     fontWeight: '900',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   valueRow: {
@@ -99,7 +111,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.blush,
     borderColor: colors.roseGold,
     borderRadius: radii.pill,
-    borderWidth: 1,
+    borderWidth: 1.5,
     height: 54,
     justifyContent: 'center',
     width: 54,
@@ -111,13 +123,13 @@ const styles = StyleSheet.create({
     height: 44,
     ...Platform.select({
       web: {
-        boxShadow: `0 0 8px rgba(214, 168, 74, 0.3)`,
+        boxShadow: `0 0 10px rgba(237, 186, 64, 0.35)`,
       },
       default: {
         shadowColor: colors.luckyGold,
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
       },
     }),
     width: 44,
@@ -142,7 +154,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
     flex: 1,
     fontSize: 23,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   numberValue: {
     color: colors.goldDeep,
@@ -150,13 +162,18 @@ const styles = StyleSheet.create({
     fontSize: 62,
     lineHeight: 66,
     textAlign: 'center',
-    textShadowColor: 'rgba(214, 168, 74, 0.18)',
+    textShadowColor: 'rgba(237, 186, 64, 0.22)',
     textShadowOffset: { width: 0, height: 3 },
-    textShadowRadius: 6,
+    textShadowRadius: 8,
   },
   timeValue: {
-    fontSize: 21,
-    lineHeight: 27,
+    color: '#5A47B0',
+    fontSize: 20,
+    lineHeight: 26,
+  },
+  directionValue: {
+    color: colors.goldDeep,
+    fontWeight: '900',
   },
   numberNote: {
     color: colors.goldDeep,
@@ -172,6 +189,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     lineHeight: 15,
     marginTop: spacing.xs,
+  },
+  timeMiniNote: {
+    color: '#7B6CB8',
   },
   note: {
     color: colors.muted,

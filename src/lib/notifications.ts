@@ -6,6 +6,12 @@ const REMINDER_NOTIFICATION_KEY = 'luckyday.reminderNotificationId.v1';
 
 export type ReminderSyncResult = 'disabled' | 'scheduled' | 'denied' | 'invalid' | 'unsupported';
 
+export type ReminderReading = {
+  luckyColor: string;
+  luckyNumber: number;
+  score: number;
+};
+
 export function isValidReminderTime(time?: string) {
   if (!time) {
     return true;
@@ -23,7 +29,7 @@ export function isValidReminderTime(time?: string) {
   );
 }
 
-export async function syncLocalDailyReminder(time?: string): Promise<ReminderSyncResult> {
+export async function syncLocalDailyReminder(time?: string, reading?: ReminderReading): Promise<ReminderSyncResult> {
   const reminderTime = time?.trim();
 
   if (Platform.OS === 'web') {
@@ -46,7 +52,19 @@ export async function syncLocalDailyReminder(time?: string): Promise<ReminderSyn
   }
 
   const [hour, minute] = reminderTime.split(':').map(Number);
-  const notificationBodies = [
+
+  // If we have today's reading, use personalized bodies; otherwise use generic ones
+  const personalizedBodies: string[] = reading
+    ? [
+        `Your lucky color today is ${reading.luckyColor}. Open to see what it means for you.`,
+        `Lucky number ${reading.luckyNumber} is yours today. Open LuckyDay to see the full picture.`,
+        `Today's energy score is ${reading.score}. Open to see your ${reading.luckyColor.toLowerCase()} luck.`,
+        `${reading.luckyColor} is your color today, and ${reading.luckyNumber} is your number. Your reading is ready.`,
+        `Luck energy: ${reading.score} ✨ Lucky color: ${reading.luckyColor}. See what the almanac says today.`,
+      ]
+    : [];
+
+  const genericBodies = [
     "Your lucky color and number are waiting. Open to reveal.",
     "Today's luck energy is ready for you. ✨",
     "A new reading is ready. Start your morning ritual.",
@@ -63,11 +81,14 @@ export async function syncLocalDailyReminder(time?: string): Promise<ReminderSyn
     "Open LuckyDay to see what today's energy holds.",
     "Your morning luck reading is waiting. ✨",
   ];
-  const bodyIndex = (hour + minute + new Date().getDate()) % notificationBodies.length;
+
+  const pool = personalizedBodies.length > 0 ? personalizedBodies : genericBodies;
+  const bodyIndex = (hour + minute + new Date().getDate()) % pool.length;
+
   const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Your LuckyDay is ready ✨',
-      body: notificationBodies[bodyIndex],
+      body: pool[bodyIndex],
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,

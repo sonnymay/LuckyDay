@@ -46,3 +46,31 @@ function previousDateKey(value: string) {
   date.setDate(date.getDate() - 1);
   return todayKey(date);
 }
+
+const STREAK_MILESTONES = [7, 14, 30, 60, 100];
+
+/**
+ * Returns milestone info if the given streak count is a celebration milestone.
+ * Returns null if the streak is not at a milestone.
+ */
+export function getStreakMilestone(streak: number): { days: number; emoji: string; message: string } | null {
+  if (!STREAK_MILESTONES.includes(streak)) {
+    return null;
+  }
+
+  const milestones: Record<number, { emoji: string; message: string }> = {
+    7: { emoji: '🌟', message: 'One full week of daily luck. Your ritual is real now.' },
+    14: { emoji: '🔥', message: 'Two weeks straight. Your morning has a new shape.' },
+    30: { emoji: '🌕', message: 'One full moon cycle of daily intention. That is rare.' },
+    60: { emoji: '🏮', message: 'Two months of showing up. The almanac sees your devotion.' },
+    100: { emoji: '👑', message: '100 days. You are not someone who starts — you are someone who continues.' },
+  };
+
+  const data = milestones[streak];
+  return data ? { days: streak, ...data } : null;
+}
+
+/** Returns true if the app rating prompt should be shown (at the 7-day milestone). */
+export function shouldRequestRating(streak: number): boolean {
+  return streak === 7;
+}

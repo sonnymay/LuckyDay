@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-05-01 (Moon Energy UI removed)
+Last updated: 2026-05-02 (Home monetization softened + buildability fix)
 
 ## Project Summary
 
@@ -126,6 +126,112 @@ Chinese almanac integration (2026-04-30):
 - Run `npm install lunar-javascript` once before running typecheck or tests.
 - `lunar-javascript` ships no TypeScript types. A minimal ambient declaration is at `src/types/lunar-javascript.d.ts` — covers the five methods the app uses (`getDayYi`, `getDayJi`, `getMonthInChinese`, `getDayInChinese`, `getJieQi`). TypeScript picks it up automatically via the default `include` in `tsconfig.json`.
 
+Conversion, retention, content depth & visual polish (2026-05-01):
+- Onboarding → paywall redirect: first-time users are routed to `/paywall` after completing onboarding. `getHasSeenPaywall` / `setHasSeenPaywall` flags in `src/lib/storage.ts`. Flag is cleared by `resetAllStoredData()` so testers can re-trigger the flow. This is the single highest-impact conversion change.
+- Paywall improvements:
+  - Social proof row: ★★★★★ stars + "Trusted by thousands of daily practitioners".
+  - "What changes when you unlock" nudge card showing the free vs. premium delta in plain language. Updated on 2026-05-02 so it no longer claims the free daily metrics, almanac, or share card are premium-only.
+  - Annual package note updated to "less than $1.25/month".
+  - CTA changed to "Try free for 3 days →" (clearer trial framing).
+  - Trial note: "3-day free trial · No charge until Day 4 · Cancel anytime".
+  - Footer "Not now" now routes to `/home`, so users who skip the paywall after onboarding land cleanly in the app.
+- Streak milestones:
+  - `getStreakMilestone(streak)` in `src/lib/streak.ts` — returns emoji + message for 7, 14, 30, 60, 100-day milestones, null otherwise.
+  - `shouldRequestRating(streak)` returns true at 7 days — triggers `expo-store-review`.
+  - Home shows a full-width mauve celebration card at each milestone with the streak count and message.
+  - Streak card copy updated: below 7 days, shows "X more days to your first milestone" as a progress nudge.
+- In-app rating prompt:
+  - Lazy-loads `expo-store-review` (try/catch — no-op if not available).
+  - Fires 2 seconds after home mounts at 7-day streak (delayed so screen is rendered first).
+  - Run `npm install expo-store-review` before building for TestFlight.
+- Personalized push notifications:
+  - `syncLocalDailyReminder` in `notifications.ts` now accepts an optional `ReminderReading` (`{ luckyColor, luckyNumber, score }`).
+  - When today's reading is available, the notification body includes the user's actual lucky color and number (e.g. "Your lucky color today is Gold. Open to see what it means for you.").
+  - Home screen reschedules the notification with today's reading data after generating it each morning.
+- Skeleton loading screen:
+  - `HomeSkeleton` component replaces the plain `ActivityIndicator` on home.
+  - `SkeletonBlock` uses `Animated.loop` shimmer (opacity 0.35↔0.65) matching the native skeleton pattern.
+  - Layout matches real home: header, score card, 2×2 metric grid, zodiac card, almanac card.
+- Entrance animation:
+  - Home content wraps in `Animated.View` with opacity fade-in (0→1, 500ms) triggered when data finishes loading.
+- Fortune quotes:
+  - 30-entry `fortuneQuotes` pool added to `luck.ts` — Chinese and world wisdom proverbs, not generic affirmations.
+  - `DailyReading.fortuneQuote` field added to `src/types.ts`.
+  - `generateDailyReading` populates it via `pickFromArrayWithSeed(fortuneQuotes, seed, 14)` (deterministic per user-day).
+  - Surfaced in `app/detail.tsx` as a styled quote card (lavender background, italic text, decorative ❝ mark) between the main message and the detail readings.
+- Content expansion:
+  - `mainMessages` expanded to ~150 entries (added seasons & flow, luck & readiness, Chinese almanac wisdom, wealth & abundance, action & courage categories).
+  - Minimum repeat cycle now well over 90 days.
+- `src/lib/notifications.ts`: new `ReminderReading` type exported for use in `home.tsx`.
+- New npm packages needed (not yet installed — run before building):
+  - `expo-store-review` — for in-app rating prompt at 7-day streak.
+
+Monetization + App Store prep (2026-05-01):
+- Subscription model implemented via RevenueCat (`react-native-purchases`). New module: `src/lib/purchases.ts`.
+  - Lazy dynamic import (`import('react-native-purchases')`) so the app runs without the package installed — fully graceful no-op if RevenueCat is not configured.
+  - Entitlement ID: `premium`. Product IDs: `com.luckyday.premium.monthly`, `com.luckyday.premium.annual`.
+  - API key placeholder: `YOUR_REVENUECAT_IOS_KEY_HERE` in `src/lib/purchases.ts` — replace before building for TestFlight.
+  - Functions exposed: `initPurchases()`, `getPremiumStatus()`, `getOfferings()`, `purchasePackage()`, `restorePurchases()`.
+- New screen: `app/paywall.tsx`
+  - Full-screen paywall with ScrollView layout.
+  - Hero card (mauve background, decorative circles), 8-feature list, dynamic pricing from RevenueCat, static fallback ($14.99/yr, $2.99/mo) when RevenueCat not configured.
+  - Annual package pre-selected with "BEST VALUE" badge. 3-day free trial note. "Restore purchase" and "Privacy" footer links.
+  - Handles cancellation gracefully (no error alert if user cancels the native sheet).
+  - Run: `npm install react-native-purchases` before TestFlight purchase QA. Typecheck can pass before install because `src/types/react-native-purchases.d.ts` declares the optional runtime surface.
+- New component: `src/components/PremiumGate.tsx`
+  - Wraps premium-only content sections. When free, renders children at 15% opacity underneath an absolute lock overlay with a "Start free trial →" CTA routing to `/paywall`.
+  - Web: `backdropFilter: blur(6px)` overlay. Native: shadow-only overlay.
+- Home monetization softened (2026-05-02):
+  - Removed repeated Home lock overlays from the lucky metrics grid, Chinese Almanac card, and Small Action card. These are now visible to free users so the daily ritual feels valuable before the app asks for money.
+  - Added one mauve/champagne Premium teaser card after the share action: "Go deeper when you're ready". It routes to `/paywall` without interrupting the first-scroll experience.
+  - Header still shows "✨ Upgrade" mauve pill button for free users, linking to `/paywall`.
+  - `isPremium` state loads in `useFocusEffect` alongside `getStoredProfile` via `getPremiumStatus()`.
+  - Added `src/types/react-native-purchases.d.ts` so TypeScript can pass while RevenueCat remains optional/not installed. The runtime wrapper still no-ops until the package and API key are configured.
+- Content pools expanded dramatically (2026-05-01):
+  - `mainMessages`: 47 → ~95 entries (new categories: abundance, clarity, relationships, growth, joy, practical wisdom, mindset).
+  - Per-focus pools (`moneyReadings`, `loveReadings`, `workReadings`, `healthReadings`): 10 → 30 each.
+  - `warnings`: 20 → 35. `actions`: 30 → 70. `luckyTimes`: 6 → 11 windows.
+  - Added colors: Purple, Orange, Cream. Minimum repeat interval now ~90 days.
+  - New helper: `pickFocusReading()` — picks from the most relevant focus pool for the user, falls back to generic pool.
+- Privacy policy: `docs/PRIVACY_POLICY.md`
+  - Apple-compliant. Covers local AsyncStorage, photo handling (never uploaded), RevenueCat (anonymous ID only), local notifications, GDPR/CCPA, children's privacy (under 13).
+  - Placeholders: `[YOUR NAME / COMPANY NAME]`, `[YOUR EMAIL ADDRESS]` — fill before App Store submission.
+  - Must be hosted at a public URL before submitting to App Store Connect (GitHub Pages, Notion, Carrd all work).
+- App Store listing: `docs/APP_STORE_LISTING.md`
+  - Name: `LuckyDay` (8 chars). Subtitle: `Daily luck from the almanac` (28 chars).
+  - Keywords (96 chars): `luck,almanac,chinese zodiac,fortune,daily ritual,lucky number,horoscope,feng shui,manifestation`.
+  - Full description ~1,820 chars (well under 4,000 limit). Age Rating: 4+. Categories: Lifestyle / Health & Fitness.
+  - Pricing: Free + IAP. Monthly $2.99, Annual $14.99 (3-day free trial).
+  - 6-screenshot order guide and App Privacy Labels guidance included.
+  - Pre-submission checklist included.
+- App icon: `assets/icon.png` (1024×1024)
+  - Mauve gradient background, two translucent white decorative circles (matches EnergyScoreCard brand motif).
+  - Gold dot halo (28 dots), champagne orb with gold border, clean 4-pointed star (goldDeep/gold gradient), center dot (champagne).
+  - Master file: `assets/icon.png`. Splash/adaptive colors updated to `#FEF0F5` in `app.json`.
+- Pre-launch checklist (must-do before App Store submission):
+  1. `npm install react-native-purchases`
+  2. Create RevenueCat account at revenuecat.com, add iOS app, create entitlement `premium` and products
+  3. Replace `YOUR_REVENUECAT_IOS_KEY_HERE` in `src/lib/purchases.ts`
+  4. Create In-App Purchases in App Store Connect (monthly + annual)
+  5. Enroll Apple Developer account at developer.apple.com ($99/year)
+  6. Host privacy policy at a public URL
+  7. Real-device QA: share card, camera, notifications, purchase/restore flow
+  8. Capture screenshots on iPhone 15 Pro Max simulator or real device
+
+UI upgrade pass — "Vibrant Sakura" polish (2026-05-01):
+- Palette deepened for more saturation and presence: `mauve` → `#C03A78` (more vibrant magenta-rose, was `#A8467C`), `luckyGold` → `#EDBA40` (brighter, more luminous, was `#D6A84A`), `roseGold` → `#D690B0` (deeper, more visible border color, was `#E8A8C0`), `goldDeep` → `#9A6410`, `muted` → `#8A5A76`, `line` → `#E2C5D6`, `background` → `#FEF0F5`, `panelStrong` → `#FBE8F3`.
+- Added `colors.lavender: '#EDE8FF'` — soft mystical purple used for the Time metric card and Small Action card. Breaks the monotonous all-warm-cream card palette and adds a spiritual/mystical dimension to the color story.
+- `Card` component: `borderWidth` increased 1→1.5px; `shadowOpacity` increased 0.08→0.13; web boxShadow updated to `rgba(192,58,120,0.12)`. Cards now have visible elevation.
+- `AppButton` primary: changed from gold background + ink text to **mauve background + white text**. Mauve is the brand color; white text achieves 5:1 contrast (WCAG AA). Added `letterSpacing: 0.4` to button labels. Button height increased to 56px minimum.
+- `LuckyMetricCard`: Time card now uses `colors.lavender` background + `#C8BFEE` border + purple-tinted text (`#5A47B0` value, `#7B6CB8` note). Direction card border upgraded to `colors.luckyGold`. Decor symbol for time changed to `✺` (distinct from color/number cards). All non-number card values changed from `fontWeight: '900'` → `'800'` for better hierarchy.
+- `SectionRow`: label color changed from `colors.goldDeep` → `colors.mauve`, added `letterSpacing: 1.4`. Value `fontWeight` set to `'500'` and `lineHeight: 25` for better readability.
+- Landing hero: app name font size 52→54, letter-spacing −0.5→−1; sparkles fontSize 24→26, letter-spacing 6→10; tagline `fontWeight: '600'`; prompt text `fontSize: 22→24`, color changed from mauve to `colors.ink` for contrast.
+- Home kicker: `fontSize: 14→11`, `letterSpacing: 2` (tighter small caps). Title: `fontSize: 32→34`, `letterSpacing: −0.5`.
+- Home almanac badge: `fontSize: 12→11`, `letterSpacing: 0.8` added. Double-space in badge text fixed.
+- Home guidance (Small Action) card: changed from `sunrise` to `lavender` background, matching the Time metric card's mystical accent.
+- Landing guidance card: same lavender treatment as home.
+- No new npm packages. All changes backward-compatible.
+
 UI redesign pass — "Sakura Bloom" palette (2026-04-30):
 - Core color overhaul: `colors.mauve` changed from `#6E365B` (muddy dark maroon-purple) to `#A8467C` (clear rose-pink). This single change cascades across all hero cards, chip selections, labels, and accent text. The old color read as dated/heavy; the new one reads as feminine and vibrant.
 - Supporting palette softened: `background` → `#FFF5F9`, `panelStrong` → `#FFF0F7`, `muted` → `#9B6B88`, `faint` → `#D4A8C0`, `line` → `#EDD8E8`, `roseGold` → `#E8A8C0`.
@@ -218,12 +324,11 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-05-01 after Moon Energy UI removal:
+Last verified on 2026-05-02 after Home monetization softening:
 - `npm run typecheck` passed
 - `npm test` passed: 14 tests
-- `npm run export:web` passed
-- `npm run e2e` passed: 3 browser smoke tests
-- In-app browser QA passed for Home showing the reordered lucky metric grid, Chinese zodiac card, updated streak/nav area, and hidden share-card render content.
+- `npm run e2e` passed: 3 browser smoke tests, including the onboarding → paywall → Not now → Home path
+- In-app browser QA passed for Home showing the core ritual visible to free users, no repeated PremiumGate overlays, share prompt, and single "Go deeper when you're ready" Premium teaser.
 - In-app browser QA passed for Onboarding Step 1 showing the scroll birthday picker.
 - Browser console no longer shows project-owned web shadow or `pointerEvents` deprecation warnings after reload. The remaining warning is the expected `expo-notifications` unsupported-on-web listener warning.
 
