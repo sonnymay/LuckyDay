@@ -177,8 +177,15 @@ export default function OnboardingScreen() {
       </View> : null}
 
       {step === 3 ? <View style={styles.photoStack}>
-        <Text style={styles.photoTitle}>Optional luck photos 🍀</Text>
-        <Text style={styles.photoCopy}>You can skip these now and add them later in Settings.</Text>
+        <Card style={styles.photoIntroCard}>
+          <Text style={styles.photoIntroEmoji}>🌸</Text>
+          <View style={styles.photoIntroCopy}>
+            <Text style={styles.photoTitle}>Choose your charm photos</Text>
+            <Text style={styles.photoCopy}>
+              Add any photo that feels easy today. Skipping is completely fine — your daily luck still works.
+            </Text>
+          </View>
+        </Card>
         <MediaConsentCard accepted={acceptedMediaConsent} onChange={setAcceptedMediaConsent} />
         <ProfilePhotoCapture
           label="Face"
@@ -226,13 +233,13 @@ export default function OnboardingScreen() {
 function getStepTitle(step: number) {
   if (step === 1) return 'Tell LuckyDay about you ✨';
   if (step === 2) return 'Choose your daily focus 🍀';
-  return 'Optional luck photos 🔒';
+  return 'Add a personal touch 🔒';
 }
 
 function getStepCopy(step: number) {
   if (step === 1) return 'Your profile stays on your phone. Private by default, easy to update anytime.';
   if (step === 2) return 'Pick what you want today’s guidance to support. Add a reminder if you want a daily nudge.';
-  return 'Photos are optional. Skip them now or add them later from Settings.';
+  return 'Photos are optional and stay on this device. Skip them now or add them later from Settings.';
 }
 
 async function showReminderStatus(resultPromise: Promise<string>) {
@@ -351,9 +358,23 @@ const styles = StyleSheet.create({
   photoStack: {
     gap: spacing.md,
   },
+  photoIntroCard: {
+    alignItems: 'center',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  photoIntroEmoji: {
+    fontSize: 38,
+    lineHeight: 46,
+  },
+  photoIntroCopy: {
+    flex: 1,
+  },
   photoTitle: {
     color: colors.mauve,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
   },
   photoCopy: {

@@ -1,6 +1,6 @@
 # LuckyDay Handoff
 
-Last updated: 2026-05-02 (Premium paywall visual polish)
+Last updated: 2026-05-03 (Onboarding photo/privacy polish)
 
 ## Project Summary
 
@@ -85,11 +85,17 @@ Photo capture:
 - `src/components/ProfilePhotoCapture.tsx`
 - Uses `expo-image-picker`.
 - Stores local image URIs in AsyncStorage profile data.
-- Shows `Optional` / `Captured` status.
+- Shows `Optional` / `Captured` status with warmer champagne/rose visual treatment.
+- Empty photo states now show cute guided placeholders instead of blank dashed boxes: soft-light portrait, open palm, and handwritten note.
 - Supports retake and remove actions when a photo already exists.
 - Stores optional `photoTimestamps` on the profile for last-updated display.
 - Handwriting prompt is currently: `Today I choose steady luck.`
 - Native camera flow still needs physical-device or simulator testing.
+
+Onboarding photo/privacy polish (2026-05-03):
+- Step 3 title/copy changed to a softer trust moment: "Add a personal touch" and "Choose your charm photos".
+- `MediaConsentCard` now has a lock icon, "Private by default" subtitle, and trust pills: "Never uploaded", "No account needed", "Delete anytime".
+- This keeps photos optional while making the privacy promise feel like a product feature rather than legal friction.
 
 Visual/product direction:
 - The first screen now uses a more feminine premium palette: blush, mauve, rose-gold accents, champagne, and pearl-style panels.
@@ -325,10 +331,10 @@ npm run export:web
 
 ## Verification Status
 
-Last verified on 2026-05-02 after Home monetization softening:
+Last verified on 2026-05-03 after onboarding photo/privacy polish:
 - `npm run typecheck` passed
 - `npm test` passed: 14 tests
-- `npm run e2e` passed: 3 browser smoke tests, including the onboarding → paywall → Not now → Home path
+- `npm run e2e` passed: 3 browser smoke tests, including onboarding Step 3 photo/privacy copy and the onboarding → paywall → Not now → Home path
 - In-app browser QA passed for Home showing the core ritual visible to free users, no repeated PremiumGate overlays, share prompt, and single "Go deeper when you're ready" Premium teaser.
 - In-app browser QA passed for Paywall showing the hidden route header, Premium Energy orb hero, ritual preview rows, pricing cards, CTA, and footer links.
 - In-app browser QA passed for Onboarding Step 1 showing the scroll birthday picker.

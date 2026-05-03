@@ -58,9 +58,11 @@ test('new users see daily preview and optional photo setup', async ({ page }) =>
   await page.getByText('Continue').click();
 
   await expect(page.getByText('Step 3 of 3')).toBeVisible();
-  await expect(page.getByText('Optional luck photos 🍀', { exact: true })).toBeVisible();
-  await expect(page.getByText('You can skip these now and add them later in Settings.')).toBeVisible();
+  await expect(page.getByText('Add a personal touch')).toBeVisible();
+  await expect(page.getByText('Choose your charm photos')).toBeVisible();
+  await expect(page.getByText('Skipping is completely fine')).toBeVisible();
   await expect(page.getByText('Photo privacy')).toBeVisible();
+  await expect(page.getByText('Never uploaded')).toBeVisible();
   await expect(page.getByText('I agree to save optional photos on this device.')).toBeVisible();
   await expect(page.getByText('Face', { exact: true })).toBeVisible();
   await expect(page.getByText('Left palm', { exact: true })).toBeVisible();

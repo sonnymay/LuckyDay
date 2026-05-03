@@ -22,6 +22,8 @@ export function ProfilePhotoCapture({
   updatedAt,
   cameraType = ImagePicker.CameraType.back,
 }: Props) {
+  const placeholder = getPhotoPlaceholder(label);
+
   async function capture() {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
@@ -54,18 +56,31 @@ export function ProfilePhotoCapture({
 
   return (
     <Card style={styles.card}>
-      <View style={styles.copy}>
-        <View style={styles.titleRow}>
-          <Text style={styles.label}>{label}</Text>
-          <Text style={[styles.status, value ? styles.completeStatus : styles.neededStatus]}>
-            {value ? 'Captured' : 'Optional'}
-          </Text>
+      <View style={styles.header}>
+        <View style={styles.iconBubble}>
+          <Text style={styles.icon}>{placeholder.icon}</Text>
         </View>
-        <Text style={styles.hint}>{hint}</Text>
-        {value && updatedAt ? <Text style={styles.updatedAt}>Updated {formatUpdatedAt(updatedAt)}</Text> : null}
+        <View style={styles.copy}>
+          <View style={styles.titleRow}>
+            <Text style={styles.label}>{label}</Text>
+            <Text style={[styles.status, value ? styles.completeStatus : styles.neededStatus]}>
+              {value ? 'Captured' : 'Optional'}
+            </Text>
+          </View>
+          <Text style={styles.hint}>{hint}</Text>
+          {value && updatedAt ? <Text style={styles.updatedAt}>Updated {formatUpdatedAt(updatedAt)}</Text> : null}
+        </View>
       </View>
 
-      {value ? <Image source={{ uri: value }} style={styles.preview} /> : <View style={styles.emptyPreview} />}
+      {value ? (
+        <Image source={{ uri: value }} style={styles.preview} />
+      ) : (
+        <View style={styles.emptyPreview}>
+          <Text style={styles.emptyIcon}>{placeholder.icon}</Text>
+          <Text style={styles.emptyTitle}>{placeholder.title}</Text>
+          <Text style={styles.emptyCopy}>{placeholder.copy}</Text>
+        </View>
+      )}
 
       <View style={styles.actions}>
         <Pressable onPress={capture} style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
@@ -90,11 +105,57 @@ function formatUpdatedAt(value: string) {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function getPhotoPlaceholder(label: string) {
+  if (label.toLowerCase().includes('face')) {
+    return {
+      icon: '🌸',
+      title: 'Soft light portrait',
+      copy: 'A calm, clear photo works best.',
+    };
+  }
+
+  if (label.toLowerCase().includes('palm')) {
+    return {
+      icon: '🖐️',
+      title: 'Open palm',
+      copy: 'Show the full hand, wrist to fingertips.',
+    };
+  }
+
+  return {
+    icon: '✍️',
+    title: 'Handwritten note',
+    copy: 'A short line in your natural writing.',
+  };
+}
+
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
     gap: spacing.md,
   },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  iconBubble: {
+    alignItems: 'center',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
+  icon: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
   copy: {
+    flex: 1,
     gap: spacing.xs,
   },
   titleRow: {
@@ -121,8 +182,8 @@ const styles = StyleSheet.create({
     color: colors.green,
   },
   neededStatus: {
-    backgroundColor: colors.pink,
-    color: colors.red,
+    backgroundColor: colors.champagne,
+    color: colors.goldDeep,
   },
   hint: {
     color: colors.muted,
@@ -142,12 +203,34 @@ const styles = StyleSheet.create({
   },
   emptyPreview: {
     aspectRatio: 4 / 3,
-    backgroundColor: colors.panelStrong,
-    borderColor: colors.line,
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderColor: colors.roseGold,
     borderRadius: radii.md,
     borderStyle: 'dashed',
-    borderWidth: 1,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    padding: spacing.lg,
     width: '100%',
+  },
+  emptyIcon: {
+    fontSize: 38,
+    lineHeight: 46,
+  },
+  emptyTitle: {
+    color: colors.mauve,
+    fontSize: 18,
+    fontWeight: '900',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  emptyCopy: {
+    color: colors.muted,
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 20,
+    marginTop: 3,
+    textAlign: 'center',
   },
   button: {
     alignItems: 'center',
