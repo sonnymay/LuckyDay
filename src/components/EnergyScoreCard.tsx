@@ -88,6 +88,7 @@ export function EnergyScoreCard({ label, score, message }: Props) {
 }
 
 function energyMood(score: number) {
+  if (score >= 90) return '✦ Peak energy today';
   if (score >= 82) return 'Golden flow';
   if (score >= 70) return 'Bright momentum';
   if (score >= 60) return 'Soft steady luck';

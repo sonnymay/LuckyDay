@@ -1,24 +1,81 @@
-import { useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Card } from '../src/components/Card';
+import { PremiumGate } from '../src/components/PremiumGate';
 import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
-import { getMonthActivity, getReadingStreak, MonthActivityDay } from '../src/lib/streak';
+import { getMonthActivity, getNextMilestoneTarget, getReadingStreak, getStreakMilestone, MonthActivityDay } from '../src/lib/streak';
+import { getPremiumStatus } from '../src/lib/purchases';
 import { getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
-import { colors, spacing } from '../src/styles/theme';
+import { colors, radii, spacing } from '../src/styles/theme';
 import { DailyReading } from '../src/types';
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function SkeletonBlock({ width, height, style }: { width: number | string; height: number; style?: object }) {
+  const shimmer = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [shimmer]);
+
+  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.65] });
+
+  return (
+    <Animated.View
+      style={[{ width, height, borderRadius: 12, backgroundColor: colors.roseGold, opacity }, style]}
+    />
+  );
+}
+
+function HistorySkeleton() {
+  return (
+    <View style={styles.skeletonScreen}>
+      <SkeletonBlock width="100%" height={110} style={{ borderRadius: 20 }} />
+      <SkeletonBlock width="100%" height={80} style={{ borderRadius: 20 }} />
+      <SkeletonBlock width="100%" height={220} style={{ borderRadius: 20 }} />
+      <SkeletonBlock width="100%" height={160} style={{ borderRadius: 20 }} />
+      <SkeletonBlock width="100%" height={160} style={{ borderRadius: 20 }} />
+    </View>
+  );
+}
+
+// ─── Stats helpers ─────────────────────────────────────────────────────────────
+
+function computeStats(history: DailyReading[]) {
+  const total = history.length;
+  if (total === 0) return { total: 0, avgScore: 0, mostCommonColor: '—' };
+
+  const avgScore = Math.round(history.reduce((sum, r) => sum + r.score, 0) / total);
+
+  const colorCounts: Record<string, number> = {};
+  for (const r of history) {
+    if (r.luckyColor) colorCounts[r.luckyColor] = (colorCounts[r.luckyColor] || 0) + 1;
+  }
+  const mostCommonColor = Object.entries(colorCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—';
+
+  return { total, avgScore, mostCommonColor };
+}
+
+// ─── Screen ────────────────────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
   const [history, setHistory] = useState<DailyReading[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPremium, setIsPremium] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
 
-      getStoredProfile()
-        .then((profile) => {
+      Promise.all([getStoredProfile(), getPremiumStatus()])
+        .then(([profile, premiumStatus]) => {
           if (!active) return;
 
           if (!profile) {
@@ -26,55 +83,113 @@ export default function HistoryScreen() {
             return;
           }
 
+          setIsPremium(premiumStatus.isPremium);
           return getStoredReadingHistory();
         })
         .then((items) => {
-          if (active && items) {
-            setHistory(items);
-          }
+          if (active && items) setHistory(items);
         })
         .finally(() => {
           if (active) setLoading(false);
         });
 
-      return () => {
-        active = false;
-      };
+      return () => { active = false; };
     }, []),
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={colors.ink} />
-      </View>
-    );
-  }
+  if (loading) return <HistorySkeleton />;
+
+  const streak = getReadingStreak(history);
+  const milestone = getStreakMilestone(streak);
+  const stats = computeStats(history);
+  const nextMilestoneTarget = getNextMilestoneTarget(streak);
+
+  // Free users preview last 3 readings; premium users see all
+  const FREE_LIMIT = 3;
+  const previewHistory = isPremium ? history : history.slice(0, FREE_LIMIT);
 
   return (
     <Screen>
+      {/* ── Header ── */}
       <Card style={styles.header}>
         <Text style={styles.title}>Reading history ✨</Text>
         <Text style={styles.copy}>Your recent LuckyDay readings stay on this device.</Text>
-        <View style={styles.streakPill}>
-          <Text style={styles.streakText}>{formatStreak(getReadingStreak(history))}</Text>
+        <View style={styles.streakRow}>
+          <View style={styles.streakPill}>
+            <Text style={styles.streakText}>
+              {streak === 0 ? 'Start your streak today' : `${streak} ${streak === 1 ? 'day' : 'days'} streak 🔥`}
+            </Text>
+          </View>
+          {nextMilestoneTarget && streak > 0 ? (
+            <Text style={styles.milestoneHint}>
+              {nextMilestoneTarget - streak} days to {nextMilestoneTarget}-day milestone
+            </Text>
+          ) : null}
         </View>
       </Card>
 
       {history.length === 0 ? (
         <Card style={styles.emptyCard}>
-          <Text style={styles.emptyTitle}>No saved readings yet</Text>
-          <Text style={styles.copy}>Open Home each day to save that day’s luck energy here.</Text>
+          <View style={styles.emptyIllustration}>
+            <Text style={styles.emptyIllustrationEmoji}>🌙</Text>
+            <Text style={styles.emptyIllustrationStar1}>✨</Text>
+            <Text style={styles.emptyIllustrationStar2}>⭐</Text>
+            <Text style={styles.emptyIllustrationStar3}>✨</Text>
+          </View>
+          <Text style={styles.emptyTitle}>Your first reading awaits</Text>
+          <Text style={styles.emptyBody}>
+            Open your daily reading to start building your luck archive. Come back every day to grow your streak and unlock history insights.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open today's reading"
+            style={({ pressed }) => [styles.emptyCta, pressed && styles.emptyCtaPressed]}
+            onPress={() => router.replace('/home')}
+          >
+            <Text style={styles.emptyCtaLabel}>Open today's reading  →</Text>
+          </Pressable>
         </Card>
       ) : (
         <>
+          {/* ── Stats summary ── */}
+          <Card style={styles.statsCard}>
+            <Text style={styles.statsHeading}>Your luck at a glance</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statBlock}>
+                <Text style={styles.statValue}>{stats.total}</Text>
+                <Text style={styles.statLabel}>Total readings</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statBlock}>
+                <Text style={styles.statValue}>{stats.avgScore}</Text>
+                <Text style={styles.statLabel}>Avg. energy</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statBlock}>
+                <Text style={[styles.statValue, styles.statValueSmall]}>{stats.mostCommonColor}</Text>
+                <Text style={styles.statLabel}>Top color</Text>
+              </View>
+            </View>
+          </Card>
+
+          {/* ── Month calendar ── */}
           <MonthActivityCard history={history} />
-          {history.map((reading) => <HistoryCard key={reading.date} reading={reading} />)}
+
+          {/* ── Reading list — gated for free users ── */}
+          <PremiumGate isPremium={isPremium} featureLabel="full reading history">
+            <View style={styles.historyList}>
+              {previewHistory.map((reading) => (
+                <HistoryCard key={reading.date} reading={reading} />
+              ))}
+            </View>
+          </PremiumGate>
         </>
       )}
     </Screen>
   );
 }
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
 
 function MonthActivityCard({ history }: { history: DailyReading[] }) {
   const activity = getMonthActivity(history);
@@ -110,7 +225,7 @@ function HistoryCard({ reading }: { reading: DailyReading }) {
   return (
     <Card style={styles.historyCard}>
       <View style={styles.cardTop}>
-        <View>
+        <View style={styles.cardTopLeft}>
           <Text style={styles.date}>{formatHistoryDate(reading.date)}</Text>
           <Text style={styles.message}>{reading.mainMessage}</Text>
         </View>
@@ -120,26 +235,38 @@ function HistoryCard({ reading }: { reading: DailyReading }) {
         </View>
       </View>
       <View style={styles.divider} />
-      <SectionRow label="🎨 Lucky color" value={reading.luckyColor} />
+      <View style={styles.miniMetricsRow}>
+        <View style={styles.miniMetric}>
+          <Text style={styles.miniMetricLabel}>🎨 Color</Text>
+          <Text style={styles.miniMetricValue}>{reading.luckyColor}</Text>
+        </View>
+        <View style={styles.miniMetricDivider} />
+        <View style={styles.miniMetric}>
+          <Text style={styles.miniMetricLabel}>🔢 Number</Text>
+          <Text style={styles.miniMetricValue}>{reading.luckyNumber}</Text>
+        </View>
+        {reading.moonPhase ? (
+          <>
+            <View style={styles.miniMetricDivider} />
+            <View style={styles.miniMetric}>
+              <Text style={styles.miniMetricLabel}>🌙 Moon</Text>
+              <Text style={styles.miniMetricValue} numberOfLines={1}>{reading.moonPhase}</Text>
+            </View>
+          </>
+        ) : null}
+      </View>
       <View style={styles.divider} />
-      <SectionRow label="🐲 Chinese zodiac" value={reading.chineseZodiac || 'Your animal'} />
-      <View style={styles.divider} />
-      <SectionRow label="🍀 Small action" value={reading.action} />
+      <SectionRow label="🍀 Small action" value={reading.action ?? '—'} />
     </Card>
   );
 }
 
+// ─── Utilities ─────────────────────────────────────────────────────────────────
+
 function formatHistoryDate(value: string) {
   const date = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
+  if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-}
-
-function formatStreak(value: number) {
-  return `${value} ${value === 1 ? 'day' : 'days'} streak`;
 }
 
 function formatMonthTitle(date = new Date()) {
@@ -150,12 +277,15 @@ function getMonthStartOffset(date = new Date()) {
   return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 }
 
+// ─── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  loading: {
-    alignItems: 'center',
+  skeletonScreen: {
     backgroundColor: colors.background,
     flex: 1,
-    justifyContent: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    paddingTop: spacing.lg,
   },
   header: {
     backgroundColor: colors.panelStrong,
@@ -172,13 +302,19 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginTop: spacing.sm,
   },
+  streakRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
   streakPill: {
     alignSelf: 'flex-start',
     backgroundColor: colors.champagne,
     borderColor: colors.luckyGold,
-    borderRadius: 999,
+    borderRadius: radii.pill,
     borderWidth: 1,
-    marginTop: spacing.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
@@ -187,17 +323,128 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '900',
   },
+  milestoneHint: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '600',
+  },
   emptyCard: {
-    backgroundColor: colors.sunrise,
+    alignItems: 'center',
+    backgroundColor: colors.panelStrong,
     borderColor: colors.roseGold,
+    paddingVertical: spacing.xl,
+  },
+  emptyIllustration: {
+    alignItems: 'center',
+    height: 90,
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+    position: 'relative',
+    width: 120,
+  },
+  emptyIllustrationEmoji: {
+    fontSize: 56,
+    lineHeight: 64,
+  },
+  emptyIllustrationStar1: {
+    fontSize: 18,
+    left: 0,
+    lineHeight: 22,
+    position: 'absolute',
+    top: 4,
+  },
+  emptyIllustrationStar2: {
+    fontSize: 14,
+    lineHeight: 18,
+    position: 'absolute',
+    right: 0,
+    top: 10,
+  },
+  emptyIllustrationStar3: {
+    bottom: 0,
+    fontSize: 16,
+    lineHeight: 20,
+    position: 'absolute',
+    right: 8,
   },
   emptyTitle: {
     color: colors.ink,
-    fontSize: 20,
+    fontSize: 22,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  emptyBody: {
+    color: colors.muted,
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 22,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  emptyCta: {
+    alignItems: 'center',
+    backgroundColor: colors.mauve,
+    borderRadius: radii.pill,
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+  },
+  emptyCtaPressed: {
+    opacity: 0.82,
+  },
+  emptyCtaLabel: {
+    color: colors.white,
+    fontSize: 16,
     fontWeight: '900',
   },
+  // Stats summary card
+  statsCard: {
+    backgroundColor: colors.lavender,
+    borderColor: '#C8BFEE',
+  },
+  statsHeading: {
+    color: colors.mauve,
+    fontSize: 16,
+    fontWeight: '900',
+    marginBottom: spacing.md,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statsRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statBlock: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statValue: {
+    color: colors.mauve,
+    fontSize: 34,
+    fontWeight: '900',
+    lineHeight: 40,
+  },
+  statValueSmall: {
+    fontSize: 20,
+    lineHeight: 28,
+  },
+  statLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 2,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
+  statDivider: {
+    backgroundColor: '#C8BFEE',
+    height: 50,
+    width: 1,
+  },
+  // Month activity card
   monthCard: {
-    backgroundColor: colors.sunrise,
+    backgroundColor: colors.panelStrong,
     borderColor: colors.roseGold,
   },
   monthTitle: {
@@ -256,15 +503,22 @@ const styles = StyleSheet.create({
     color: colors.goldDeep,
     fontWeight: '900',
   },
+  // History list
+  historyList: {
+    gap: spacing.md,
+  },
   historyCard: {
-    backgroundColor: colors.sunrise,
+    backgroundColor: colors.panelStrong,
     borderColor: colors.roseGold,
   },
   cardTop: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flexDirection: 'row',
     gap: spacing.md,
     justifyContent: 'space-between',
+  },
+  cardTopLeft: {
+    flex: 1,
   },
   date: {
     color: colors.goldDeep,
@@ -274,7 +528,6 @@ const styles = StyleSheet.create({
   },
   message: {
     color: colors.ink,
-    flexShrink: 1,
     fontSize: 19,
     fontWeight: '900',
     lineHeight: 26,
@@ -306,5 +559,31 @@ const styles = StyleSheet.create({
     backgroundColor: colors.line,
     height: 1,
     marginVertical: spacing.md,
+  },
+  miniMetricsRow: {
+    flexDirection: 'row',
+    gap: 0,
+  },
+  miniMetric: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  miniMetricLabel: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  miniMetricValue: {
+    color: colors.ink,
+    fontSize: 15,
+    fontWeight: '900',
+    marginTop: 2,
+  },
+  miniMetricDivider: {
+    backgroundColor: colors.line,
+    width: 1,
+    marginVertical: 4,
   },
 });

@@ -9,6 +9,14 @@ import {
   Text,
   View,
 } from 'react-native';
+
+async function triggerLightHaptic() {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  } catch {}
+}
 import { router } from 'expo-router';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
@@ -174,12 +182,12 @@ export default function PaywallScreen() {
         <Text style={styles.nudgeHeading}>What changes when you unlock</Text>
         <View style={styles.nudgeRow}>
           <Text style={styles.nudgeEmoji}>🔒</Text>
-          <Text style={styles.nudgeFree}>Free: daily score · metrics · almanac · share card</Text>
+          <Text style={styles.nudgeFree}>Free: daily energy score · Chinese zodiac · basic share card</Text>
         </View>
         <Text style={styles.nudgeArrow}>↓</Text>
         <View style={styles.nudgeRow}>
           <Text style={styles.nudgeEmoji}>✨</Text>
-          <Text style={styles.nudgePremium}>Premium: deeper readings · longer history · future photo insights</Text>
+          <Text style={styles.nudgePremium}>Premium: lucky metrics · Chinese Almanac · deeper readings · full history · photo insights</Text>
         </View>
       </Card>
 
@@ -200,7 +208,7 @@ export default function PaywallScreen() {
           {annualPkg ? (
             <Pressable
               style={[styles.packageCard, selected?.productIdentifier === annualPkg.productIdentifier && styles.packageSelected]}
-              onPress={() => setSelected(annualPkg)}
+              onPress={() => { triggerLightHaptic(); setSelected(annualPkg); }}
             >
               <View style={styles.bestValueBadge}>
                 <Text style={styles.bestValueText}>BEST VALUE</Text>
@@ -214,7 +222,7 @@ export default function PaywallScreen() {
           {monthlyPkg ? (
             <Pressable
               style={[styles.packageCard, selected?.productIdentifier === monthlyPkg.productIdentifier && styles.packageSelected]}
-              onPress={() => setSelected(monthlyPkg)}
+              onPress={() => { triggerLightHaptic(); setSelected(monthlyPkg); }}
             >
               <Text style={styles.packageTitle}>Monthly</Text>
               <Text style={styles.packagePrice}>{monthlyPkg.localizedPriceString}</Text>

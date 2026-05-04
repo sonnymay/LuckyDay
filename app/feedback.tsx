@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { Animated, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
@@ -16,11 +16,29 @@ function ratingEmoji(rating: FeedbackRating) {
   if (rating === 'Somewhat') return '🌙';
   return '🌧️';
 }
-const tagOptions = ['Money', 'Love', 'Work', 'Stress', 'Good luck', 'Bad luck'];
+const tagOptions = ['Money', 'Love', 'Work', 'Health', 'Stress', 'Good luck', 'Bad luck', 'Surprise'];
+
+async function triggerSelectionHaptic() {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  } catch {}
+}
+
+async function triggerSuccessHaptic() {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  } catch {}
+}
 
 export default function FeedbackScreen() {
   const [rating, setRating] = useState<FeedbackRating | null>(null);
   const [tags, setTags] = useState<string[]>([]);
+  const [saved, setSaved] = useState(false);
+  const savedAnim = useRef(new Animated.Value(0)).current;
   const date = todayKey();
 
   useFocusEffect(
@@ -39,6 +57,7 @@ export default function FeedbackScreen() {
   );
 
   function toggleTag(tag: string) {
+    triggerSelectionHaptic();
     setTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]);
   }
 
@@ -53,7 +72,22 @@ export default function FeedbackScreen() {
       createdAt: new Date().toISOString(),
     });
 
-    router.back();
+    triggerSuccessHaptic();
+    setSaved(true);
+    Animated.timing(savedAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+    setTimeout(() => router.back(), 1200);
+  }
+
+  if (saved) {
+    return (
+      <SafeAreaView style={styles.savedScreen}>
+        <Animated.View style={[styles.savedContainer, { opacity: savedAnim }]}>
+          <Text style={styles.savedEmoji}>✨</Text>
+          <Text style={styles.savedTitle}>Feedback saved!</Text>
+          <Text style={styles.savedCopy}>Your rating helps shape tomorrow's reading.</Text>
+        </Animated.View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -65,7 +99,7 @@ export default function FeedbackScreen() {
           {ratings.map((item) => (
             <Pressable
               key={item}
-              onPress={() => setRating(item)}
+              onPress={() => { triggerSelectionHaptic(); setRating(item); }}
               style={[styles.rating, rating === item && styles.selectedRating]}
             >
               <Text style={styles.ratingEmoji}>{ratingEmoji(item)}</Text>
@@ -92,6 +126,34 @@ export default function FeedbackScreen() {
 }
 
 const styles = StyleSheet.create({
+  savedScreen: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  savedContainer: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  savedEmoji: {
+    fontSize: 64,
+    lineHeight: 72,
+  },
+  savedTitle: {
+    color: colors.mauve,
+    fontSize: 28,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  savedCopy: {
+    color: colors.muted,
+    fontSize: 16,
+    fontWeight: '600',
+    lineHeight: 24,
+    textAlign: 'center',
+  },
   headerCard: {
     backgroundColor: colors.panelStrong,
     borderColor: colors.roseGold,

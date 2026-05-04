@@ -64,7 +64,7 @@ function directionArrow(value: string) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.sunrise,
+    backgroundColor: colors.panelStrong,
     borderColor: colors.roseGold,
     flexBasis: '47%',
     flexGrow: 1,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.champagne,
   },
   directionCard: {
-    backgroundColor: '#FFF6E0',
+    backgroundColor: colors.champagne,
     borderColor: colors.luckyGold,
   },
   timeCard: {

@@ -5,6 +5,7 @@ const PROFILE_KEY = 'luckyday.profile.v1';
 const FEEDBACK_KEY = 'luckyday.feedback.v1';
 const READING_HISTORY_KEY = 'luckyday.readingHistory.v1';
 const HAS_SEEN_PAYWALL_KEY = 'luckyday.hasSeenPaywall.v1';
+const LAST_NOTIFICATION_DATE_KEY = 'luckyday.lastNotificationDate.v1';
 const MAX_READING_HISTORY_ITEMS = 30;
 
 export async function getStoredProfile() {
@@ -66,4 +67,14 @@ export async function getHasSeenPaywall(): Promise<boolean> {
 
 export async function setHasSeenPaywall(): Promise<void> {
   await AsyncStorage.setItem(HAS_SEEN_PAYWALL_KEY, 'true');
+}
+
+/** Returns true if the notification has NOT yet been scheduled today. */
+export async function shouldScheduleNotificationToday(todayKey: string): Promise<boolean> {
+  const last = await AsyncStorage.getItem(LAST_NOTIFICATION_DATE_KEY);
+  return last !== todayKey;
+}
+
+export async function setNotificationScheduledToday(todayKey: string): Promise<void> {
+  await AsyncStorage.setItem(LAST_NOTIFICATION_DATE_KEY, todayKey);
 }

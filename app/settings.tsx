@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { Alert, ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { AppButton } from '../src/components/AppButton';
@@ -11,14 +11,81 @@ import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
 import { createProfile, getChineseZodiac, normalizeMainFocuses } from '../src/lib/luck';
 import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
+import { getPremiumStatus, PremiumStatus } from '../src/lib/purchases';
 import { getStoredProfile, resetAllStoredData, resetStoredFeedback, resetStoredProfile, saveStoredProfile } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
 import { MainFocus, Profile } from '../src/types';
 
 const focusOptions: MainFocus[] = ['Money', 'Love', 'Work', 'Health', 'Luck'];
+const focusEmoji: Record<MainFocus, string> = {
+  Money: '💰',
+  Love: '💗',
+  Work: '📌',
+  Health: '🌿',
+  Luck: '🍀',
+};
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function SkeletonBlock({ width, height, style }: { width: number | string; height: number; style?: object }) {
+  const shimmer = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [shimmer]);
+
+  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.65] });
+
+  return (
+    <Animated.View
+      style={[{ width, height, borderRadius: 12, backgroundColor: colors.roseGold, opacity }, style]}
+    />
+  );
+}
+
+function SettingsSkeleton() {
+  return (
+    <View style={styles.skeletonScreen}>
+      <SkeletonBlock width="100%" height={90} style={{ borderRadius: 20 }} />
+      <SkeletonBlock width="100%" height={80} style={{ borderRadius: 20 }} />
+      <SkeletonBlock width="100%" height={120} style={{ borderRadius: 20 }} />
+      <SkeletonBlock width="70%" height={54} style={{ borderRadius: 12 }} />
+      <SkeletonBlock width="100%" height={54} style={{ borderRadius: 12 }} />
+      <SkeletonBlock width="100%" height={100} style={{ borderRadius: 20 }} />
+    </View>
+  );
+}
+
+// ─── Lazy helpers ──────────────────────────────────────────────────────────────
+
+async function requestStoreReviewIfAvailable() {
+  try {
+    const StoreReview = await import('expo-store-review');
+    const isAvailable = await StoreReview.isAvailableAsync();
+    if (isAvailable) await StoreReview.requestReview();
+  } catch {
+    // Not available on this platform or package not installed
+  }
+}
+
+// ─── Screen ────────────────────────────────────────────────────────────────────
+
+async function triggerSuccessHaptic() {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  } catch {}
+}
 
 export default function SettingsScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [premiumStatus, setPremiumStatus] = useState<PremiumStatus | null>(null);
   const [nickname, setNickname] = useState('');
   const [birthday, setBirthday] = useState('');
   const [mainFocus, setMainFocus] = useState<MainFocus[]>(['Luck']);
@@ -31,16 +98,19 @@ export default function SettingsScreen() {
   const [leftPalmUpdatedAt, setLeftPalmUpdatedAt] = useState('');
   const [rightPalmUpdatedAt, setRightPalmUpdatedAt] = useState('');
   const [handwritingUpdatedAt, setHandwritingUpdatedAt] = useState('');
+  const [saveConfirmed, setSaveConfirmed] = useState(false);
+  const saveAnim = useRef(new Animated.Value(0)).current;
 
   useFocusEffect(
     useCallback(() => {
-      getStoredProfile().then((storedProfile) => {
+      Promise.all([getStoredProfile(), getPremiumStatus()]).then(([storedProfile, status]) => {
         if (!storedProfile) {
           router.replace('/');
           return;
         }
 
         setProfile(storedProfile);
+        setPremiumStatus(status);
         setNickname(storedProfile.nickname);
         setBirthday(storedProfile.birthday);
         setMainFocus(normalizeMainFocuses(storedProfile.mainFocus));
@@ -88,18 +158,8 @@ export default function SettingsScreen() {
         birthplace: profile.birthplace,
         mainFocus,
         notificationTime,
-        photos: {
-          faceUri,
-          leftPalmUri,
-          rightPalmUri,
-          handwritingUri,
-        },
-        photoTimestamps: {
-          faceUpdatedAt,
-          leftPalmUpdatedAt,
-          rightPalmUpdatedAt,
-          handwritingUpdatedAt,
-        },
+        photos: { faceUri, leftPalmUri, rightPalmUri, handwritingUri },
+        photoTimestamps: { faceUpdatedAt, leftPalmUpdatedAt, rightPalmUpdatedAt, handwritingUpdatedAt },
         mediaConsentAt: profile.mediaConsentAt,
       }),
       id: profile.id,
@@ -111,7 +171,12 @@ export default function SettingsScreen() {
     if (reminderResult === 'denied') {
       Alert.alert('Reminder not enabled', 'Notifications are off. You can allow them later in your device settings.');
     }
-    router.replace('/home');
+
+    triggerSuccessHaptic();
+    setSaveConfirmed(true);
+    saveAnim.setValue(0);
+    Animated.timing(saveAnim, { toValue: 1, duration: 250, useNativeDriver: true }).start();
+    setTimeout(() => router.replace('/home'), 1000);
   }
 
   function confirmReset() {
@@ -169,12 +234,7 @@ export default function SettingsScreen() {
         onPress: async () => {
           const nextProfile = {
             ...profile,
-            photos: {
-              faceUri: '',
-              leftPalmUri: '',
-              rightPalmUri: '',
-              handwritingUri: '',
-            },
+            photos: { faceUri: '', leftPalmUri: '', rightPalmUri: '', handwritingUri: '' },
             photoTimestamps: {},
           };
 
@@ -194,18 +254,15 @@ export default function SettingsScreen() {
     ]);
   }
 
-  if (!profile) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={colors.ink} />
-      </View>
-    );
+  if (!profile || premiumStatus === null) {
+    return <SettingsSkeleton />;
   }
 
   const currentChineseZodiac = getChineseZodiac(profile.birthday);
 
   return (
     <Screen>
+      {/* ── Profile header ── */}
       <Card style={styles.card}>
         <Text style={styles.title}>Your profile ✨</Text>
         <Text style={styles.copy}>
@@ -213,6 +270,33 @@ export default function SettingsScreen() {
         </Text>
       </Card>
 
+      {/* ── Subscription status ── */}
+      {premiumStatus.isPremium ? (
+        <Card style={styles.premiumStatusCard}>
+          <View style={styles.premiumStatusRow}>
+            <Text style={styles.premiumStatusEmoji}>✨</Text>
+            <View style={styles.premiumStatusCopy}>
+              <Text style={styles.premiumStatusTitle}>LuckyDay Premium</Text>
+              <Text style={styles.premiumStatusSub}>
+                {premiumStatus.expiresAt
+                  ? `Renews ${premiumStatus.expiresAt.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}`
+                  : 'Active — thank you for supporting LuckyDay!'}
+              </Text>
+            </View>
+          </View>
+        </Card>
+      ) : (
+        <Pressable onPress={() => router.push('/paywall')} style={({ pressed }) => [styles.upgradeCard, pressed && styles.upgradeCardPressed]}>
+          <Text style={styles.upgradeEmoji}>🌟</Text>
+          <View style={styles.upgradeCopy}>
+            <Text style={styles.upgradeTitle}>You're on Free</Text>
+            <Text style={styles.upgradeSub}>Upgrade for full rituals, deeper history, and more.</Text>
+          </View>
+          <Text style={styles.upgradeArrow}>›</Text>
+        </Pressable>
+      )}
+
+      {/* ── How it works ── */}
       <Card style={styles.howItWorksCard}>
         <Text style={styles.photoTitle}>How LuckyDay works</Text>
         <Text style={styles.photoCopy}>
@@ -220,6 +304,7 @@ export default function SettingsScreen() {
         </Text>
       </Card>
 
+      {/* ── Form ── */}
       <View style={styles.form}>
         <Field label="Nickname" value={nickname} onChangeText={setNickname} placeholder="Mali" />
         <View style={styles.group}>
@@ -236,7 +321,9 @@ export default function SettingsScreen() {
                 onPress={() => setMainFocus((current) => toggleFocus(current, focus))}
                 style={[styles.chip, mainFocus.includes(focus) && styles.selectedChip]}
               >
-                <Text style={[styles.chipText, mainFocus.includes(focus) && styles.selectedChipText]}>{focus}</Text>
+                <Text style={[styles.chipText, mainFocus.includes(focus) && styles.selectedChipText]}>
+                  {focusEmoji[focus]} {focus}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -250,6 +337,7 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      {/* ── Optional photos ── */}
       <View style={styles.photoStack}>
         <Text style={styles.photoTitle}>Optional luck photos 🍀</Text>
         <Text style={styles.photoCopy}>Add, retake, or remove photos anytime. Photo links are saved on this device and are not encrypted.</Text>
@@ -288,6 +376,33 @@ export default function SettingsScreen() {
         />
       </View>
 
+      {/* ── Quick actions ── */}
+      <Card style={styles.quickActionsCard}>
+        <Text style={styles.photoTitle}>Share & support 🌸</Text>
+        <View style={styles.quickActions}>
+          <Pressable
+            style={({ pressed }) => [styles.quickActionButton, pressed && styles.quickActionPressed]}
+            onPress={() => requestStoreReviewIfAvailable()}
+          >
+            <Text style={styles.quickActionEmoji}>⭐</Text>
+            <Text style={styles.quickActionLabel}>Rate LuckyDay</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.quickActionButton, pressed && styles.quickActionPressed]}
+            onPress={() =>
+              Share.share({
+                message: "I've been using LuckyDay for my daily luck ritual ✨ Check it out!",
+                title: 'LuckyDay — your daily luck ritual',
+              })
+            }
+          >
+            <Text style={styles.quickActionEmoji}>🔗</Text>
+            <Text style={styles.quickActionLabel}>Share LuckyDay</Text>
+          </Pressable>
+        </View>
+      </Card>
+
+      {/* ── Privacy controls ── */}
       <Card style={styles.privacyCard}>
         <Text style={styles.photoTitle}>Privacy controls 🧿</Text>
         <Text style={styles.photoCopy}>
@@ -301,24 +416,24 @@ export default function SettingsScreen() {
       </Card>
 
       <AppButton label="Save settings" onPress={saveSettings} />
+      {saveConfirmed ? (
+        <Animated.View style={[styles.saveConfirm, { opacity: saveAnim }]}>
+          <Text style={styles.saveConfirmText}>✓ Settings saved</Text>
+        </Animated.View>
+      ) : null}
       <AppButton label="Reset profile" variant="danger" onPress={confirmReset} />
     </Screen>
   );
 }
 
-function toggleFocus(current: MainFocus[], focus: MainFocus) {
-  if (current.includes(focus)) {
-    return current.filter((item) => item !== focus);
-  }
+// ─── Helpers ───────────────────────────────────────────────────────────────────
 
+function toggleFocus(current: MainFocus[], focus: MainFocus) {
+  if (current.includes(focus)) return current.filter((item) => item !== focus);
   return [...current, focus];
 }
 
-function updatePhoto(
-  uri: string,
-  setUri: (uri: string) => void,
-  setUpdatedAt: (value: string) => void,
-) {
+function updatePhoto(uri: string, setUri: (uri: string) => void, setUpdatedAt: (value: string) => void) {
   setUri(uri);
   setUpdatedAt(new Date().toISOString());
 }
@@ -351,12 +466,15 @@ function Field({ label, value, onChangeText, placeholder }: FieldProps) {
   );
 }
 
+// ─── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  loading: {
-    alignItems: 'center',
+  skeletonScreen: {
     backgroundColor: colors.background,
     flex: 1,
-    justifyContent: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    paddingTop: spacing.lg,
   },
   card: {
     backgroundColor: colors.panelStrong,
@@ -372,6 +490,79 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 23,
     marginTop: spacing.sm,
+  },
+  // Premium status card
+  premiumStatusCard: {
+    backgroundColor: colors.mauve,
+    borderColor: colors.roseGold,
+  },
+  premiumStatusRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  premiumStatusEmoji: {
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  premiumStatusCopy: {
+    flex: 1,
+  },
+  premiumStatusTitle: {
+    color: colors.champagne,
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  premiumStatusSub: {
+    color: '#FCEEF1',
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 20,
+    marginTop: 2,
+  },
+  // Upgrade card (free users)
+  upgradeCard: {
+    alignItems: 'center',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: spacing.md,
+    padding: spacing.md,
+  },
+  upgradeCardPressed: {
+    opacity: 0.82,
+  },
+  upgradeEmoji: {
+    fontSize: 28,
+    lineHeight: 34,
+  },
+  upgradeCopy: {
+    flex: 1,
+  },
+  upgradeTitle: {
+    color: colors.ink,
+    fontSize: 17,
+    fontWeight: '900',
+  },
+  upgradeSub: {
+    color: colors.muted,
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 20,
+    marginTop: 2,
+  },
+  upgradeArrow: {
+    color: colors.mauve,
+    fontSize: 26,
+    fontWeight: '900',
+  },
+  // How it works
+  howItWorksCard: {
+    backgroundColor: colors.lavender,
+    borderColor: '#C8BFEE',
+    gap: spacing.sm,
   },
   form: {
     gap: spacing.md,
@@ -389,17 +580,45 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
   },
-  howItWorksCard: {
-    backgroundColor: colors.sunrise,
-    borderColor: colors.roseGold,
-    gap: spacing.sm,
+  // Quick actions
+  quickActionsCard: {
+    gap: spacing.md,
   },
+  quickActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  quickActionButton: {
+    alignItems: 'center',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    flex: 1,
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+  },
+  quickActionPressed: {
+    opacity: 0.78,
+  },
+  quickActionEmoji: {
+    fontSize: 26,
+    lineHeight: 32,
+  },
+  quickActionLabel: {
+    color: colors.mauve,
+    fontSize: 13,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  // Privacy
   privacyCard: {
     gap: spacing.md,
   },
   privacyActions: {
     gap: spacing.sm,
   },
+  // Form fields
   group: {
     gap: spacing.sm,
   },
@@ -416,7 +635,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.panel,
     borderColor: colors.line,
     borderRadius: radii.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     color: colors.ink,
     fontSize: 17,
     minHeight: 54,
@@ -446,5 +665,15 @@ const styles = StyleSheet.create({
   },
   selectedChipText: {
     color: colors.white,
+  },
+  // Save confirmation
+  saveConfirm: {
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+  saveConfirmText: {
+    color: colors.jade,
+    fontSize: 15,
+    fontWeight: '900',
   },
 });

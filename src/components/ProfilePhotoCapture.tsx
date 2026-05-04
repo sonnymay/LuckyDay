@@ -1,5 +1,15 @@
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+
+async function triggerCaptureHaptic() {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  } catch {
+    // expo-haptics not installed — no-op
+  }
+}
 import { Card } from './Card';
 import { colors, radii, spacing } from '../styles/theme';
 
@@ -40,6 +50,7 @@ export function ProfilePhotoCapture({
 
     if (!result.canceled) {
       onChange(result.assets[0].uri);
+      triggerCaptureHaptic();
     }
   }
 

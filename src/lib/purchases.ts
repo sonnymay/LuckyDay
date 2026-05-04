@@ -7,10 +7,10 @@
  * 1. npm install react-native-purchases
  * 2. Create account at revenuecat.com
  * 3. Create product in App Store Connect:
- *    - Monthly: com.luckyday.premium.monthly  → $2.99/month
- *    - Annual:  com.luckyday.premium.annual   → $14.99/year
- * 4. Add entitlement "premium" in RevenueCat dashboard
- * 5. Replace REVENUE_CAT_API_KEY below with your iOS key
+ *    - Monthly: com.luckyday.premium.monthly  → $4.99/month  ✅ created
+ *    - Annual:  com.luckyday.premium.annual   → $29.99/year ✅ created
+ * 4. Add entitlement "premium" in RevenueCat dashboard       ✅ done
+ * 5. Production iOS SDK key configured                       ✅ done
  *
  * The app works fully without RevenueCat configured —
  * isPremium() returns false and the paywall shows.
@@ -22,7 +22,7 @@
  * Replace with your RevenueCat iOS public API key.
  * Found at: revenuecat.com → Your App → API Keys → Public app-specific key
  */
-const REVENUE_CAT_API_KEY = 'YOUR_REVENUECAT_IOS_KEY_HERE';
+const REVENUE_CAT_API_KEY: string = 'appl_NGvyaLeLFXBfpaNUVjaKDGvgSo';
 
 export const ENTITLEMENT_ID = 'premium';
 

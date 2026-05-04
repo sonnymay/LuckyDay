@@ -8,11 +8,33 @@ type Props = {
   style?: ViewStyle;
 };
 
+// Lazy haptic helper — silently no-ops on web or if expo-haptics isn't installed
+async function triggerHaptic(variant: Props['variant']) {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    if (variant === 'danger') {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    } else if (variant === 'primary') {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } else {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  } catch {
+    // expo-haptics not installed or not supported — no-op
+  }
+}
+
 export function AppButton({ label, onPress, variant = 'primary', style }: Props) {
+  function handlePress() {
+    triggerHaptic(variant);
+    onPress();
+  }
+
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.base,
         styles[variant],

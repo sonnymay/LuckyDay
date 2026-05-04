@@ -82,12 +82,27 @@ export async function syncLocalDailyReminder(time?: string, reading?: ReminderRe
     "Your morning luck reading is waiting. ✨",
   ];
 
+  const titles = [
+    'Your LuckyDay is ready ✨',
+    'A new reading awaits 🌸',
+    'Your luck ritual is ready 🍀',
+    'Today\'s energy is in ✦',
+    'Open your LuckyDay 🌙',
+    'Your daily fortune is here ✨',
+    'The almanac is ready 📖',
+    'Luck is calling 🌸',
+    'A new day, a new reading ✨',
+    'Your morning ritual awaits 🌅',
+  ];
+
   const pool = personalizedBodies.length > 0 ? personalizedBodies : genericBodies;
-  const bodyIndex = (hour + minute + new Date().getDate()) % pool.length;
+  const dayIndex = new Date().getDate();
+  const bodyIndex = (hour + minute + dayIndex) % pool.length;
+  const titleIndex = (dayIndex + hour) % titles.length;
 
   const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Your LuckyDay is ready ✨',
+      title: titles[titleIndex],
       body: pool[bodyIndex],
     },
     trigger: {

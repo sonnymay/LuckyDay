@@ -1,6 +1,7 @@
 const luckyColorHex: Record<string, string> = {
   Black: '#2A1712',
   Blue: '#7FB4E8',
+  Cream: '#F5EDD6',
   Gold: '#F5B83E',
   Green: '#65B88A',
   Orange: '#F2A45D',
@@ -15,6 +16,7 @@ const luckyColorHex: Record<string, string> = {
 const luckyColorMeaning: Record<string, string> = {
   Black: 'Protection, focus, quiet power',
   Blue: 'Calm, clarity, trust',
+  Cream: 'Warmth, comfort, gentle luck',
   Gold: 'Abundance, timing, confidence',
   Green: 'Growth, healing, steady luck',
   Orange: 'Wisdom, support, bright luck',

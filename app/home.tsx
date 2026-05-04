@@ -10,15 +10,22 @@ import { ChineseZodiacCard } from '../src/components/ChineseZodiacCard';
 import { EnergyScoreCard } from '../src/components/EnergyScoreCard';
 import { LuckyMetricCard } from '../src/components/LuckyMetricCard';
 import { LuckyShareCard } from '../src/components/LuckyShareCard';
+import { PremiumGate } from '../src/components/PremiumGate';
 import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
 import { generateDailyReading } from '../src/lib/luck';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
 import { getPremiumStatus } from '../src/lib/purchases';
-import { getReadingStreak, getStreakMilestone, shouldRequestRating } from '../src/lib/streak';
+import { getNextMilestoneTarget, getReadingStreak, getStreakMilestone, shouldRequestRating } from '../src/lib/streak';
 import { syncLocalDailyReminder } from '../src/lib/notifications';
-import { getStoredProfile, getStoredReadingHistory, saveReadingHistoryItem } from '../src/lib/storage';
-import { colors, spacing } from '../src/styles/theme';
+import {
+  getStoredProfile,
+  getStoredReadingHistory,
+  saveReadingHistoryItem,
+  shouldScheduleNotificationToday,
+  setNotificationScheduledToday,
+} from '../src/lib/storage';
+import { colors, radii, spacing } from '../src/styles/theme';
 import { DailyReading, Profile } from '../src/types';
 
 // Lazy-load StoreReview — not available on web
@@ -31,6 +38,25 @@ async function requestStoreReviewIfAvailable() {
     }
   } catch {
     // expo-store-review not installed or not available — no-op
+  }
+}
+
+// Lazy haptic helpers
+async function triggerLightHaptic() {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  } catch {}
+}
+
+async function triggerSuccessHaptic() {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  } catch {
+    // expo-haptics not installed — no-op
   }
 }
 
@@ -114,20 +140,27 @@ export default function HomeScreen() {
           const dailyReading = generateDailyReading(storedProfile);
           setProfile(storedProfile);
           setReading(dailyReading);
-          // Refresh notification body with today's personalized reading data
+          // Reschedule notification with today's personalized data — but only once per day
           if (storedProfile.notificationTime) {
-            syncLocalDailyReminder(storedProfile.notificationTime, {
-              luckyColor: dailyReading.luckyColor,
-              luckyNumber: dailyReading.luckyNumber,
-              score: dailyReading.score,
-            }).catch(() => undefined);
+            shouldScheduleNotificationToday(dailyReading.date)
+              .then((should) => {
+                if (!should) return;
+                return syncLocalDailyReminder(storedProfile.notificationTime, {
+                  luckyColor: dailyReading.luckyColor,
+                  luckyNumber: dailyReading.luckyNumber,
+                  score: dailyReading.score,
+                }).then(() => setNotificationScheduledToday(dailyReading.date));
+              })
+              .catch(() => undefined);
           }
           getStoredReadingHistory()
             .then((history) => {
               const nextHistory = [dailyReading, ...history.filter((item) => item.date !== dailyReading.date)];
               const currentStreak = getReadingStreak(nextHistory);
               setStreak(currentStreak);
-              setStreakMilestone(getStreakMilestone(currentStreak));
+              const milestone = getStreakMilestone(currentStreak);
+              setStreakMilestone(milestone);
+              if (milestone) triggerSuccessHaptic();
               if (shouldRequestRating(currentStreak)) {
                 // Small delay so the screen has rendered before the system dialog appears
                 setTimeout(() => requestStoreReviewIfAvailable(), 2000);
@@ -160,19 +193,29 @@ export default function HomeScreen() {
 
   return (
     <Screen>
-      <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
+      <Animated.View style={{ opacity: fadeAnim }}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.kicker}>✨ Today</Text>
-          <Text style={styles.title}>Hi, {profile.nickname}</Text>
+          <Text style={styles.kicker}>{getDayGreeting().kicker}</Text>
+          <Text style={styles.title}>{getDayGreeting().prefix} {profile.nickname}</Text>
         </View>
         <View style={styles.headerActions}>
           {!isPremium ? (
-            <Pressable onPress={() => router.push('/paywall')} style={styles.upgradeButton}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Upgrade to premium"
+              onPress={() => router.push('/paywall')}
+              style={styles.upgradeButton}
+            >
               <Text style={styles.upgradeText}>✨ Upgrade</Text>
             </Pressable>
           ) : null}
-          <Pressable onPress={() => router.push('/settings')} style={styles.settings}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open settings"
+            onPress={() => router.push('/settings')}
+            style={styles.settings}
+          >
             <Text style={styles.settingsText}>Settings</Text>
           </Pressable>
         </View>
@@ -180,36 +223,79 @@ export default function HomeScreen() {
 
       <EnergyScoreCard label="✨ Today's luck energy" score={reading.score} message={reading.mainMessage} />
 
-      <View style={styles.grid}>
-        <LuckyMetricCard label="🔢 Lucky number" value={String(reading.luckyNumber)} variant="number" />
-        <LuckyMetricCard
-          label="🎨 Lucky color"
-          note={getLuckyColorMeaning(reading.luckyColor)}
-          value={reading.luckyColor}
-          swatchColor={getLuckyColorHex(reading.luckyColor)}
-        />
-        <LuckyMetricCard label="⏰ Lucky time" value={reading.luckyTime} />
-        <LuckyMetricCard label="🧭 Direction" value={reading.luckyDirection} variant="direction" />
-      </View>
+      {/* ── Daily wisdom quote — visible to all users, changes daily ── */}
+      {reading.fortuneQuote ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Read today's full reading"
+          onPress={() => { triggerLightHaptic(); router.push('/detail'); }}
+          style={({ pressed }) => [styles.quoteStrip, pressed && styles.quoteStripPressed]}
+        >
+          <Text style={styles.quoteDecor}>❝</Text>
+          <Text style={styles.quoteStripText} numberOfLines={2}>{reading.fortuneQuote}</Text>
+          <Text style={styles.quoteStripArrow}>›</Text>
+        </Pressable>
+      ) : null}
 
-      <ChineseZodiacCard animal={reading.chineseZodiac} />
-
-      <Card style={styles.luckyCard}>
-        {/* Almanac provenance badge */}
-        <View style={styles.almanacRow}>
-          <Text style={styles.almanacBadge}>📖 From the Chinese Almanac</Text>
-          {reading.lunarDate ? <Text style={styles.almanacDate}>{reading.lunarDate}</Text> : null}
+      <PremiumGate isPremium={isPremium} featureLabel="your lucky metrics">
+        <View style={styles.grid}>
+          <LuckyMetricCard label="🔢 Lucky number" value={String(reading.luckyNumber)} variant="number" />
+          <LuckyMetricCard
+            label="🎨 Lucky color"
+            note={getLuckyColorMeaning(reading.luckyColor)}
+            value={reading.luckyColor}
+            swatchColor={getLuckyColorHex(reading.luckyColor)}
+          />
+          <LuckyMetricCard label="⏰ Lucky time" value={reading.luckyTime} />
+          <LuckyMetricCard label="🧭 Direction" value={reading.luckyDirection} variant="direction" />
         </View>
-        {reading.solarTerm ? <Text style={styles.solarTerm}>✦ {reading.solarTerm}</Text> : null}
-        <View style={styles.divider} />
-        <SectionRow label="🌿 Good for today" value={reading.goodFor.join(' · ')} />
-        <View style={styles.divider} />
-        <SectionRow label="🧿 Avoid today" value={reading.avoid.join(' · ')} />
-      </Card>
+      </PremiumGate>
 
-      <Card style={styles.guidanceCard}>
-        <SectionRow label="🍀 Small action" value={reading.action} />
-      </Card>
+      <ChineseZodiacCard
+        animal={reading.chineseZodiac}
+        westernSign={reading.westernZodiac || undefined}
+        insight={reading.zodiacInsight ?? undefined}
+        westernInsight={reading.westernZodiacInsight || undefined}
+      />
+
+      {/* ── Moon phase — visible to all users, tappable to detail ── */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Moon phase: ${reading.moonPhase}. Tap to see full reading.`}
+        onPress={() => { triggerLightHaptic(); router.push('/detail'); }}
+        style={({ pressed }) => [styles.moonStrip, pressed && { opacity: 0.78 }]}
+      >
+        <Text style={styles.moonEmoji}>{getMoonEmoji(reading.moonPhase)}</Text>
+        <View style={styles.moonCopy}>
+          <View style={styles.moonPhaseLabelRow}>
+            <Text style={styles.moonPhaseLabel}>🌙 {reading.moonPhase}</Text>
+            {reading.lunarDate ? <Text style={styles.lunarDate}>{reading.lunarDate}</Text> : null}
+          </View>
+          <Text style={styles.moonPhaseMessage}>{reading.moonMessage}</Text>
+        </View>
+        <Text style={styles.moonArrow}>›</Text>
+      </Pressable>
+
+      <PremiumGate isPremium={isPremium} featureLabel="the Chinese Almanac">
+        <Card style={styles.luckyCard}>
+          {/* Almanac provenance badge */}
+          <View style={styles.almanacRow}>
+            <Text style={styles.almanacBadge}>📖 From the Chinese Almanac</Text>
+            {reading.lunarDate ? <Text style={styles.almanacDate}>{reading.lunarDate}</Text> : null}
+          </View>
+          {reading.solarTerm ? <Text style={styles.solarTerm}>✦ {reading.solarTerm}</Text> : null}
+          <View style={styles.divider} />
+          <SectionRow label="🌿 Good for today" value={reading.goodFor.join(' · ')} />
+          <View style={styles.divider} />
+          <SectionRow label="🧿 Avoid today" value={reading.avoid.join(' · ')} />
+        </Card>
+      </PremiumGate>
+
+      <PremiumGate isPremium={isPremium} featureLabel="your daily action">
+        <Card style={styles.guidanceCard}>
+          <SectionRow label="🍀 Small action" value={reading.action} />
+        </Card>
+      </PremiumGate>
 
       <Card style={styles.sharePromptCard}>
         <View style={styles.sharePromptHeader}>
@@ -282,25 +368,42 @@ export default function HomeScreen() {
         ) : (
           <>
             <Text style={styles.streakValue}>{streak} {streak === 1 ? 'day' : 'days'} ✨</Text>
+            {/* Progress bar toward next milestone */}
+            <View style={styles.streakProgressTrack}>
+              <View style={[styles.streakProgressFill, { width: `${getStreakProgressPercent(streak)}%` }]} />
+            </View>
             <Text style={styles.streakCopy}>
-              {streak < 7
-                ? `${7 - streak} more day${7 - streak === 1 ? '' : 's'} to your first milestone.`
-                : 'Keep your morning ritual alive — open LuckyDay each day.'}
+              {getStreakCopy(streak)}
             </Text>
           </>
         )}
       </Card>
 
       <View style={styles.navGrid}>
-        <Pressable style={styles.navCard} onPress={() => router.push('/detail')}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="View daily reading detail"
+          style={({ pressed }) => [styles.navCard, pressed && styles.navCardPressed]}
+          onPress={() => { triggerLightHaptic(); router.push('/detail'); }}
+        >
           <Text style={styles.navEmoji}>📋</Text>
           <Text style={styles.navLabel}>Daily{'\n'}detail</Text>
         </Pressable>
-        <Pressable style={styles.navCard} onPress={() => router.push('/history')}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="View reading history"
+          style={({ pressed }) => [styles.navCard, pressed && styles.navCardPressed]}
+          onPress={() => { triggerLightHaptic(); router.push('/history'); }}
+        >
           <Text style={styles.navEmoji}>📖</Text>
           <Text style={styles.navLabel}>Reading{'\n'}history</Text>
         </Pressable>
-        <Pressable style={styles.navCard} onPress={() => router.push('/feedback')}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Rate today's reading"
+          style={({ pressed }) => [styles.navCard, pressed && styles.navCardPressed]}
+          onPress={() => { triggerLightHaptic(); router.push('/feedback'); }}
+        >
           <Text style={styles.navEmoji}>⭐</Text>
           <Text style={styles.navLabel}>Rate{'\n'}today</Text>
         </Pressable>
@@ -377,6 +480,47 @@ function savingFallbackNeeded() {
   return Platform.OS === 'web';
 }
 
+function getStreakCopy(streak: number): string {
+  const next = getNextMilestoneTarget(streak);
+  if (next) {
+    const diff = next - streak;
+    return `${diff} more day${diff === 1 ? '' : 's'} to your ${next}-day milestone.`;
+  }
+  return 'You have reached the highest milestone. Keep the ritual alive every day.';
+}
+
+function getDayGreeting(): { kicker: string; prefix: string } {
+  const hour = new Date().getHours();
+  if (hour < 5) return { kicker: '🌙 Late night', prefix: 'Burning midnight oil,' };
+  if (hour < 12) return { kicker: '🌅 Good morning', prefix: 'Morning,' };
+  if (hour < 17) return { kicker: '☀️ Good afternoon', prefix: 'Afternoon,' };
+  if (hour < 20) return { kicker: '🌇 Good evening', prefix: 'Evening,' };
+  return { kicker: '🌙 Good evening', prefix: 'Evening,' };
+}
+
+function getStreakProgressPercent(streak: number): number {
+  const MILESTONES = [7, 14, 30, 60, 100];
+  const next = getNextMilestoneTarget(streak);
+  if (!next) return 100;
+  const prevIndex = MILESTONES.indexOf(next) - 1;
+  const prev = prevIndex >= 0 ? MILESTONES[prevIndex] : 0;
+  return Math.min(100, Math.round(((streak - prev) / (next - prev)) * 100));
+}
+
+function getMoonEmoji(moonPhase: string): string {
+  const map: Record<string, string> = {
+    'New Moon': '🌑',
+    'Waxing Crescent': '🌒',
+    'First Quarter': '🌓',
+    'Waxing Gibbous': '🌔',
+    'Full Moon': '🌕',
+    'Waning Gibbous': '🌖',
+    'Last Quarter': '🌗',
+    'Waning Crescent': '🌘',
+  };
+  return map[moonPhase] ?? '🌙';
+}
+
 function getShareNudge(reading: DailyReading) {
   const colorMeaning = getLuckyColorMeaning(reading.luckyColor).toLowerCase();
   return `Save a cute story card for someone who could use ${colorMeaning} today.`;
@@ -448,6 +592,89 @@ const styles = StyleSheet.create({
     color: colors.mauve,
     fontSize: 15,
     fontWeight: '800',
+  },
+  // Fortune quote strip
+  quoteStrip: {
+    alignItems: 'center',
+    backgroundColor: colors.lavender,
+    borderColor: '#C8BFEE',
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  quoteStripPressed: {
+    opacity: 0.76,
+  },
+  quoteDecor: {
+    color: '#7B6CB8',
+    fontSize: 22,
+    lineHeight: 26,
+    opacity: 0.7,
+  },
+  quoteStripText: {
+    color: '#3D2D80',
+    flex: 1,
+    fontSize: 14,
+    fontStyle: 'italic',
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  quoteStripArrow: {
+    color: '#7B6CB8',
+    fontSize: 22,
+    fontWeight: '900',
+    opacity: 0.7,
+  },
+  // Moon phase strip
+  moonStrip: {
+    alignItems: 'center',
+    backgroundColor: colors.lavender,
+    borderColor: '#C8BFEE',
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: spacing.md,
+    padding: spacing.md,
+  },
+  moonEmoji: {
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  moonCopy: {
+    flex: 1,
+  },
+  moonPhaseLabelRow: {
+    alignItems: 'baseline',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  moonPhaseLabel: {
+    color: '#3D2D80',
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 0.3,
+  },
+  lunarDate: {
+    color: '#7B6CB8',
+    fontSize: 12,
+    fontWeight: '700',
+    opacity: 0.85,
+  },
+  moonPhaseMessage: {
+    color: '#5A4A90',
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+    marginTop: 3,
+  },
+  moonArrow: {
+    color: '#7B6CB8',
+    fontSize: 22,
+    fontWeight: '900',
+    opacity: 0.7,
   },
   luckyCard: {
     backgroundColor: '#FBF5E8',
@@ -671,6 +898,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.champagne,
     borderColor: colors.luckyGold,
   },
+  streakProgressTrack: {
+    backgroundColor: 'rgba(154, 100, 16, 0.15)',
+    borderRadius: radii.pill,
+    height: 6,
+    marginTop: spacing.sm,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  streakProgressFill: {
+    backgroundColor: colors.mauve,
+    borderRadius: radii.pill,
+    height: '100%',
+  },
   streakLabel: {
     color: colors.goldDeep,
     fontSize: 13,
@@ -713,6 +953,10 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     justifyContent: 'center',
     paddingVertical: spacing.lg,
+  },
+  navCardPressed: {
+    opacity: 0.78,
+    transform: [{ scale: 0.97 }],
   },
   navEmoji: {
     fontSize: 30,

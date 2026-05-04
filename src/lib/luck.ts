@@ -1,7 +1,8 @@
 import { DailyReading, MainFocus, Profile, ProfileInput } from '../types';
 import { getAlmanacDay } from './almanac';
-import { chineseZodiacAnimals } from './chineseZodiac';
+import { chineseZodiacAnimals, getChineseZodiacDailyInsight } from './chineseZodiac';
 import { todayKey } from './date';
+import { getWesternZodiacDailyInsight } from './westernZodiac';
 
 const mainMessages = [
   // Energy & timing
@@ -142,6 +143,30 @@ const mainMessages = [
   'Courage is not the absence of fear — it is the decision that something matters more.',
   'Begin without a full plan. Plans are made for roads already walked.',
   'Say yes before you are ready. Say no before you feel guilty.',
+  // Stillness & wisdom
+  'The answer often arrives when you stop trying to find it.',
+  'Wisdom is knowing what to skip, not just what to do.',
+  'The quietest room in your life holds the most important conversation.',
+  'You already know what to do. Today is about trusting that.',
+  'Doing less with full attention beats doing more with none.',
+  // Opportunity
+  'Today\'s ordinary moment carries an extraordinary possibility inside it.',
+  'The right people are moving into position around you, even if you cannot see them yet.',
+  'Something that seems closed right now is building a better door for you.',
+  'Your next chapter begins in a quiet moment, not a dramatic one.',
+  'Notice what keeps returning to your thoughts. That is where your luck lives.',
+  // Character & integrity
+  'How you do small things is exactly how you do everything. The small things count today.',
+  'The reputation that matters most is the one you carry when no one is watching.',
+  'Being the same person in every room is a kind of power most people underestimate.',
+  'Integrity is not about being perfect. It is about being honest when you are not.',
+  'Your word, kept quietly today, does more than any public gesture.',
+  // Peace & acceptance
+  'What you cannot change is practicing your permission to be at peace anyway.',
+  'Not everything needs to be resolved today. Some things just need to be held.',
+  'Peace is not the absence of difficulty. It is the presence of something steady inside it.',
+  'The moment you stop needing it to be different is often when it begins to shift.',
+  'You are allowed to feel what you feel and still move forward. Both are true.',
 ];
 
 const moneyReadings = [
@@ -663,6 +688,43 @@ const fortuneQuotes = [
   'He who knows others is wise; he who knows himself is enlightened.',
   'A good laugh and a long sleep are the two best cures for anything.',
   'Do not judge each day by the harvest you reap but by the seeds you plant.',
+  // Extended pool — reduces repeat cycle past 50 days
+  'The secret of getting ahead is getting started.',
+  'It does not matter how slowly you go as long as you do not stop.',
+  'Everything you can imagine is real.',
+  'What we think, we become.',
+  'In the middle of difficulty lies opportunity.',
+  'The only way to do great work is to love what you do.',
+  'Act as if what you do makes a difference. It does.',
+  'Everything has beauty, but not everyone sees it.',
+  'Only when the last tree has died will we realize we cannot eat money.',
+  'Happiness is not something ready-made. It comes from your own actions.',
+  'The moon does not fight. It just watches — and illuminates.',
+  'Your task is not to foresee the future, but to enable it.',
+  'A smooth sea never made a skilled sailor.',
+  'The greatest glory in living lies not in never falling, but in rising every time we fall.',
+  'Life is 10% what happens to you and 90% how you react to it.',
+  'Spread love everywhere you go. Let no one ever come to you without leaving happier.',
+  'When you reach the end of your rope, tie a knot in it and hang on.',
+  'You will face many defeats in life, but never let yourself be defeated.',
+  'The time is always right to do what is right.',
+  'If you look at what you have in life, you will always have more.',
+  // Extended pool — 65+ entries, no repeat for over two months
+  'The strong man is not the good wrestler. The strong man is he who controls himself when angry.',
+  'Do not be afraid to give up the good to go for the great.',
+  'When the student is ready, the teacher will appear.',
+  'What you do today can improve all your tomorrows.',
+  'Knowing yourself is the beginning of all wisdom.',
+  'A person who never made a mistake never tried anything new.',
+  'The measure of intelligence is the ability to change.',
+  'In the end, it is not the years in your life that count. It is the life in your years.',
+  'Success usually comes to those who are too busy to be looking for it.',
+  'Great things are done by a series of small things brought together.',
+  'Simplicity is the ultimate sophistication.',
+  'Even the darkest night will end and the sun will rise.',
+  'The cave you fear to enter holds the treasure you seek.',
+  'In three words I can sum up everything I have learned about life: it goes on.',
+  'The only person you are destined to become is the person you decide to be.',
 ];
 
 export function generateDailyReading(profile: Profile, date = new Date()): DailyReading {
@@ -693,6 +755,9 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
     moonPhase,
     moonMessage: moonPhaseMessages[moonPhase],
     chineseZodiac,
+    westernZodiac: profile.westernZodiac,
+    zodiacInsight: getChineseZodiacDailyInsight(chineseZodiac, seed + day),
+    westernZodiacInsight: getWesternZodiacDailyInsight(profile.westernZodiac, seed + day + 3),
     money: pickFocusReading(mainFocuses, seed, 8, { Money: moneyReadings }, moneyReadings),
     love: pickFocusReading(mainFocuses, seed, 9, { Love: loveReadings }, loveReadings),
     work: pickFocusReading(mainFocuses, seed, 10, { Work: workReadings }, workReadings),

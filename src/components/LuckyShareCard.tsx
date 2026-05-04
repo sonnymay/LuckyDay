@@ -68,8 +68,15 @@ export function LuckyShareCard({ reading }: Props) {
       <View style={styles.zodiacPill}>
         <Text style={styles.zodiacEmoji}>{zodiac.emoji}</Text>
         <View style={styles.zodiacCopy}>
-          <Text style={styles.zodiacLabel}>Chinese zodiac</Text>
-          <Text style={styles.zodiacAnimal}>{reading.chineseZodiac}</Text>
+          <Text style={styles.zodiacLabel}>
+            {reading.westernZodiac ? 'East & West zodiac' : 'Chinese zodiac'}
+          </Text>
+          <Text style={styles.zodiacAnimal}>
+            {reading.westernZodiac ? `${reading.chineseZodiac} · ${reading.westernZodiac}` : reading.chineseZodiac}
+          </Text>
+          {reading.zodiacInsight ? (
+            <Text style={styles.zodiacInsight}>{reading.zodiacInsight}</Text>
+          ) : null}
         </View>
       </View>
 
@@ -287,6 +294,14 @@ const styles = StyleSheet.create({
     color: colors.champagne,
     fontSize: 17,
     fontWeight: '900',
+  },
+  zodiacInsight: {
+    color: colors.blush,
+    fontSize: 11,
+    fontStyle: 'italic',
+    fontWeight: '600',
+    lineHeight: 15,
+    marginTop: 2,
   },
   miniRow: {
     alignItems: 'center',

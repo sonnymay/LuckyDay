@@ -74,3 +74,11 @@ export function getStreakMilestone(streak: number): { days: number; emoji: strin
 export function shouldRequestRating(streak: number): boolean {
   return streak === 7;
 }
+
+/**
+ * Returns the next milestone target above the current streak, or null if
+ * the user has passed all milestones.
+ */
+export function getNextMilestoneTarget(streak: number): number | null {
+  return STREAK_MILESTONES.find((m) => m > streak) ?? null;
+}

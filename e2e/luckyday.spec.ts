@@ -86,7 +86,8 @@ test('new users can finish onboarding without photos', async ({ page }) => {
   await expect(page.getByText('LuckyDay Premium')).toBeVisible();
   await page.getByText('Not now').click();
 
-  await expect(page.getByText('Hi, Nok')).toBeVisible();
+  await expect(page).toHaveURL(/\/home$/);
+  await expect(page.getByText(/^(Burning midnight oil,|Morning,|Afternoon,|Evening,) Nok$/)).toBeVisible();
   await expect(page.getByText("Today's luck energy")).toBeVisible();
   await expect(page.getByText('Daily ritual streak')).toBeVisible();
   await expect(page.getByText('1 day ✨')).toBeVisible();

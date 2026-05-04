@@ -10,6 +10,18 @@ type Props = PropsWithChildren<{
   featureLabel?: string;
 }>;
 
+const featureBodyMap: Record<string, string> = {
+  'your lucky metrics': 'Lucky number, color, time, and direction — personalized to your seed.',
+  'the Chinese Almanac': 'Real almanac guidance: what to do and avoid for this calendar day.',
+  'your daily action': 'A small ritual action to call in better luck right now.',
+  'full reading history': 'See every reading you have ever opened, with streak stats.',
+};
+
+function getLockBody(featureLabel?: string): string {
+  if (featureLabel && featureBodyMap[featureLabel]) return featureBodyMap[featureLabel];
+  return 'Deeper readings · Chinese Almanac · Lucky metrics · Full history';
+}
+
 /**
  * Wraps premium-only content.
  * - If isPremium: renders children normally.
@@ -34,15 +46,16 @@ export function PremiumGate({ children, isPremium, featureLabel }: Props) {
           <Text style={styles.lockTitle}>
             {featureLabel ? `Unlock ${featureLabel}` : 'Unlock Premium'}
           </Text>
-          <Text style={styles.lockBody}>
-            Full daily ritual · Chinese Almanac · Lucky metrics · Reading history
-          </Text>
+          <Text style={styles.lockBody}>{getLockBody(featureLabel)}</Text>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Start free trial"
             style={({ pressed }) => [styles.unlockButton, pressed && styles.unlockPressed]}
             onPress={() => router.push('/paywall')}
           >
-            <Text style={styles.unlockLabel}>Start free trial →</Text>
+            <Text style={styles.unlockLabel}>Try free for 3 days →</Text>
           </Pressable>
+          <Text style={styles.trialNote}>No charge until Day 4</Text>
         </View>
       </View>
     </View>
@@ -121,5 +134,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
     letterSpacing: 0.3,
+  },
+  trialNote: {
+    color: colors.faint,
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: -4,
+    textAlign: 'center',
   },
 });

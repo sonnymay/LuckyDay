@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+
+async function triggerLightHaptic() {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  } catch {}
+}
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { AppButton } from '../src/components/AppButton';
@@ -17,6 +25,13 @@ import { colors, radii, spacing } from '../src/styles/theme';
 import { MainFocus } from '../src/types';
 
 const focusOptions: MainFocus[] = ['Money', 'Love', 'Work', 'Health', 'Luck'];
+const focusEmoji: Record<MainFocus, string> = {
+  Money: '💰',
+  Love: '💗',
+  Work: '📌',
+  Health: '🌿',
+  Luck: '🍀',
+};
 const totalSteps = 3;
 
 export default function OnboardingScreen() {
@@ -159,10 +174,12 @@ export default function OnboardingScreen() {
             {focusOptions.map((focus) => (
               <Pressable
                 key={focus}
-                onPress={() => setMainFocus((current) => toggleFocus(current, focus))}
+                onPress={() => { triggerLightHaptic(); setMainFocus((current) => toggleFocus(current, focus)); }}
                 style={[styles.chip, mainFocus.includes(focus) && styles.selectedChip]}
               >
-                <Text style={[styles.chipText, mainFocus.includes(focus) && styles.selectedChipText]}>{focus}</Text>
+                <Text style={[styles.chipText, mainFocus.includes(focus) && styles.selectedChipText]}>
+                  {focusEmoji[focus]} {focus}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -233,7 +250,7 @@ export default function OnboardingScreen() {
 function getStepTitle(step: number) {
   if (step === 1) return 'Tell LuckyDay about you ✨';
   if (step === 2) return 'Choose your daily focus 🍀';
-  return 'Add a personal touch 🔒';
+  return 'Add a personal touch 🌸';
 }
 
 function getStepCopy(step: number) {

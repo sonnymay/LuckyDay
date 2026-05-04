@@ -69,6 +69,15 @@ describe('luck helpers', () => {
     expect(differentDateSeed).not.toBe(sameSeed);
   });
 
+  it('changes luck energy when the local calendar day changes', () => {
+    const todayReading = generateDailyReading(baseProfile, new Date(2026, 3, 28, 23, 30));
+    const tomorrowReading = generateDailyReading(baseProfile, new Date(2026, 3, 29, 0, 30));
+
+    expect(todayReading.date).toBe('2026-04-28');
+    expect(tomorrowReading.date).toBe('2026-04-29');
+    expect(tomorrowReading.score).not.toBe(todayReading.score);
+  });
+
   it('picks deterministic array values with a seed', () => {
     const choices = ['green', 'gold', 'red'];
 
@@ -99,6 +108,9 @@ describe('luck helpers', () => {
     expect(reading.moonPhase).toBeTruthy();
     expect(reading.moonMessage).toBeTruthy();
     expect(reading.chineseZodiac).toBe('Rat');
+    expect(reading.westernZodiac).toBe('Aries');
+    expect(typeof reading.westernZodiacInsight).toBe('string');
+    expect(reading.westernZodiacInsight.length).toBeGreaterThan(0);
     expect(reading.luckyNumber).toBeGreaterThanOrEqual(1);
     expect(reading.luckyNumber).toBeLessThanOrEqual(9);
   });
