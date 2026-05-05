@@ -7,9 +7,9 @@ import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
 import { getMonthActivity, getNextMilestoneTarget, getReadingStreak, getStreakMilestone, MonthActivityDay } from '../src/lib/streak';
 import { getPremiumStatus } from '../src/lib/purchases';
-import { getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
+import { getStoredFeedback, getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
-import { DailyReading } from '../src/types';
+import { DailyReading, Feedback } from '../src/types';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -63,10 +63,45 @@ function computeStats(history: DailyReading[]) {
   return { total, avgScore, mostCommonColor };
 }
 
+function computeAccuracySummary(history: DailyReading[], feedback: Feedback[]) {
+  const feedbackByDate = new Map(feedback.map((item) => [item.date, item]));
+  const reflectedDays = history
+    .slice(0, 7)
+    .map((reading) => ({ reading, feedback: feedbackByDate.get(reading.date) }))
+    .filter((item): item is { reading: DailyReading; feedback: Feedback } => Boolean(item.feedback));
+
+  const goodDayCount = reflectedDays.filter((item) => (item.feedback.overallDay ?? ratingToDayScore(item.feedback.rating)) >= 4).length;
+  const strongPeakGoodCount = reflectedDays.filter((item) => item.reading.score >= 75 && (item.feedback.overallDay ?? ratingToDayScore(item.feedback.rating)) >= 4).length;
+
+  return {
+    reflectedDays: reflectedDays.length,
+    strongPeakMatched: formatCount(strongPeakGoodCount, goodDayCount),
+    bestTimeAccurate: formatBooleanCount(reflectedDays.map((item) => item.feedback.bestTimeAccurate)),
+    warningRelevant: formatBooleanCount(reflectedDays.map((item) => item.feedback.warningRelevant)),
+    actionHelpful: formatBooleanCount(reflectedDays.map((item) => item.feedback.actionHelpful)),
+  };
+}
+
+function formatBooleanCount(values: Array<boolean | undefined>) {
+  const answered = values.filter((value): value is boolean => value !== undefined);
+  return formatCount(answered.filter(Boolean).length, answered.length);
+}
+
+function formatCount(count: number, total: number) {
+  return total > 0 ? `${count}/${total}` : '—';
+}
+
+function ratingToDayScore(value: Feedback['rating']) {
+  if (value === 'Yes') return 5;
+  if (value === 'Somewhat') return 3;
+  return 2;
+}
+
 // ─── Screen ────────────────────────────────────────────────────────────────────
 
 export default function HistoryScreen() {
   const [history, setHistory] = useState<DailyReading[]>([]);
+  const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -87,10 +122,13 @@ export default function HistoryScreen() {
           }
 
           setIsPremium(premiumStatus.isPremium);
-          return getStoredReadingHistory();
+          return Promise.all([getStoredReadingHistory(), getStoredFeedback()]);
         })
         .then((items) => {
-          if (active && items) setHistory(items);
+          if (active && items) {
+            setHistory(items[0]);
+            setFeedback(items[1]);
+          }
         })
         .finally(() => {
           if (active) {
@@ -108,6 +146,7 @@ export default function HistoryScreen() {
   const streak = getReadingStreak(history);
   const milestone = getStreakMilestone(streak);
   const stats = computeStats(history);
+  const accuracy = computeAccuracySummary(history, feedback);
   const nextMilestoneTarget = getNextMilestoneTarget(streak);
 
   // Free users preview last 3 readings; premium users see all
@@ -179,6 +218,8 @@ export default function HistoryScreen() {
             </View>
           </Card>
 
+          <AccuracySummaryCard summary={accuracy} />
+
           {/* ── Month calendar ── */}
           <MonthActivityCard history={history} />
 
@@ -186,7 +227,7 @@ export default function HistoryScreen() {
           <PremiumGate isPremium={isPremium} featureLabel="full reading history">
             <View style={styles.historyList}>
               {previewHistory.map((reading) => (
-                <HistoryCard key={reading.date} reading={reading} />
+                <HistoryCard key={reading.date} reading={reading} feedback={feedback.find((item) => item.date === reading.date)} />
               ))}
             </View>
           </PremiumGate>
@@ -229,7 +270,45 @@ function MonthDay({ day }: { day: MonthActivityDay }) {
   );
 }
 
-function HistoryCard({ reading }: { reading: DailyReading }) {
+function AccuracySummaryCard({ summary }: { summary: ReturnType<typeof computeAccuracySummary> }) {
+  return (
+    <Card style={styles.accuracyCard}>
+      <View style={styles.accuracyHeader}>
+        <View>
+          <Text style={styles.accuracyTitle}>Prediction vs. reality</Text>
+          <Text style={styles.accuracyCopy}>
+            {summary.reflectedDays > 0 ? `Last ${summary.reflectedDays} reflected ${summary.reflectedDays === 1 ? 'day' : 'days'}` : 'Reflect after readings to reveal patterns.'}
+          </Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Reflect on today"
+          onPress={() => router.push('/feedback')}
+          style={({ pressed }) => [styles.reflectMiniButton, pressed && styles.reflectMiniButtonPressed]}
+        >
+          <Text style={styles.reflectMiniButtonText}>Reflect</Text>
+        </Pressable>
+      </View>
+      <View style={styles.accuracyRows}>
+        <AccuracyRow label="Strong/Peak matched good days" value={summary.strongPeakMatched} />
+        <AccuracyRow label="Best time felt accurate" value={summary.bestTimeAccurate} />
+        <AccuracyRow label="Warning felt useful" value={summary.warningRelevant} />
+        <AccuracyRow label="Do This Today helped" value={summary.actionHelpful} />
+      </View>
+    </Card>
+  );
+}
+
+function AccuracyRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.accuracyRow}>
+      <Text style={styles.accuracyRowLabel}>{label}</Text>
+      <Text style={styles.accuracyRowValue}>{value}</Text>
+    </View>
+  );
+}
+
+function HistoryCard({ reading, feedback }: { reading: DailyReading; feedback?: Feedback }) {
   return (
     <Card style={styles.historyCard}>
       <View style={styles.cardTop}>
@@ -265,6 +344,20 @@ function HistoryCard({ reading }: { reading: DailyReading }) {
       </View>
       <View style={styles.divider} />
       <SectionRow label="🍀 Small action" value={reading.action ?? '—'} />
+      {feedback?.overallDay ? (
+        <>
+          <View style={styles.divider} />
+          <Text style={styles.reflectionSaved}>Journaled: {feedback.overallDay}/5 day{feedback.note ? ` · ${feedback.note}` : ''}</Text>
+        </>
+      ) : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Reflect on ${formatHistoryDate(reading.date)}`}
+        onPress={() => router.push(`/feedback?date=${reading.date}` as any)}
+        style={({ pressed }) => [styles.reflectButton, pressed && styles.reflectButtonPressed]}
+      >
+        <Text style={styles.reflectButtonText}>{feedback ? 'Update reflection' : 'Reflect on this day'}</Text>
+      </Pressable>
     </Card>
   );
 }
@@ -450,6 +543,64 @@ const styles = StyleSheet.create({
     height: 50,
     width: 1,
   },
+  accuracyCard: {
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+  },
+  accuracyHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  accuracyTitle: {
+    color: colors.mauve,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  accuracyCopy: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 2,
+  },
+  reflectMiniButton: {
+    backgroundColor: colors.mauve,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  reflectMiniButtonPressed: {
+    opacity: 0.82,
+  },
+  reflectMiniButtonText: {
+    color: colors.white,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  accuracyRows: {
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  accuracyRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
+  accuracyRowLabel: {
+    color: colors.ink,
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+  accuracyRowValue: {
+    color: colors.mauve,
+    fontSize: 18,
+    fontWeight: '900',
+  },
   // Month activity card
   monthCard: {
     backgroundColor: colors.panelStrong,
@@ -594,5 +745,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.line,
     width: 1,
     marginVertical: 4,
+  },
+  reflectionSaved: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+  },
+  reflectButton: {
+    alignItems: 'center',
+    backgroundColor: colors.panel,
+    borderColor: colors.line,
+    borderRadius: radii.pill,
+    borderWidth: 1.5,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  reflectButtonPressed: {
+    backgroundColor: colors.champagne,
+  },
+  reflectButtonText: {
+    color: colors.mauve,
+    fontSize: 14,
+    fontWeight: '900',
   },
 });

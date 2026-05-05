@@ -88,6 +88,11 @@ export type Feedback = {
   id: string;
   date: string;
   rating: FeedbackRating;
+  overallDay?: number;
+  bestTimeAccurate?: boolean;
+  warningRelevant?: boolean;
+  actionHelpful?: boolean;
+  note?: string;
   tags: string[];
   createdAt: string;
 };

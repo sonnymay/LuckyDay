@@ -186,6 +186,12 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 ### `src/types.ts` (changed in earlier session)
 - Added to `DailyReading`: `scoreBase: number`, `scoreMoonBonus: number`, `scoreAlmanacBonus: number`, `scoreReason: string`
 - Added to `DailyReading`: `zodiacElement: string` for qualitative influence-chip explanation copy
+- Expanded `Feedback` into a daily reflection record:
+  - `overallDay?: number` (1–5)
+  - `bestTimeAccurate?: boolean`
+  - `warningRelevant?: boolean`
+  - `actionHelpful?: boolean`
+  - `note?: string`
 
 ### `app/home.tsx` (changed in earlier session)
 - Now a pure loading screen → `router.replace('/detail')` after animation
@@ -196,6 +202,26 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 ### `app/onboarding.tsx` (changed in earlier session)
 - Post-save now routes to `router.replace('/detail')` (was `/home`)
 - Added step 3 photo trust copy before `ProfilePhotoCapture`: face = "energy field and presence," palm = "life line patterns," handwriting = "intention energy"
+
+### `app/feedback.tsx`
+- Reworked from simple Yes/Somewhat/No feedback into a calm daily reflection journal.
+- User can now record:
+  - Overall day rating from 1–5
+  - Whether the best time felt accurate
+  - Whether the warning felt relevant
+  - Whether "Do This Today" helped
+  - Optional tags and a short note
+- Supports editing a specific date via `?date=YYYY-MM-DD`, used by History cards.
+
+### `app/history.tsx`
+- History now loads stored feedback alongside reading history.
+- Added a "Prediction vs. reality" summary for recent reflected days:
+  - Strong/Peak matched good days
+  - Best time felt accurate
+  - Warning felt useful
+  - Do This Today helped
+- Each history card now has a small reflection action and shows saved journal context when available.
+- Summary stays qualitative and compact; no score formula or raw score arithmetic is exposed.
 
 ### `app/index.tsx`
 - First-time users without a stored profile now route directly to `/onboarding`.
