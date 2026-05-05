@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
@@ -35,6 +35,15 @@ const sampleProfile: Profile = {
 export default function WelcomeScreen() {
   const [checkingProfile, setCheckingProfile] = useState(true);
   const sample = useMemo(() => generateDailyReading(sampleProfile), []);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
 
   useEffect(() => {
     getStoredProfile()
@@ -47,87 +56,94 @@ export default function WelcomeScreen() {
   }, []);
 
   if (checkingProfile) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={colors.ink} />
-      </View>
-    );
+    // Blank background — profile check is instant from AsyncStorage.
+    // No spinner avoids a flash of loading UI before redirect to /home.
+    return <View style={styles.loading} />;
   }
 
   return (
-    <Screen contentStyle={styles.screen}>
-      <View style={styles.hero}>
-        <Text style={styles.sparkles}>🌸 ✦ 🌸</Text>
-        <Text style={styles.name}>LuckyDay</Text>
-        <Text style={styles.tagline}>Your daily ritual for luck, timing, and intention ✨</Text>
-      </View>
+    <Animated.View style={[styles.animWrapper, { opacity: fadeAnim }]}>
+      <Screen contentStyle={styles.screen}>
+        <View style={styles.hero}>
+          <Text style={styles.sparkles}>🌸 ✦ 🌸</Text>
+          <Text style={styles.name}>LuckyDay</Text>
+          <Text style={styles.tagline}>Your daily ritual for luck, timing, and intention ✨</Text>
+        </View>
 
-      {/* ── How it works — 3 step strip ── */}
-      <View style={styles.howItWorksRow}>
-        {([
-          { emoji: '🌸', label: 'Set up once', detail: 'Birthday → zodiac profile' },
-          { emoji: '✨', label: 'Daily reading', detail: 'Score, color, guidance' },
-          { emoji: '🔥', label: 'Build a streak', detail: 'Track your ritual' },
-        ] as const).map((step, i) => (
-          <View key={i} style={styles.howStep}>
-            <View style={styles.howStepBubble}>
-              <Text style={styles.howStepEmoji}>{step.emoji}</Text>
-            </View>
-            <Text style={styles.howStepLabel}>{step.label}</Text>
-            <Text style={styles.howStepDetail}>{step.detail}</Text>
+        <EnergyScoreCard label="✨ Today's preview" score={sample.score} message={sample.mainMessage} />
+
+        {/* ── CTA — above the fold ── */}
+        <View style={styles.footer}>
+          <View style={styles.trustRow}>
+            <Text style={styles.trustBadge}>✦ Free to start</Text>
+            <Text style={styles.trustBadge}>✦ No account needed</Text>
+            <Text style={styles.trustBadge}>✦ 2-min setup</Text>
           </View>
-        ))}
-      </View>
-
-      <EnergyScoreCard label="✨ Today's preview" score={sample.score} message={sample.mainMessage} />
-
-      <ChineseZodiacCard animal={sample.chineseZodiac} insight={sample.zodiacInsight} />
-
-      {/* ── Daily wisdom quote preview ── */}
-      {sample.fortuneQuote ? (
-        <View style={styles.quotePreview}>
-          <Text style={styles.quoteDecor}>❝</Text>
-          <Text style={styles.quotePreviewText}>{sample.fortuneQuote}</Text>
-          <Text style={styles.quoteSource}>— Daily wisdom</Text>
+          <Text style={styles.prompt}>Ready to call in your luck?</Text>
+          <AppButton label="Create my lucky profile" onPress={() => router.push('/onboarding')} />
+          <Text style={styles.almanacNote}>Powered by the Chinese Almanac · 24 Solar Terms · Moon phases</Text>
         </View>
-      ) : null}
 
-      <View style={styles.grid}>
-        <LuckyMetricCard
-          label="🎨 Lucky color"
-          note={getLuckyColorMeaning(sample.luckyColor)}
-          value={sample.luckyColor}
-          swatchColor={getLuckyColorHex(sample.luckyColor)}
+        {/* ── How it works — 3 step strip ── */}
+        <View style={styles.howItWorksRow}>
+          {([
+            { emoji: '🌸', label: 'Set up once', detail: 'Birthday → zodiac profile' },
+            { emoji: '✨', label: 'Daily reading', detail: 'Score, color, guidance' },
+            { emoji: '🔥', label: 'Build a streak', detail: 'Track your ritual' },
+          ] as const).map((step, i) => (
+            <View key={i} style={styles.howStep}>
+              <View style={styles.howStepBubble}>
+                <Text style={styles.howStepEmoji}>{step.emoji}</Text>
+              </View>
+              <Text style={styles.howStepLabel}>{step.label}</Text>
+              <Text style={styles.howStepDetail}>{step.detail}</Text>
+            </View>
+          ))}
+        </View>
+
+        <ChineseZodiacCard
+          animal={sample.chineseZodiac}
+          westernSign={sampleProfile.westernZodiac}
+          insight={sample.zodiacInsight}
         />
-        <LuckyMetricCard label="🔢 Lucky number" value={String(sample.luckyNumber)} variant="number" />
-        <LuckyMetricCard label="⏰ Best time" value={sample.luckyTime} />
-        <LuckyMetricCard label="🧭 Direction" value={sample.luckyDirection} variant="direction" />
-      </View>
 
-      <Card style={styles.guidanceCard}>
-        <SectionRow label="🌿 Good for" value={sample.goodFor.join(', ')} />
-        <View style={styles.divider} />
-        <SectionRow label="🧿 Avoid" value={sample.avoid.join(', ')} />
-        <View style={styles.divider} />
-        <SectionRow label="🍀 Small action" value={sample.action} />
-      </Card>
+        {/* ── Daily wisdom quote preview ── */}
+        {sample.fortuneQuote ? (
+          <View style={styles.quotePreview}>
+            <Text style={styles.quoteDecor}>❝</Text>
+            <Text style={styles.quotePreviewText}>{sample.fortuneQuote}</Text>
+            <Text style={styles.quoteSource}>— Daily wisdom</Text>
+          </View>
+        ) : null}
 
-      <View style={styles.footer}>
-        {/* Trust signals */}
-        <View style={styles.trustRow}>
-          <Text style={styles.trustBadge}>✦ Free to start</Text>
-          <Text style={styles.trustBadge}>✦ No account needed</Text>
-          <Text style={styles.trustBadge}>✦ 2-min setup</Text>
+        <View style={styles.grid}>
+          <LuckyMetricCard
+            label="🎨 Lucky color"
+            note={getLuckyColorMeaning(sample.luckyColor)}
+            value={sample.luckyColor}
+            swatchColor={getLuckyColorHex(sample.luckyColor)}
+          />
+          <LuckyMetricCard label="🔢 Lucky number" value={String(sample.luckyNumber)} variant="number" />
+          <LuckyMetricCard label="⏰ Best time" value={sample.luckyTime} />
+          <LuckyMetricCard label="🧭 Direction" value={sample.luckyDirection} variant="direction" />
         </View>
-        <Text style={styles.prompt}>Ready to call in your luck?</Text>
-        <AppButton label="Create my lucky profile" onPress={() => router.push('/onboarding')} />
-        <Text style={styles.almanacNote}>Powered by the Chinese Almanac · 24 Solar Terms · Moon phases</Text>
-      </View>
-    </Screen>
+
+        <Card style={styles.guidanceCard}>
+          <SectionRow label="🌿 Good for" value={sample.goodFor.join(', ')} />
+          <View style={styles.divider} />
+          <SectionRow label="🧿 Avoid" value={sample.avoid.join(', ')} />
+          <View style={styles.divider} />
+          <SectionRow label="🍀 Small action" value={sample.action} />
+        </Card>
+      </Screen>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  animWrapper: {
+    flex: 1,
+  },
   loading: {
     alignItems: 'center',
     backgroundColor: colors.background,
@@ -144,12 +160,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sparkles: {
+    color: colors.luckyGold,
     fontSize: 26,
     letterSpacing: 10,
   },
   name: {
     color: colors.mauve,
-    fontSize: 54,
+    fontSize: 64,
     fontWeight: '900',
     letterSpacing: -1,
     textAlign: 'center',

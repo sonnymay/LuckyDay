@@ -1,13 +1,5 @@
-import { useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-
-async function triggerLightHaptic() {
-  if (Platform.OS === 'web') return;
-  try {
-    const Haptics = await import('expo-haptics');
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  } catch {}
-}
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { AppButton } from '../src/components/AppButton';
@@ -23,6 +15,14 @@ import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifica
 import { getHasSeenPaywall, saveStoredProfile, setHasSeenPaywall } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
 import { MainFocus } from '../src/types';
+
+async function triggerLightHaptic() {
+  if (Platform.OS === 'web') return;
+  try {
+    const Haptics = await import('expo-haptics');
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  } catch {}
+}
 
 const focusOptions: MainFocus[] = ['Money', 'Love', 'Work', 'Health', 'Luck'];
 const focusEmoji: Record<MainFocus, string> = {
@@ -51,6 +51,21 @@ export default function OnboardingScreen() {
   const [rightPalmUpdatedAt, setRightPalmUpdatedAt] = useState('');
   const [handwritingUpdatedAt, setHandwritingUpdatedAt] = useState('');
   const [acceptedMediaConsent, setAcceptedMediaConsent] = useState(false);
+
+  const progressAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: step,
+      duration: 350,
+      useNativeDriver: false,
+    }).start();
+  }, [step, progressAnim]);
+
+  const widthInterpolation = progressAnim.interpolate({
+    inputRange: [1, 2, 3],
+    outputRange: ['33.33%', '66.66%', '100%']
+  });
 
   function goNext() {
     if (step === 1 && !validateIdentity()) {
@@ -131,14 +146,9 @@ export default function OnboardingScreen() {
     await saveStoredProfile(profile);
     await showReminderStatus(syncLocalDailyReminder(notificationTime));
 
-    // First-time users see the paywall right after onboarding — highest conversion moment
-    const hasSeenPaywall = await getHasSeenPaywall();
-    if (!hasSeenPaywall) {
-      await setHasSeenPaywall();
-      router.replace('/paywall');
-    } else {
-      router.replace('/home');
-    }
+    // Go straight to home — let the user experience their first reading before seeing a paywall.
+    // The paywall surfaces naturally when they tap any locked feature (PremiumGate handles it).
+    router.replace('/detail');
   }
 
   return (
@@ -149,7 +159,7 @@ export default function OnboardingScreen() {
         <View style={styles.decorCircle2} pointerEvents="none" />
         <Text style={styles.stepLabel}>Step {step} of {totalSteps}</Text>
         <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${(step / totalSteps) * 100}%` }]} />
+          <Animated.View style={[styles.progressFill, { width: widthInterpolation }]} />
         </View>
         <Text style={styles.title}>{getStepTitle(step)}</Text>
         <Text style={styles.copy}>
@@ -201,6 +211,11 @@ export default function OnboardingScreen() {
             <Text style={styles.photoCopy}>
               Add any photo that feels easy today. Skipping is completely fine — your daily luck still works.
             </Text>
+            <View style={styles.photoReadingList}>
+              <Text style={styles.photoReadingText}>Face: energy field and presence</Text>
+              <Text style={styles.photoReadingText}>Palm: life line patterns</Text>
+              <Text style={styles.photoReadingText}>Handwriting: intention energy</Text>
+            </View>
           </View>
         </Card>
         <MediaConsentCard accepted={acceptedMediaConsent} onChange={setAcceptedMediaConsent} />
@@ -398,6 +413,16 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 15,
     lineHeight: 22,
+  },
+  photoReadingList: {
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  photoReadingText: {
+    color: colors.ink,
+    fontSize: 14,
+    fontWeight: '800',
+    lineHeight: 20,
   },
   group: {
     gap: spacing.sm,

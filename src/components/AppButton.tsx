@@ -1,5 +1,5 @@
-import { Platform, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
-import { colors, radii, spacing } from '../styles/theme';
+import { Platform, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { colors, fonts, radii, spacing } from '../styles/theme';
 
 type Props = {
   label: string;
@@ -38,13 +38,20 @@ export function AppButton({ label, onPress, variant = 'primary', style }: Props)
       style={({ pressed }) => [
         styles.base,
         styles[variant],
-        pressed && styles.pressed,
+        pressed && (variant === 'primary' ? styles.pressedPrimary : styles.pressed),
         style,
       ]}
     >
-      <Text style={[styles.label, variant === 'primary' ? styles.primaryLabel : styles.defaultLabel]}>
-        {label}
-      </Text>
+      {({ pressed }) => (
+        <>
+          {variant === 'primary' ? (
+            <View style={[styles.primaryShine, pressed && styles.primaryShinePressed]} pointerEvents="none" />
+          ) : null}
+          <Text style={[styles.label, variant === 'primary' ? styles.primaryLabel : variant === 'danger' ? styles.dangerLabel : styles.defaultLabel]}>
+            {label}
+          </Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -54,22 +61,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: radii.pill,
     justifyContent: 'center',
-    minHeight: 56,
+    minHeight: 60,
+    overflow: 'hidden',
     paddingHorizontal: spacing.lg,
   },
   primary: {
     backgroundColor: colors.mauve,
-    borderColor: colors.roseGold,
-    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.22)',
+    borderWidth: 1.5,
     ...Platform.select({
       web: {
-        boxShadow: `0 8px 20px rgba(192, 58, 120, 0.32)`,
+        backgroundImage: `linear-gradient(135deg, ${colors.mauve} 0%, #B85B88 100%)`,
+        boxShadow: `0 4px 8px rgba(192, 58, 120, 0.2), 0 10px 24px rgba(192, 58, 120, 0.3)`,
       },
       default: {
         shadowColor: colors.mauve,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.32,
-        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.36,
+        shadowRadius: 22,
+        elevation: 8,
       },
     }),
   },
@@ -88,19 +98,40 @@ const styles = StyleSheet.create({
     borderColor: colors.roseGold,
     borderWidth: 1.5,
   },
+  pressedPrimary: {
+    opacity: 0.88,
+    transform: [{ scale: 0.95 }],
+  },
   pressed: {
-    opacity: 0.76,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.72,
+    transform: [{ scale: 0.97 }],
+  },
+  // Shine overlay inside primary button
+  primaryShine: {
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    borderRadius: 999,
+    height: 36,
+    left: 20,
+    position: 'absolute',
+    top: -8,
+    width: '55%',
+  },
+  primaryShinePressed: {
+    opacity: 0,
   },
   label: {
+    fontFamily: fonts.heavy,
     fontSize: 16,
     fontWeight: '900',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
   },
   primaryLabel: {
     color: colors.white,
   },
   defaultLabel: {
     color: colors.ink,
+  },
+  dangerLabel: {
+    color: colors.red,
   },
 });

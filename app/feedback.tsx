@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
@@ -81,6 +82,8 @@ export default function FeedbackScreen() {
   if (saved) {
     return (
       <SafeAreaView style={styles.savedScreen}>
+        <View style={styles.savedAura1} pointerEvents="none" />
+        <View style={styles.savedAura2} pointerEvents="none" />
         <Animated.View style={[styles.savedContainer, { opacity: savedAnim }]}>
           <Text style={styles.savedEmoji}>✨</Text>
           <Text style={styles.savedTitle}>Feedback saved!</Text>
@@ -131,6 +134,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     flex: 1,
     justifyContent: 'center',
+  },
+  savedAura1: {
+    backgroundColor: 'rgba(192, 58, 120, 0.08)',
+    borderRadius: 999,
+    height: 320,
+    position: 'absolute',
+    right: -90,
+    top: -90,
+    width: 320,
+  },
+  savedAura2: {
+    backgroundColor: 'rgba(237, 186, 64, 0.06)',
+    borderRadius: 999,
+    bottom: 60,
+    height: 220,
+    left: -60,
+    position: 'absolute',
+    width: 220,
   },
   savedContainer: {
     alignItems: 'center',

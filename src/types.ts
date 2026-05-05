@@ -71,6 +71,14 @@ export type DailyReading = {
   health: string;
   warning: string;
   action: string;
+  /** One-sentence explanation of why the score is what it is today */
+  scoreReason: string;
+  /** Score component: personal zodiac + date base (50–80) */
+  scoreBase: number;
+  /** Score component: moon phase bonus (0–8) */
+  scoreMoonBonus: number;
+  /** Score component: almanac auspiciousness bonus (0–5) */
+  scoreAlmanacBonus: number;
 };
 
 export type FeedbackRating = 'Yes' | 'Somewhat' | 'No';

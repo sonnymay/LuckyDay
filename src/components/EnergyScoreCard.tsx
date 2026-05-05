@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 import { Card } from './Card';
-import { colors, radii, spacing } from '../styles/theme';
+import { colors, fonts, radii, spacing } from '../styles/theme';
 
 type Props = {
   label: string;
@@ -16,6 +16,7 @@ const REVEAL_DURATION = 1200;
 
 export function EnergyScoreCard({ label, score, message }: Props) {
   const progress = useRef(new Animated.Value(0)).current;
+  const sparkleAnim = useRef(new Animated.Value(0.3)).current;
   const [displayScore, setDisplayScore] = useState(0);
   const [filledSegments, setFilledSegments] = useState(0);
 
@@ -23,6 +24,13 @@ export function EnergyScoreCard({ label, score, message }: Props) {
     progress.setValue(0);
     setDisplayScore(0);
     setFilledSegments(0);
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(sparkleAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(sparkleAnim, { toValue: 0.3, duration: 1200, useNativeDriver: true }),
+      ])
+    ).start();
 
     Animated.timing(progress, {
       toValue: score,
@@ -47,9 +55,11 @@ export function EnergyScoreCard({ label, score, message }: Props) {
       {/* Decorative background circles for depth without a gradient package */}
       <View style={styles.decorCircle1} pointerEvents="none" />
       <View style={styles.decorCircle2} pointerEvents="none" />
-      <Text style={styles.sparkleOne}>✦</Text>
-      <Text style={styles.sparkleTwo}>✧</Text>
-      <Text style={styles.flower}>❀</Text>
+      <Animated.Text style={[styles.sparkleOne, { opacity: sparkleAnim }]}>✦</Animated.Text>
+      <Animated.Text style={[styles.sparkleTwo, { opacity: sparkleAnim }]}>✧</Animated.Text>
+      <Animated.Text style={[styles.sparkleThree, { opacity: sparkleAnim }]}>✦</Animated.Text>
+      <Animated.Text style={[styles.flower, { opacity: sparkleAnim }]}>❀</Animated.Text>
+      <Animated.Text style={[styles.flowerTwo, { opacity: sparkleAnim }]}>✿</Animated.Text>
       <View style={styles.labelPill}>
         <Text style={styles.label}>{label}</Text>
       </View>
@@ -92,7 +102,8 @@ function energyMood(score: number) {
   if (score >= 82) return 'Golden flow';
   if (score >= 70) return 'Bright momentum';
   if (score >= 60) return 'Soft steady luck';
-  return 'Gentle reset energy';
+  if (score >= 55) return 'Protect & prepare';
+  return 'Rest to rise';
 }
 
 const styles = StyleSheet.create({
@@ -104,6 +115,11 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     overflow: 'hidden',
     paddingVertical: spacing.lg,
+    ...Platform.select({
+      web: {
+        backgroundImage: `linear-gradient(145deg, ${colors.mauve} 0%, #A84878 100%)`,
+      },
+    }),
   },
   decorCircle1: {
     backgroundColor: 'rgba(255, 255, 255, 0.13)',
@@ -139,12 +155,27 @@ const styles = StyleSheet.create({
     right: 42,
     top: 126,
   },
+  sparkleThree: {
+    color: 'rgba(255, 240, 199, 0.38)',
+    fontSize: 14,
+    fontWeight: '900',
+    left: 56,
+    position: 'absolute',
+    top: 106,
+  },
   flower: {
     bottom: 34,
     color: 'rgba(255, 240, 199, 0.34)',
     fontSize: 26,
     position: 'absolute',
     right: 42,
+  },
+  flowerTwo: {
+    bottom: 44,
+    color: 'rgba(255, 228, 240, 0.28)',
+    fontSize: 20,
+    position: 'absolute',
+    left: 30,
   },
   labelPill: {
     backgroundColor: 'rgba(255, 240, 199, 0.15)',
@@ -172,10 +203,10 @@ const styles = StyleSheet.create({
   },
   message: {
     color: colors.white,
+    fontFamily: fonts.bold,
     fontSize: 20,
     fontWeight: '800',
     lineHeight: 28,
-    paddingHorizontal: spacing.md,
     textAlign: 'center',
   },
   orb: {
@@ -188,7 +219,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...Platform.select({
       web: {
-        boxShadow: `0 0 22px rgba(214, 168, 74, 0.45)`,
+        backgroundImage: `linear-gradient(135deg, #FFF0C7 0%, #FFD6E8 100%)`,
+        boxShadow: `0 0 32px rgba(214, 168, 74, 0.6)`,
       },
       default: {
         shadowColor: colors.luckyGold,
@@ -222,13 +254,17 @@ const styles = StyleSheet.create({
   },
   score: {
     color: colors.goldDeep,
-    fontSize: 56,
+    fontFamily: fonts.heavy,
+    fontSize: 72,
     fontWeight: '900',
+    fontVariant: ['tabular-nums'],
   },
   scoreUnit: {
     color: colors.goldDeep,
+    fontFamily: fonts.heavy,
     fontSize: 13,
     fontWeight: '900',
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
   moodPill: {

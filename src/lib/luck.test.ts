@@ -7,6 +7,7 @@ import {
   getWesternZodiac,
   pickFromArrayWithSeed,
 } from './luck';
+import { getBirthYearElement } from './chineseZodiac';
 import { Profile } from '../types';
 
 const baseProfile: Profile = {
@@ -49,6 +50,12 @@ describe('luck helpers', () => {
     expect(getChineseZodiac('2000-02-05')).toBe('Dragon');
     expect(getChineseZodiac('2024-02-09')).toBe('Rabbit');
     expect(getChineseZodiac('2024-02-10')).toBe('Dragon');
+  });
+
+  it('maps birth years to the correct Five Element cycle', () => {
+    expect(getBirthYearElement('1996-04-13')).toBe('Fire');
+    expect(getBirthYearElement('1984-01-01')).toBe('Wood');
+    expect(getBirthYearElement('2000-04-13')).toBe('Metal');
   });
 
   it('maps Western zodiac boundary dates', () => {
@@ -96,8 +103,8 @@ describe('luck helpers', () => {
 
     expect(generateDailyReading(baseProfile, date)).toEqual(reading);
     expect(reading.date).toBe('2026-04-28');
-    expect(reading.score).toBeGreaterThanOrEqual(55);
-    expect(reading.score).toBeLessThanOrEqual(92);
+    expect(reading.score).toBeGreaterThanOrEqual(50);
+    expect(reading.score).toBeLessThanOrEqual(96);
     // goodFor and avoid come from the real Chinese almanac for this calendar date
     expect(reading.goodFor.length).toBeGreaterThan(0);
     expect(reading.avoid.length).toBeGreaterThan(0);
@@ -113,6 +120,7 @@ describe('luck helpers', () => {
     expect(reading.westernZodiacInsight.length).toBeGreaterThan(0);
     expect(reading.luckyNumber).toBeGreaterThanOrEqual(1);
     expect(reading.luckyNumber).toBeLessThanOrEqual(9);
+    expect([2, 3]).toContain(reading.luckyNumber);
   });
 
   it('almanac goodFor and avoid are shared across users on the same date', () => {

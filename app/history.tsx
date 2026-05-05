@@ -69,10 +69,13 @@ export default function HistoryScreen() {
   const [history, setHistory] = useState<DailyReading[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      setLoading(true);
+      fadeAnim.setValue(0);
 
       Promise.all([getStoredProfile(), getPremiumStatus()])
         .then(([profile, premiumStatus]) => {
@@ -90,7 +93,10 @@ export default function HistoryScreen() {
           if (active && items) setHistory(items);
         })
         .finally(() => {
-          if (active) setLoading(false);
+          if (active) {
+            setLoading(false);
+            Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+          }
         });
 
       return () => { active = false; };
@@ -109,7 +115,8 @@ export default function HistoryScreen() {
   const previewHistory = isPremium ? history : history.slice(0, FREE_LIMIT);
 
   return (
-    <Screen>
+    <Screen showTabBar>
+    <Animated.View style={{ opacity: fadeAnim }}>
       {/* ── Header ── */}
       <Card style={styles.header}>
         <Text style={styles.title}>Reading history ✨</Text>
@@ -185,6 +192,7 @@ export default function HistoryScreen() {
           </PremiumGate>
         </>
       )}
+    </Animated.View>
     </Screen>
   );
 }
@@ -406,9 +414,9 @@ const styles = StyleSheet.create({
     color: colors.mauve,
     fontSize: 16,
     fontWeight: '900',
+    letterSpacing: 1.2,
     marginBottom: spacing.md,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   statsRow: {
     alignItems: 'center',
@@ -491,6 +499,7 @@ const styles = StyleSheet.create({
     borderColor: colors.luckyGold,
   },
   todayCell: {
+    backgroundColor: 'rgba(192, 58, 120, 0.10)',
     borderColor: colors.mauve,
     borderWidth: 2,
   },

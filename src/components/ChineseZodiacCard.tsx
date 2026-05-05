@@ -1,11 +1,22 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { getChineseZodiacDetails } from '../lib/chineseZodiac';
+import { elementEmoji, getChineseZodiacDetails, getZodiacElement } from '../lib/chineseZodiac';
 import { colors, radii, spacing } from '../styles/theme';
 import { Card } from './Card';
 
+const elementColor: Record<string, string> = {
+  Water: colors.blue,
+  Earth: colors.goldDeep,
+  Wood: colors.jade,
+  Fire: colors.luckyRed,
+  Metal: colors.muted,
+};
+
 type Props = {
   animal: string;
+  birthday?: string;
   westernSign?: string;
+  /** User nickname for personalizing the header label. */
+  nickname?: string;
   /** Seed-personalized daily insight from Chinese zodiac animal. */
   insight?: string;
   /** Seed-personalized daily insight from Western zodiac sign. */
@@ -13,8 +24,16 @@ type Props = {
   compact?: boolean;
 };
 
-export function ChineseZodiacCard({ animal, westernSign, insight, westernInsight, compact = false }: Props) {
+export function ChineseZodiacCard({ animal, birthday, westernSign, nickname, insight, westernInsight, compact = false }: Props) {
   const details = getChineseZodiacDetails(animal);
+  const element = getZodiacElement(animal, birthday);
+
+  function getLabel(): string {
+    if (nickname) {
+      return westernSign ? `${nickname}'s zodiac signs` : `${nickname}'s zodiac`;
+    }
+    return westernSign ? 'East · West zodiac' : 'Chinese zodiac';
+  }
 
   return (
     <Card style={[styles.card, compact && styles.compactCard]}>
@@ -22,11 +41,16 @@ export function ChineseZodiacCard({ animal, westernSign, insight, westernInsight
         <Text style={[styles.emoji, compact && styles.compactEmoji]}>{details.emoji}</Text>
       </View>
       <View style={styles.copy}>
-        <Text style={styles.label}>{westernSign ? 'East · West zodiac' : 'Chinese zodiac'}</Text>
+        <Text style={styles.label}>{getLabel()}</Text>
         <Text style={[styles.animal, compact && styles.compactAnimal]}>
           {westernSign ? `${animal} · ${westernSign}` : animal}
         </Text>
         <Text style={styles.tone}>{details.tone}</Text>
+        {element ? (
+          <Text style={[styles.elementBadge, { color: elementColor[element] ?? colors.muted }]}>
+            {elementEmoji[element]} {element} Element
+          </Text>
+        ) : null}
         {insight ? <Text style={styles.insight}>{insight}</Text> : null}
         {westernInsight ? <Text style={styles.westernInsight}>{westernInsight}</Text> : null}
       </View>
@@ -106,6 +130,12 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontWeight: '500',
     lineHeight: 19,
+    marginTop: spacing.xs,
+  },
+  elementBadge: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.4,
     marginTop: spacing.xs,
   },
 });

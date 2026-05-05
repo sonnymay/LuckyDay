@@ -13,8 +13,52 @@ export const chineseZodiacAnimals = [
   'Pig',
 ];
 
-const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights: string[] }> = {
+export type ZodiacElement = 'Water' | 'Earth' | 'Wood' | 'Fire' | 'Metal';
+
+/** Element emoji used for display in the UI */
+export const elementEmoji: Record<ZodiacElement, string> = {
+  Water: '💧',
+  Earth: '🌍',
+  Wood: '🌿',
+  Fire: '🔥',
+  Metal: '⚙️',
+};
+
+/** Element-aligned lucky colors (mapped to the app's luckyColors pool) */
+export const elementLuckyColors: Record<ZodiacElement, string[]> = {
+  Water: ['Blue', 'Black', 'Silver', 'White'],
+  Earth: ['Gold', 'Yellow', 'Cream', 'White'],
+  Wood: ['Green', 'Blue', 'Black'],
+  Fire: ['Red', 'Pink', 'Orange'],
+  Metal: ['White', 'Gold', 'Silver'],
+};
+
+/** Stable seed offset per element — used in score calculation */
+export const elementSeedOffset: Record<ZodiacElement, number> = {
+  Water: 7,
+  Earth: 4,
+  Wood: 3,
+  Fire: 9,
+  Metal: 6,
+};
+
+const heavenlyStemElements: ZodiacElement[] = [
+  'Metal',
+  'Metal',
+  'Water',
+  'Water',
+  'Wood',
+  'Wood',
+  'Fire',
+  'Fire',
+  'Earth',
+  'Earth',
+];
+
+const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights: string[]; element: ZodiacElement; luckyNumbers: number[] }> = {
   Rat: {
+    element: 'Water',
+    luckyNumbers: [2, 3],
     emoji: '🐭',
     tone: 'Clever, quick, full of charm',
     dailyInsights: [
@@ -28,9 +72,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'Your resourcefulness can solve what no one else has figured out yet.',
       'Connections you make today carry long-term value. Be open.',
       'Quick decisions made with good intentions rarely go wrong for you.',
+      'The door everyone else has been trying to force — you found the side entrance.',
+      'Your network is your net worth today. Reach out to one person you have been meaning to contact.',
+      'You see the pattern before others see the data. Act on that early read.',
+      'Your social intelligence is operating at a rare frequency right now. Read the room carefully.',
+      'The shortcut you found today is genuinely clever, not lazy. Trust it.',
+      'Store the information you gather today — you will use it sooner than you think.',
+      'Your ability to pivot mid-plan today is exactly what saves the outcome.',
+      'What appears to be small talk today carries real intelligence. Listen closely.',
+      'The quick solution you dismiss as too simple is often the correct one.',
+      'Your curiosity opens something today that stubbornness would have kept closed.',
     ],
   },
   Ox: {
+    element: 'Earth',
+    luckyNumbers: [1, 4],
     emoji: '🐮',
     tone: 'Steady, patient, deeply grounded',
     dailyInsights: [
@@ -44,9 +100,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'Your endurance is what others admire most. Keep going.',
       'A promise kept today strengthens something important in your life.',
       'Ground yourself before the day begins — your clarity is an advantage.',
+      'The detail others rush past is the one you quietly notice. It matters.',
+      'Your standard for quality is not perfectionism — it is professionalism. Maintain it today.',
+      'What you build methodically today will outlast everything improvised around you.',
+      'One more effort today when others stop — that is what separates your results.',
+      'Your word means more than most people realize. Use it carefully.',
+      'The long view you hold is correct even when others cannot see it yet.',
+      'A routine day done excellently is still excellent. Do not underestimate today.',
+      'Your steadiness is reassuring to people who need an anchor. Be that for someone.',
+      'The progress you make quietly today compounds in ways others will be surprised by.',
+      'Loyalty to your values today produces something that cleverness alone never could.',
     ],
   },
   Tiger: {
+    element: 'Wood',
+    luckyNumbers: [1, 3, 4],
     emoji: '🐯',
     tone: 'Brave, bold, radiant spirit',
     dailyInsights: [
@@ -60,9 +128,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'A direct conversation you have been avoiding will go better than expected.',
       'Trust the roar inside you. It knows the direction before you do.',
       'Today your energy sets the tone for the room. Set it well.',
+      'Every Tiger knows when to roar and when to move silently. Today: move silently first, then strike.',
+      'The moment you commit fully, the path clears faster than you expect.',
+      'Others take their cue from you whether you intend it or not. Set a good tone.',
+      'Your will is your greatest tool today. Point it at the obstacle and push through.',
+      'The chance you take today is better odds than waiting for a "safer" moment later.',
+      'Natural authority does not need volume — it needs presence. You have it.',
+      'Courage recognized and acted on today becomes the story you tell later.',
+      'Your natural leadership is most effective when it is also kind. Both today.',
+      'The territory you protect is the one that defines you. Know what matters most.',
+      'Your instinct about the right moment is correct. Do not talk yourself out of it.',
     ],
   },
   Rabbit: {
+    element: 'Wood',
+    luckyNumbers: [3, 4, 6],
     emoji: '🐰',
     tone: 'Gentle, graceful, softly luminous',
     dailyInsights: [
@@ -76,9 +156,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'Diplomacy in a tense moment today opens a door that force would close.',
       'You notice what others rush past. That noticing is your edge.',
       'Your soft influence reaches further than loud demands ever could.',
+      'The subtle signal in the room today is visible to you and only you. Act on it.',
+      'Your ability to de-escalate a tense moment saves something worth saving today.',
+      'Slowness is not delay — it is care applied deliberately. Your pace is correct.',
+      'The person who underestimates your gentleness will be surprised by your outcomes.',
+      'Beauty you notice or create today carries a measurable positive effect on the day.',
+      'Your memory for what people care about is your greatest relational asset today.',
+      'A question asked gently opens more doors than a demand ever could.',
+      'Your preference for harmony is not avoidance — it is wisdom. Hold to it.',
+      'The soft edge you offer today becomes the thing that holds everything together.',
+      'People trust you because you make it safe to be honest. Let them do that today.',
     ],
   },
   Dragon: {
+    element: 'Earth',
+    luckyNumbers: [1, 6, 7],
     emoji: '🐲',
     tone: 'Magnetic, powerful, golden energy',
     dailyInsights: [
@@ -92,9 +184,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'The door you push on today was waiting for exactly your strength.',
       'Your optimism is not naive — it is a force that bends outcomes.',
       'Big energy requires big intention. Set it early and hold it all day.',
+      'The scale of your ambition is not the problem. The timeline just needed adjusting.',
+      'You carry an energy that changes rooms. Walk into the one that needs changing today.',
+      'Dragons attract what they believe they deserve. Believe correctly today.',
+      'Your instinct to go big is right — ground it in one concrete first step.',
+      'The plan others called too bold is the one that works. Proceed.',
+      'Visibility today works in your favor. Do not shrink from it.',
+      'Your standard for yourself is higher than most. That gap is where the gold is.',
+      'What you touch today, you improve. Apply that to the thing that matters most.',
+      'The energy you command is rare. Do not spend it on anything ordinary today.',
+      'Fortune responds to the Dragon\'s belief in itself. Believe completely.',
     ],
   },
   Snake: {
+    element: 'Fire',
+    luckyNumbers: [2, 8, 9],
     emoji: '🐍',
     tone: 'Wise, intuitive, quietly powerful',
     dailyInsights: [
@@ -108,9 +212,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'Your deepest instinct today is also your most accurate compass.',
       'Patience in negotiation today yields far more than urgency would.',
       'Something you perceive as a setback is actually a redirect to better.',
+      'The question you ask today reveals more than any answer could.',
+      'Your silence in the right moment is louder than the loudest voice in the room.',
+      'Wisdom you carry is meant to be used today, not just held.',
+      'The hidden layer of the situation is visible to you. Navigate accordingly.',
+      'Trust is your currency. Spend it only where it returns with interest.',
+      'You already know which direction is right. The hesitation is just old caution.',
+      'The long game you are playing will pay — but it requires patience through this part.',
+      'Your stillness in chaos gives others the calm they could not find alone.',
+      'Depth of understanding is your edge today. Do not skim the surface of anything.',
+      'The transformation underway is not comfortable. Stay with it — it is working.',
     ],
   },
   Horse: {
+    element: 'Fire',
+    luckyNumbers: [2, 3, 7],
     emoji: '🐴',
     tone: 'Free-spirited, bright, always moving',
     dailyInsights: [
@@ -120,18 +236,30 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'Freedom is your fuel. Protect your independence and time today.',
       'Say yes to the invitation that makes your spirit lift.',
       'Your enthusiasm is contagious. Let people catch it today.',
-      'The open road is your natural habitat. Do not let small spaces shrink you.',
+      'The wide horizon calls to you. Do not let small details keep you stuck.',
       'Trust the direction you feel pulled in. The Horse rarely runs the wrong way.',
       'Spontaneity today leads to an unexpected but welcome destination.',
       'Your drive and passion are at a peak. Channel them into what matters most.',
+      'Your momentum is a gift today. Protect it from tasks that drain without returning.',
+      'The energy surge you feel this morning — act on it before the day gets complicated.',
+      'Speed and direction together: you have both right now. Use them.',
+      'The social opportunity today leads somewhere your instincts already know.',
+      'A conversation in motion is where your best thinking happens. Keep moving.',
+      'You are built for the long run, but today\'s sprint is worth it. Push.',
+      'The invitation you hesitate to accept is the one that leads somewhere worthwhile.',
+      'Your fire is high and your focus sharp. This combination rarely arrives together.',
+      'Let the boring tasks wait. Ride what is alive in you today while it is alive.',
+      'A bold step in the direction you already know is right — just take it now.',
     ],
   },
   Goat: {
+    element: 'Earth',
+    luckyNumbers: [2, 7],
     emoji: '🐐',
     tone: 'Creative, kind, peacefully abundant',
     dailyInsights: [
       'Your creativity is highest in the morning hours. Use them.',
-      'Gentleness is not weakness — it is precision.',
+      'Gentleness is not weakness — it is precision applied thoughtfully.',
       'The creative or artistic path today leads somewhere real.',
       'Nurture the relationship that needs your soft attention today.',
       'Beauty and calm around you directly improves your luck today.',
@@ -140,9 +268,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'Abundance grows in the soil of gratitude. Tend to it.',
       'Harmony in your environment translates to clarity in your thinking.',
       'Let yourself enjoy something beautiful today — it is not a distraction.',
+      'Your aesthetic sense today tells you something accurate about where to focus.',
+      'The creative project that has been waiting — give it an hour today. It will grow.',
+      'Your care for others returns to you in subtle ways today. Notice them.',
+      'Peace you create around you today is not small. It ripples further than you can see.',
+      'The kind act you almost did not do today would have been exactly right. Do it.',
+      'Your eye for beauty is a form of intelligence. Let it lead a decision today.',
+      'Something unfinished that you love — return to it today. It wants to be complete.',
+      'The collaboration you invest in gently today will grow into something meaningful.',
+      'Softness in the right moment is the most powerful force in the room.',
+      'What you tend with patience and care today is quietly becoming remarkable.',
     ],
   },
   Monkey: {
+    element: 'Metal',
+    luckyNumbers: [4, 9],
     emoji: '🐵',
     tone: 'Playful, sharp, perfectly timed',
     dailyInsights: [
@@ -156,9 +296,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'The creative shortcut you spot today is not cheating — it is brilliance.',
       'Curiosity today leads you somewhere more interesting than the plan.',
       'Stay nimble. The best outcome today requires some mid-course adjusting.',
+      'Your ability to read the room and pivot is at its highest today. Use it.',
+      'The solution no one else considered is the one you see clearly. Offer it.',
+      'Humor used at the right moment today is more effective than any argument.',
+      'The gap in the logic that everyone else missed — you caught it. Speak up.',
+      'Your timing for the comment, question, or action is perfect today. Trust it.',
+      'Innovation is your natural language. Apply it to the most stuck problem.',
+      'The angle everyone approached the wrong way — you naturally found the right one.',
+      'Your energy lifts the room. Use that to create space where others are tense.',
+      'Play is serious work for you. Do not apologize for approaching it with craft.',
+      'Adaptability today opens a door that weeks of planning could not.',
     ],
   },
   Rooster: {
+    element: 'Metal',
+    luckyNumbers: [5, 7, 8],
     emoji: '🐔',
     tone: 'Polished, clear, quietly confident',
     dailyInsights: [
@@ -172,9 +324,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'Your discernment keeps you safe in situations where others get swept away.',
       'Announce your intentions early today — timing and clarity are everything.',
       'You notice flaws others miss. That attention to quality is your edge.',
+      'Your attention to how things are presented makes the difference between good and memorable.',
+      'Speak your expert opinion clearly today. The room is waiting for your input.',
+      'Order in your environment creates order in your thinking. Tend to it today.',
+      'Your preparation pays off in a moment today that rewards being ready.',
+      'The small thing done impeccably today is what people actually notice and remember.',
+      'Clarity of purpose is your competitive edge. Know your objective before you begin.',
+      'Your standard for yourself today is the best proof of your reliability.',
+      'Communicate with precision today. The detail you include makes all the difference.',
+      'Polish is not vanity — it is professional respect for the person receiving your work.',
+      'Your eye for what is missing is what keeps today\'s effort from being ordinary.',
     ],
   },
   Dog: {
+    element: 'Earth',
+    luckyNumbers: [3, 4, 9],
     emoji: '🐶',
     tone: 'Loyal, protective, deeply honest',
     dailyInsights: [
@@ -188,9 +352,21 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'A simple act of showing up for someone today means more than you know.',
       'Integrity in a small thing today sets the tone for everything that follows.',
       'You guard others well. Do not forget to extend that protection to yourself.',
+      'The relationship you have quietly maintained for a long time is about to matter.',
+      'Your sense of what is fair today is more accurate than the loudest argument around you.',
+      'Standing by the person others have moved on from is the loyalty that defines character.',
+      'The truth is what you protect today, even when distortion would be easier.',
+      'Your dependability today is someone\'s best day because of it.',
+      'What you refuse to compromise on today is exactly what you should protect.',
+      'Faithful effort through an unremarkable day is still faithfulness. It counts.',
+      'Your honesty, offered with care, is more useful today than any strategy.',
+      'Trust built one kept promise at a time is the only kind that holds. Keep yours.',
+      'The consistency others rely on from you is a form of generosity. Give it today.',
     ],
   },
   Pig: {
+    element: 'Water',
+    luckyNumbers: [2, 5, 8],
     emoji: '🐷',
     tone: 'Warm, generous, abundantly open',
     dailyInsights: [
@@ -204,16 +380,46 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'The abundance you seek is already arriving. Create space to receive it.',
       'Your sincerity is magnetic. People trust the Pig because they feel it.',
       'Celebrate even the small wins today. Joy compounds just like luck.',
+      'Joy is not a distraction from your goals. It is actually how you reach them.',
+      'The person you make feel included today carries that warmth somewhere significant.',
+      'Your trust in people produces the best version of them. That is a form of leadership.',
+      'The abundance you share today returns in a form more valuable than what you gave.',
+      'Your optimism about people is statistically well-founded. Trust them today.',
+      'A celebration, however small, is in order. Find the thing worth celebrating.',
+      'Your warmth is a resource — renewable but not infinite. Spend it on who deserves it.',
+      'Good things that come easily are allowed to be received easily. No guilt necessary.',
+      'The pleasure you almost skipped over today is actually exactly what you need.',
+      'Your presence in someone\'s difficult day is worth more than any advice could be.',
     ],
   },
 };
 
 export function getChineseZodiacDetails(animal: string) {
-  return zodiacDetails[animal] ?? { emoji: '✨', tone: 'Personal luck energy', dailyInsights: ['Your energy carries unique fortune today.'] };
+  return zodiacDetails[animal] ?? {
+    element: 'Earth' as ZodiacElement,
+    luckyNumbers: [8],
+    emoji: '✨',
+    tone: 'Personal luck energy',
+    dailyInsights: ['Your energy carries unique fortune today.'],
+  };
 }
 
 export function getChineseZodiacDailyInsight(animal: string, seed: number): string {
   const details = zodiacDetails[animal];
   if (!details) return 'Your energy carries unique fortune today.';
   return details.dailyInsights[Math.abs(seed) % details.dailyInsights.length];
+}
+
+export function getBirthYearElement(birthday: string): ZodiacElement {
+  const year = Number(birthday.slice(0, 4));
+  if (!Number.isFinite(year)) return 'Earth';
+  return heavenlyStemElements[((year % 10) + 10) % 10] ?? 'Earth';
+}
+
+export function getZodiacElement(animal: string, birthday?: string): ZodiacElement {
+  return birthday ? getBirthYearElement(birthday) : zodiacDetails[animal]?.element ?? 'Earth';
+}
+
+export function getZodiacLuckyNumbers(animal: string): number[] {
+  return zodiacDetails[animal]?.luckyNumbers ?? [8];
 }

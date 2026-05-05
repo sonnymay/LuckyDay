@@ -1,6 +1,7 @@
 export const colors = {
   // Backgrounds
-  background: '#FEF0F5',    // Deeper petal blush (was #FFF5F9)
+  background: '#FDF0F6',    // Warm petal blush
+  backgroundDeep: '#F7E0EF', // Slightly richer for layering
   panel: '#FFFFFF',         // Clean white
   panelStrong: '#FBE8F3',   // Visible rose tint (was #FFF0F7)
   // Text
@@ -35,6 +36,7 @@ export const spacing = {
   md: 16,
   lg: 24,
   xl: 34,
+  xl2: 48,
 };
 
 export const radii = {
@@ -42,4 +44,15 @@ export const radii = {
   md: 16,
   lg: 24,
   pill: 999,
+};
+
+/**
+ * Custom font families — loaded in app/_layout.tsx via expo-font.
+ * Falls back gracefully to system font if not yet loaded.
+ * Requires: npx expo install @expo-google-fonts/nunito
+ */
+export const fonts = {
+  regular: 'Nunito-Regular',
+  bold: 'Nunito-Bold',
+  heavy: 'Nunito-Black',
 };

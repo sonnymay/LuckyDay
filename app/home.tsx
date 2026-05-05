@@ -3,6 +3,7 @@ import { Alert, Animated, Platform, Pressable, Share, StyleSheet, Text, View } f
 import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { router, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import ViewShot from 'react-native-view-shot';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
@@ -25,7 +26,7 @@ import {
   shouldScheduleNotificationToday,
   setNotificationScheduledToday,
 } from '../src/lib/storage';
-import { colors, radii, spacing } from '../src/styles/theme';
+import { colors, fonts, radii, spacing } from '../src/styles/theme';
 import { DailyReading, Profile } from '../src/types';
 
 // Lazy-load StoreReview — not available on web
@@ -84,30 +85,107 @@ function SkeletonBlock({ width, height, style }: { width: number | string; heigh
   );
 }
 
-function HomeSkeleton() {
+// Star positions: [left%, top%, fontSize, symbol, phaseOffset ms]
+const STAR_PARTICLES: Array<[`${number}%`, `${number}%`, number, string, number]> = [
+  ['8%',  '12%', 22, '✦', 0],
+  ['78%', '8%',  16, '✧', 200],
+  ['55%', '18%', 12, '⋆', 400],
+  ['20%', '32%', 14, '✦', 600],
+  ['88%', '28%', 18, '✧', 150],
+  ['35%', '10%', 10, '⋆', 350],
+  ['68%', '40%', 14, '✦', 500],
+  ['12%', '55%', 18, '✧', 250],
+  ['82%', '55%', 12, '⋆', 700],
+  ['45%', '62%', 20, '✦', 100],
+  ['25%', '72%', 14, '✧', 450],
+  ['72%', '70%', 16, '⋆', 300],
+];
+
+function StarParticle({ left, top, size, symbol, delay }: {
+  left: `${number}%`; top: `${number}%`; size: number; symbol: string; delay: number;
+}) {
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, { toValue: 1, duration: 1400, useNativeDriver: true }),
+          Animated.timing(anim, { toValue: 0.15, duration: 1400, useNativeDriver: true }),
+        ])
+      ).start();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0.15, 0.9] });
+  const scale = anim.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1.2] });
+
   return (
-    <View style={styles.skeletonScreen}>
-      {/* Header */}
-      <View style={styles.skeletonHeader}>
-        <View style={{ gap: 6 }}>
-          <SkeletonBlock width={60} height={10} />
-          <SkeletonBlock width={140} height={32} />
-        </View>
-        <SkeletonBlock width={80} height={32} />
+    <Animated.Text
+      style={{
+        position: 'absolute',
+        left,
+        top,
+        fontSize: size,
+        color: colors.luckyGold,
+        opacity,
+        transform: [{ scale }],
+      }}
+    >
+      {symbol}
+    </Animated.Text>
+  );
+}
+
+function CalculationScreen() {
+  const orbPulse = useRef(new Animated.Value(0.85)).current;
+  const glowPulse = useRef(new Animated.Value(0.4)).current;
+  const textFade = useRef(new Animated.Value(0.5)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(orbPulse, { toValue: 1, duration: 1600, useNativeDriver: true }),
+        Animated.timing(orbPulse, { toValue: 0.85, duration: 1600, useNativeDriver: true }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowPulse, { toValue: 1, duration: 1800, useNativeDriver: true }),
+        Animated.timing(glowPulse, { toValue: 0.4, duration: 1800, useNativeDriver: true }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(textFade, { toValue: 1, duration: 1000, useNativeDriver: true }),
+        Animated.timing(textFade, { toValue: 0.5, duration: 1000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <View style={styles.calculationScreen}>
+      {/* Scattered star particles */}
+      {STAR_PARTICLES.map(([left, top, size, symbol, delay], i) => (
+        <StarParticle key={i} left={left} top={top} size={size} symbol={symbol} delay={delay} />
+      ))}
+
+      {/* Central orb */}
+      <View style={styles.calcOrbWrap}>
+        {/* Outer glow ring */}
+        <Animated.View style={[styles.calcOrbGlow, { opacity: glowPulse, transform: [{ scale: glowPulse.interpolate({ inputRange: [0.4, 1], outputRange: [0.92, 1.12] }) }] }]} />
+        {/* Inner orb */}
+        <Animated.View style={[styles.calcOrb, { transform: [{ scale: orbPulse }] }]}>
+          <Text style={styles.calcOrbStar}>✦</Text>
+        </Animated.View>
       </View>
-      {/* Score card */}
-      <SkeletonBlock width="100%" height={160} style={{ borderRadius: 20 }} />
-      {/* Metric grid */}
-      <View style={styles.skeletonGrid}>
-        <SkeletonBlock width="48%" height={100} style={{ borderRadius: 16 }} />
-        <SkeletonBlock width="48%" height={100} style={{ borderRadius: 16 }} />
-        <SkeletonBlock width="48%" height={100} style={{ borderRadius: 16 }} />
-        <SkeletonBlock width="48%" height={100} style={{ borderRadius: 16 }} />
-      </View>
-      {/* Zodiac card */}
-      <SkeletonBlock width="100%" height={100} style={{ borderRadius: 20 }} />
-      {/* Almanac card */}
-      <SkeletonBlock width="100%" height={130} style={{ borderRadius: 20 }} />
+
+      <Animated.Text style={[styles.calculatingText, { opacity: textFade }]}>
+        Aligning your stars...
+      </Animated.Text>
     </View>
   );
 }
@@ -171,13 +249,12 @@ export default function HomeScreen() {
         })
         .finally(() => {
           if (active) {
-            setLoading(false);
-            // Staggered entrance: fade in after data loads
-            Animated.timing(fadeAnim, {
-              toValue: 1,
-              duration: 500,
-              useNativeDriver: true,
-            }).start();
+            setTimeout(() => {
+              if (active) {
+                // Stars aligned — go straight to the full reading
+                router.replace('/detail');
+              }
+            }, 1400); // Build anticipation during calculation
           }
         });
 
@@ -188,11 +265,11 @@ export default function HomeScreen() {
   );
 
   if (loading || !profile || !reading) {
-    return <HomeSkeleton />;
+    return <CalculationScreen />;
   }
 
   return (
-    <Screen>
+    <Screen showTabBar>
       <Animated.View style={{ opacity: fadeAnim }}>
       <View style={styles.header}>
         <View>
@@ -216,7 +293,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/settings')}
             style={styles.settings}
           >
-            <Text style={styles.settingsText}>Settings</Text>
+            <Ionicons name="settings-outline" size={22} color={colors.mauve} />
           </Pressable>
         </View>
       </View>
@@ -233,9 +310,14 @@ export default function HomeScreen() {
         >
           <Text style={styles.quoteDecor}>❝</Text>
           <Text style={styles.quoteStripText} numberOfLines={2}>{reading.fortuneQuote}</Text>
-          <Text style={styles.quoteStripArrow}>›</Text>
+          <Ionicons name="chevron-forward" size={20} color="#7B6CB8" style={{ opacity: 0.7 }} />
         </Pressable>
       ) : null}
+
+      <View style={styles.sectionLabel}>
+        <Text style={styles.sectionLabelText}>Today's lucky metrics</Text>
+        <View style={styles.sectionLabelLine} />
+      </View>
 
       <PremiumGate isPremium={isPremium} featureLabel="your lucky metrics">
         <View style={styles.grid}>
@@ -251,20 +333,22 @@ export default function HomeScreen() {
         </View>
       </PremiumGate>
 
+      <View style={styles.sectionLabel}>
+        <Text style={styles.sectionLabelText}>Your zodiac signs</Text>
+        <View style={styles.sectionLabelLine} />
+      </View>
+
       <ChineseZodiacCard
         animal={reading.chineseZodiac}
+        birthday={profile.birthday}
         westernSign={reading.westernZodiac || undefined}
+        nickname={profile.nickname || undefined}
         insight={reading.zodiacInsight ?? undefined}
         westernInsight={reading.westernZodiacInsight || undefined}
       />
 
-      {/* ── Moon phase — visible to all users, tappable to detail ── */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Moon phase: ${reading.moonPhase}. Tap to see full reading.`}
-        onPress={() => { triggerLightHaptic(); router.push('/detail'); }}
-        style={({ pressed }) => [styles.moonStrip, pressed && { opacity: 0.78 }]}
-      >
+      {/* ── Moon phase — static display, content visible without navigation ── */}
+      <View style={styles.moonStrip}>
         <Text style={styles.moonEmoji}>{getMoonEmoji(reading.moonPhase)}</Text>
         <View style={styles.moonCopy}>
           <View style={styles.moonPhaseLabelRow}>
@@ -273,28 +357,32 @@ export default function HomeScreen() {
           </View>
           <Text style={styles.moonPhaseMessage}>{reading.moonMessage}</Text>
         </View>
-        <Text style={styles.moonArrow}>›</Text>
-      </Pressable>
+      </View>
 
-      <PremiumGate isPremium={isPremium} featureLabel="the Chinese Almanac">
-        <Card style={styles.luckyCard}>
-          {/* Almanac provenance badge */}
-          <View style={styles.almanacRow}>
-            <Text style={styles.almanacBadge}>📖 From the Chinese Almanac</Text>
-            {reading.lunarDate ? <Text style={styles.almanacDate}>{reading.lunarDate}</Text> : null}
-          </View>
-          {reading.solarTerm ? <Text style={styles.solarTerm}>✦ {reading.solarTerm}</Text> : null}
-          <View style={styles.divider} />
-          <SectionRow label="🌿 Good for today" value={reading.goodFor.join(' · ')} />
-          <View style={styles.divider} />
-          <SectionRow label="🧿 Avoid today" value={reading.avoid.join(' · ')} />
-        </Card>
-      </PremiumGate>
+      <View style={styles.sectionLabel}>
+        <Text style={styles.sectionLabelText}>Almanac guidance</Text>
+        <View style={styles.sectionLabelLine} />
+      </View>
 
-      <PremiumGate isPremium={isPremium} featureLabel="your daily action">
-        <Card style={styles.guidanceCard}>
-          <SectionRow label="🍀 Small action" value={reading.action} />
-        </Card>
+      {/* Almanac + Daily action share one gate — avoids two consecutive lock screens */}
+      <PremiumGate isPremium={isPremium} featureLabel="the Chinese Almanac & daily action">
+        <View style={styles.almanacActionGroup}>
+          <Card style={styles.luckyCard}>
+            {/* Almanac provenance badge */}
+            <View style={styles.almanacRow}>
+              <Text style={styles.almanacBadge}>📖 From the Chinese Almanac</Text>
+              {reading.lunarDate ? <Text style={styles.almanacDate}>{reading.lunarDate}</Text> : null}
+            </View>
+            {reading.solarTerm ? <Text style={styles.solarTerm}>✦ {reading.solarTerm}</Text> : null}
+            <View style={styles.divider} />
+            <SectionRow label="🌿 Good for today" value={reading.goodFor.join(' · ')} />
+            <View style={styles.divider} />
+            <SectionRow label="🧿 Avoid today" value={reading.avoid.join(' · ')} />
+          </Card>
+          <Card style={styles.guidanceCard}>
+            <SectionRow label="🍀 Small action" value={reading.action} />
+          </Card>
+        </View>
       </PremiumGate>
 
       <Card style={styles.sharePromptCard}>
@@ -327,27 +415,12 @@ export default function HomeScreen() {
         onPress={() => saveShareCard(reading, shareCardRef, setSavingShareCard)}
       />
 
-      {!isPremium ? (
-        <Card style={styles.premiumTeaserCard}>
-          <View style={styles.premiumTeaserHeader}>
-            <Text style={styles.premiumTeaserEmoji}>💫</Text>
-            <View style={styles.premiumTeaserCopy}>
-              <Text style={styles.premiumTeaserTitle}>Go deeper when you’re ready</Text>
-              <Text style={styles.premiumTeaserText}>
-                Premium adds richer readings, longer history, and future photo insights without interrupting your daily luck ritual.
-              </Text>
-            </View>
-          </View>
-          <View style={styles.premiumTeaserPills}>
-            <Text style={styles.premiumTeaserPill}>Deep readings</Text>
-            <Text style={styles.premiumTeaserPill}>History</Text>
-            <Text style={styles.premiumTeaserPill}>Photo insights</Text>
-          </View>
-          <Pressable onPress={() => router.push('/paywall')} style={({ pressed }) => [styles.premiumTeaserButton, pressed && styles.premiumTeaserPressed]}>
-            <Text style={styles.premiumTeaserButtonText}>See Premium ✨</Text>
-          </Pressable>
-        </Card>
-      ) : null}
+      {/* Premium teaser removed — PremiumGate locks + header Upgrade button handle conversion */}
+
+      <View style={styles.sectionLabel}>
+        <Text style={styles.sectionLabelText}>Your daily ritual</Text>
+        <View style={styles.sectionLabelLine} />
+      </View>
 
       {/* Streak milestone celebration */}
       {streakMilestone ? (
@@ -362,8 +435,8 @@ export default function HomeScreen() {
         <Text style={styles.streakLabel}>Daily ritual streak</Text>
         {streak === 0 ? (
           <>
-            <Text style={styles.streakValue}>Start your ritual today ✨</Text>
-            <Text style={styles.streakCopy}>Open LuckyDay each morning to build your streak.</Text>
+            <Text style={styles.streakValue}>Day 1 of your ritual ✨</Text>
+            <Text style={styles.streakCopy}>You've begun. Come back tomorrow to grow your streak.</Text>
           </>
         ) : (
           <>
@@ -373,41 +446,35 @@ export default function HomeScreen() {
               <View style={[styles.streakProgressFill, { width: `${getStreakProgressPercent(streak)}%` }]} />
             </View>
             <Text style={styles.streakCopy}>
-              {getStreakCopy(streak)}
+              {streak === 1 ? 'Your ritual has begun. Come back tomorrow to grow it.' : getStreakCopy(streak)}
             </Text>
           </>
         )}
       </Card>
 
-      <View style={styles.navGrid}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="View daily reading detail"
-          style={({ pressed }) => [styles.navCard, pressed && styles.navCardPressed]}
-          onPress={() => { triggerLightHaptic(); router.push('/detail'); }}
-        >
-          <Text style={styles.navEmoji}>📋</Text>
-          <Text style={styles.navLabel}>Daily{'\n'}detail</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="View reading history"
-          style={({ pressed }) => [styles.navCard, pressed && styles.navCardPressed]}
-          onPress={() => { triggerLightHaptic(); router.push('/history'); }}
-        >
-          <Text style={styles.navEmoji}>📖</Text>
-          <Text style={styles.navLabel}>Reading{'\n'}history</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Rate today's reading"
-          style={({ pressed }) => [styles.navCard, pressed && styles.navCardPressed]}
-          onPress={() => { triggerLightHaptic(); router.push('/feedback'); }}
-        >
-          <Text style={styles.navEmoji}>⭐</Text>
-          <Text style={styles.navLabel}>Rate{'\n'}today</Text>
-        </Pressable>
-      </View>
+      {/* Nav grid removed — bottom tab bar now handles Today/History/Profile navigation */}
+      {/* Rate-today link preserved as an inline card shortcut */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Rate today's reading"
+        style={({ pressed }) => [styles.rateCard, pressed && styles.rateCardPressed]}
+        onPress={() => { triggerLightHaptic(); router.push('/feedback'); }}
+      >
+        <Ionicons name="star-outline" size={20} color={colors.mauve} />
+        <Text style={styles.rateLabel}>Rate today's reading</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.mauve} style={{ opacity: 0.6 }} />
+      </Pressable>
+
+      {/* ── Return-tomorrow hook ── */}
+      <Card style={styles.tomorrowCard}>
+        <Text style={styles.tomorrowEmoji}>🌙</Text>
+        <View style={styles.tomorrowBody}>
+          <Text style={styles.tomorrowTitle}>Your energy shifts tomorrow</Text>
+          <Text style={styles.tomorrowCopy}>
+            Come back in the morning to see if your luck rises. Every day is a new reading.
+          </Text>
+        </View>
+      </Card>
 
       <View style={[styles.captureArea, styles.noPointerEvents]}>
         <ViewShot ref={shareCardRef} options={{ format: 'png', quality: 1, result: 'tmpfile' }}>
@@ -491,11 +558,11 @@ function getStreakCopy(streak: number): string {
 
 function getDayGreeting(): { kicker: string; prefix: string } {
   const hour = new Date().getHours();
-  if (hour < 5) return { kicker: '🌙 Late night', prefix: 'Burning midnight oil,' };
-  if (hour < 12) return { kicker: '🌅 Good morning', prefix: 'Morning,' };
-  if (hour < 17) return { kicker: '☀️ Good afternoon', prefix: 'Afternoon,' };
-  if (hour < 20) return { kicker: '🌇 Good evening', prefix: 'Evening,' };
-  return { kicker: '🌙 Good evening', prefix: 'Evening,' };
+  if (hour < 5) return { kicker: '🌙 LATE NIGHT', prefix: 'Still up,' };
+  if (hour < 12) return { kicker: '🌅 MORNING', prefix: 'Good morning,' };
+  if (hour < 17) return { kicker: '☀️ AFTERNOON', prefix: 'Good afternoon,' };
+  if (hour < 20) return { kicker: '🌇 EVENING', prefix: 'Good evening,' };
+  return { kicker: '🌙 LATE', prefix: 'Good evening,' };
 }
 
 function getStreakProgressPercent(streak: number): number {
@@ -533,31 +600,73 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  skeletonScreen: {
+  calculationScreen: {
+    alignItems: 'center',
     backgroundColor: colors.background,
     flex: 1,
-    gap: spacing.md,
-    padding: spacing.md,
-    paddingTop: spacing.lg,
+    justifyContent: 'center',
+    gap: spacing.lg,
   },
-  skeletonHeader: {
+  calcOrbWrap: {
     alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xs,
+    height: 160,
+    justifyContent: 'center',
+    width: 160,
   },
-  skeletonGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
+  calcOrbGlow: {
+    backgroundColor: 'rgba(214, 168, 74, 0.22)',
+    borderColor: 'rgba(214, 168, 74, 0.35)',
+    borderRadius: 90,
+    borderWidth: 1.5,
+    height: 160,
+    position: 'absolute',
+    width: 160,
+    ...Platform.select({
+      web: { boxShadow: '0 0 48px rgba(214, 168, 74, 0.45)' },
+    }),
+  },
+  calcOrb: {
+    alignItems: 'center',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: 60,
+    borderWidth: 2,
+    height: 120,
+    justifyContent: 'center',
+    width: 120,
+    ...Platform.select({
+      web: { boxShadow: '0 0 28px rgba(214, 168, 74, 0.6)' },
+      default: {
+        shadowColor: colors.luckyGold,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.55,
+        shadowRadius: 20,
+      },
+    }),
+  },
+  calcOrbStar: {
+    color: colors.goldDeep,
+    fontSize: 48,
+    fontWeight: '900',
+  },
+  calculatingText: {
+    color: colors.mauve,
+    fontFamily: fonts.heavy,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
   header: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: spacing.md,
+    paddingTop: spacing.sm,
   },
   kicker: {
     color: colors.mauve,
+    fontFamily: fonts.heavy,
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 2,
@@ -565,6 +674,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.ink,
+    fontFamily: fonts.heavy,
     fontSize: 34,
     fontWeight: '900',
     letterSpacing: -0.5,
@@ -586,12 +696,48 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   settings: {
-    padding: spacing.sm,
+    alignItems: 'center',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: 24,
+    borderWidth: 2,
+    height: 48,
+    justifyContent: 'center',
+    width: 48,
+    ...Platform.select({
+      web: { boxShadow: `0 4px 12px rgba(214, 168, 74, 0.25)` },
+      default: {
+        shadowColor: colors.luckyGold,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+    }),
   },
   settingsText: {
-    color: colors.mauve,
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 24,
+    lineHeight: 28,
+  },
+  // Section labels
+  sectionLabel: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: -spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
+  sectionLabelText: {
+    color: colors.faint,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  sectionLabelLine: {
+    backgroundColor: colors.line,
+    flex: 1,
+    height: 1,
+    opacity: 0.6,
   },
   // Fortune quote strip
   quoteStrip: {
@@ -628,9 +774,9 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     opacity: 0.7,
   },
-  // Moon phase strip
+  // Moon phase card — static, no navigation
   moonStrip: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: colors.lavender,
     borderColor: '#C8BFEE',
     borderRadius: radii.lg,
@@ -666,9 +812,9 @@ const styles = StyleSheet.create({
   moonPhaseMessage: {
     color: '#5A4A90',
     fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    marginTop: 3,
+    fontWeight: '600',
+    lineHeight: 21,
+    marginTop: 4,
   },
   moonArrow: {
     color: '#7B6CB8',
@@ -907,7 +1053,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   streakProgressFill: {
-    backgroundColor: colors.mauve,
+    backgroundColor: colors.luckyGold,
     borderRadius: radii.pill,
     height: '100%',
   },
@@ -934,40 +1080,61 @@ const styles = StyleSheet.create({
     height: 1,
     marginVertical: spacing.md,
   },
+  almanacActionGroup: {
+    gap: spacing.md,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.md,
   },
-  navGrid: {
+  tomorrowCard: {
+    alignItems: 'center',
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: spacing.md,
   },
-  navCard: {
+  tomorrowEmoji: {
+    fontSize: 32,
+  },
+  tomorrowBody: {
+    flex: 1,
+    gap: 4,
+  },
+  tomorrowTitle: {
+    color: colors.ink,
+    fontFamily: fonts.heavy,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  tomorrowCopy: {
+    color: colors.muted,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 18,
+  },
+  rateCard: {
     alignItems: 'center',
     backgroundColor: colors.panelStrong,
     borderColor: colors.roseGold,
     borderRadius: 20,
     borderWidth: 1.5,
-    flex: 1,
-    gap: spacing.xs,
-    justifyContent: 'center',
-    paddingVertical: spacing.lg,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
-  navCardPressed: {
+  rateCardPressed: {
     opacity: 0.78,
-    transform: [{ scale: 0.97 }],
+    transform: [{ scale: 0.98 }],
   },
-  navEmoji: {
-    fontSize: 30,
-    lineHeight: 36,
-  },
-  navLabel: {
+  rateLabel: {
     color: colors.mauve,
-    fontSize: 11,
+    flex: 1,
+    fontFamily: fonts.heavy,
+    fontSize: 14,
     fontWeight: '900',
-    textAlign: 'center',
-    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   captureArea: {
     left: -10000,

@@ -13,6 +13,7 @@ type Props = PropsWithChildren<{
 const featureBodyMap: Record<string, string> = {
   'your lucky metrics': 'Lucky number, color, time, and direction — personalized to your seed.',
   'the Chinese Almanac': 'Real almanac guidance: what to do and avoid for this calendar day.',
+  'the Chinese Almanac & daily action': 'Real almanac guidance for today plus a small ritual action to call in better luck.',
   'your daily action': 'A small ritual action to call in better luck right now.',
   'full reading history': 'See every reading you have ever opened, with streak stats.',
 };

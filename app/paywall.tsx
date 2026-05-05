@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
+  Animated,
   Platform,
   Pressable,
   ScrollView,
@@ -9,6 +9,8 @@ import {
   Text,
   View,
 } from 'react-native';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 async function triggerLightHaptic() {
   if (Platform.OS === 'web') return;
@@ -17,7 +19,6 @@ async function triggerLightHaptic() {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   } catch {}
 }
-import { router } from 'expo-router';
 import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
 import {
@@ -27,22 +28,57 @@ import {
   purchasePackage,
   restorePurchases,
 } from '../src/lib/purchases';
+import { generateDailyReading } from '../src/lib/luck';
+import { getStoredProfile } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
 
 const FEATURES = [
-  { emoji: '📋', label: 'Deeper money, love, work & health readings' },
-  { emoji: '📖', label: 'Longer reading history and patterns' },
-  { emoji: '✨', label: 'Premium share-card styles' },
-  { emoji: '🔮', label: 'Future photo insight rituals' },
-  { emoji: '🌸', label: 'Seasonal luck themes and guidance' },
-  { emoji: '🔥', label: 'Extra streak celebrations' },
+  { emoji: '🎨', label: 'Lucky color, number, best time & compass direction — every day' },
+  { emoji: '💰', label: 'Full money, love, work & health breakdowns — not just scores' },
+  { emoji: '🌙', label: 'Lunar calendar dates and Chinese solar terms explained' },
+  { emoji: '📖', label: 'Reading history to spot your personal luck patterns' },
+  { emoji: '✨', label: 'Premium share cards that stop the scroll on IG & LINE' },
+  { emoji: '🔥', label: 'Streak milestones and daily zodiac insight unlocked' },
 ];
 
 const RITUAL_PREVIEW = [
-  { emoji: '🌅', title: 'Morning signal', copy: 'A clearer read on what to pursue, protect, and postpone.' },
-  { emoji: '💌', title: 'Shareable charm', copy: 'Prettier story cards designed for IG, LINE, and close friends.' },
-  { emoji: '🔮', title: 'Deeper pattern', copy: 'History and future photo insights help the ritual feel personal.' },
+  { emoji: '🌅', title: 'What to do today', copy: 'Your lucky color to wear, number to carry, best hour to act, and direction to face — all specific to you.' },
+  { emoji: '💌', title: 'Share in one tap', copy: 'A beautiful card with your score, zodiac, color & number — sized perfectly for IG Stories or LINE.' },
+  { emoji: '📅', title: 'Your luck over time', copy: 'See if your score trends up on certain days, which moon phases hit hardest, and what to expect ahead.' },
 ];
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function SkeletonBlock({ width, height, style }: { width: number | string; height: number; style?: object }) {
+  const shimmer = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    ).start();
+  }, [shimmer]);
+  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.6] });
+  return (
+    <Animated.View
+      style={[{ width, height, borderRadius: 20, backgroundColor: colors.roseGold, opacity }, style]}
+    />
+  );
+}
+
+function PaywallSkeleton() {
+  return (
+    <View style={styles.skeletonScreen}>
+      <SkeletonBlock width="100%" height={320} />
+      <SkeletonBlock width="100%" height={100} style={{ borderRadius: 16 }} />
+      <SkeletonBlock width="100%" height={180} style={{ borderRadius: 16 }} />
+      <SkeletonBlock width="80%" height={56} style={{ borderRadius: 999 }} />
+    </View>
+  );
+}
+
+// ─── Screen ────────────────────────────────────────────────────────────────────
 
 export default function PaywallScreen() {
   const [packages, setPackages] = useState<PurchasePackage[]>([]);
@@ -50,10 +86,20 @@ export default function PaywallScreen() {
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [todayScore, setTodayScore] = useState<number>(88);
   const mounted = useRef(true);
 
   useEffect(() => {
     mounted.current = true;
+
+    // Load today's real score for the orb
+    getStoredProfile()
+      .then((profile) => {
+        if (!mounted.current || !profile) return;
+        const reading = generateDailyReading(profile);
+        setTodayScore(reading.score);
+      })
+      .catch(() => undefined);
 
     getPremiumStatus()
       .then((status) => {
@@ -121,11 +167,7 @@ export default function PaywallScreen() {
   }, []);
 
   if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.mauve} size="large" />
-      </View>
-    );
+    return <PaywallSkeleton />;
   }
 
   const annualPkg = packages.find((p) => p.productIdentifier.includes('annual'));
@@ -133,11 +175,24 @@ export default function PaywallScreen() {
   const showPackages = packages.length > 0;
 
   return (
+    <View style={styles.root}>
+      <View style={styles.aura1} pointerEvents="none" />
+      <View style={styles.aura2} pointerEvents="none" />
     <ScrollView
       style={styles.scroll}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
+      {/* Close button */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Close paywall"
+        onPress={() => router.replace('/home')}
+        style={({ pressed }) => [styles.closeButton, pressed && { opacity: 0.6 }]}
+      >
+        <Ionicons name="close" size={22} color={colors.mauve} />
+      </Pressable>
+
       {/* Header */}
       <View style={styles.hero}>
         <View style={styles.decorCircle1} pointerEvents="none" />
@@ -151,8 +206,8 @@ export default function PaywallScreen() {
         <Text style={styles.badge}>✨ LuckyDay Premium</Text>
         <View style={styles.heroOrb}>
           <Text style={styles.heroOrbStars}>✦ ✧ ✦</Text>
-          <Text style={styles.heroOrbNumber}>88</Text>
-          <Text style={styles.heroOrbLabel}>PREMIUM ENERGY</Text>
+          <Text style={styles.heroOrbNumber}>{todayScore}</Text>
+          <Text style={styles.heroOrbLabel}>TODAY'S ENERGY</Text>
         </View>
         <Text style={styles.headline}>Make every morning{'\n'}feel chosen</Text>
         <Text style={styles.subhead}>
@@ -160,8 +215,7 @@ export default function PaywallScreen() {
           your private oracle.
         </Text>
         <View style={styles.socialProof}>
-          <Text style={styles.socialProofStar}>★★★★★</Text>
-          <Text style={styles.socialProofText}>Built for a soft, intentional daily ritual</Text>
+          <Text style={styles.socialProofText}>Your personal oracle. Every morning.</Text>
         </View>
       </View>
 
@@ -182,12 +236,12 @@ export default function PaywallScreen() {
         <Text style={styles.nudgeHeading}>What changes when you unlock</Text>
         <View style={styles.nudgeRow}>
           <Text style={styles.nudgeEmoji}>🔒</Text>
-          <Text style={styles.nudgeFree}>Free: daily energy score · Chinese zodiac · basic share card</Text>
+          <Text style={styles.nudgeFree}>Free: energy score · zodiac animals · basic reading summary</Text>
         </View>
         <Text style={styles.nudgeArrow}>↓</Text>
         <View style={styles.nudgeRow}>
           <Text style={styles.nudgeEmoji}>✨</Text>
-          <Text style={styles.nudgePremium}>Premium: lucky metrics · Chinese Almanac · deeper readings · full history · photo insights</Text>
+          <Text style={styles.nudgePremium}>Premium: lucky color + number + time + direction · money/love/work/health detail · lunar almanac · reading history · richer share cards</Text>
         </View>
       </Card>
 
@@ -238,12 +292,12 @@ export default function PaywallScreen() {
               <Text style={styles.bestValueText}>BEST VALUE</Text>
             </View>
             <Text style={styles.packageTitle}>Annual</Text>
-            <Text style={styles.packagePrice}>$14.99 / year</Text>
-            <Text style={styles.packageNote}>less than $1.25 a month</Text>
+            <Text style={styles.packagePrice}>$29.99 / year</Text>
+            <Text style={styles.packageNote}>less than $2.50 a month</Text>
           </View>
           <View style={styles.packageCard}>
             <Text style={styles.packageTitle}>Monthly</Text>
-            <Text style={styles.packagePrice}>$2.99 / month</Text>
+            <Text style={styles.packagePrice}>$4.99 / month</Text>
             <Text style={styles.packageNote}>cancel anytime</Text>
           </View>
         </View>
@@ -281,24 +335,59 @@ export default function PaywallScreen() {
         at least 24 hours before the end of the current period.
       </Text>
     </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  center: {
-    alignItems: 'center',
+  root: {
     backgroundColor: colors.background,
     flex: 1,
-    justifyContent: 'center',
+  },
+  skeletonScreen: {
+    backgroundColor: colors.background,
+    flex: 1,
+    gap: spacing.md,
+    padding: spacing.md,
+    paddingTop: spacing.lg,
+  },
+  aura1: {
+    backgroundColor: 'rgba(192, 58, 120, 0.08)',
+    borderRadius: 999,
+    height: 340,
+    position: 'absolute',
+    right: -100,
+    top: -100,
+    width: 340,
+  },
+  aura2: {
+    backgroundColor: 'rgba(237, 186, 64, 0.06)',
+    borderRadius: 999,
+    bottom: 80,
+    height: 260,
+    left: -80,
+    position: 'absolute',
+    width: 260,
   },
   scroll: {
-    backgroundColor: colors.background,
     flex: 1,
   },
   content: {
-    gap: spacing.md,
+    gap: spacing.lg,
     padding: spacing.md,
     paddingBottom: spacing.xl,
+  },
+  closeButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    height: 40,
+    justifyContent: 'center',
+    marginBottom: -spacing.sm,
+    width: 40,
   },
   hero: {
     alignItems: 'center',

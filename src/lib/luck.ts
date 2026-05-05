@@ -1,6 +1,14 @@
 import { DailyReading, MainFocus, Profile, ProfileInput } from '../types';
 import { getAlmanacDay } from './almanac';
-import { chineseZodiacAnimals, getChineseZodiacDailyInsight } from './chineseZodiac';
+import {
+  ZodiacElement,
+  chineseZodiacAnimals,
+  elementLuckyColors,
+  elementSeedOffset,
+  getChineseZodiacDailyInsight,
+  getZodiacElement,
+  getZodiacLuckyNumbers,
+} from './chineseZodiac';
 import { todayKey } from './date';
 import { getWesternZodiacDailyInsight } from './westernZodiac';
 
@@ -727,17 +735,265 @@ const fortuneQuotes = [
   'The only person you are destined to become is the person you decide to be.',
 ];
 
+/** Moon phase bonus applied to the daily score — shared by all users on the same calendar day. */
+const moonPhaseBonus: Record<string, number> = {
+  'Full Moon': 8,
+  'New Moon': 5,
+  'Waxing Gibbous': 4,
+  'First Quarter': 3,
+  'Waxing Crescent': 2,
+  'Waning Gibbous': 2,
+  'Last Quarter': 1,
+  'Waning Crescent': 0,
+};
+
+/**
+ * Element-specific money insights. Each element gets 7+ readings tied to its
+ * character — Fire moves fast, Water trusts intuition, Earth stays methodical,
+ * Wood grows patiently, Metal demands precision.
+ */
+const moneyByElement: Partial<Record<ZodiacElement, string[]>> = {
+  Fire: [
+    'Act on the financial opportunity before you analyze it to death. Your instinct is correct.',
+    'Your energy attracts financial openings today — the move is to follow momentum.',
+    'A quick decision about money today proves better than a slow one. Trust the first calculation.',
+    'The bold financial step scares you because it matters. That is usually the right step.',
+    'Speed and confidence together — that is how the Fire element wins financially.',
+    'The investment of energy today returns as income sooner than you expect.',
+    'Your financial intuition today is outrunning your caution. Let it lead.',
+  ],
+  Water: [
+    'Your financial sense today is running beneath your conscious thought. Trust the quiet signal.',
+    'The pattern in your spending is visible to you now. That awareness is your advantage.',
+    'Wealth, like water, flows toward the path of least resistance. Find that path today.',
+    'One instinctive decision about money today is worth three heavily analyzed ones.',
+    'What you sense about the financial situation — before you can explain it — is correct.',
+    'Savings that flow quietly and regularly build the largest reserves. Start or continue one.',
+    'Your intuition about what a deal is actually worth is sharper than the numbers suggest.',
+  ],
+  Earth: [
+    'The financial habit you build methodically today compresses into years of security.',
+    'Slow, steady, and consistent — that is the wealth-building mode that suits you best.',
+    'Check one financial detail you have been avoiding. Solid ground starts with accuracy.',
+    'Your wealth grows through reliability and patience, not speed. Stay the course.',
+    'A boring financial decision made correctly today is worth more than an exciting one made carelessly.',
+    'Review your foundation: savings, expenses, obligations. That review today reveals something.',
+    'The most grounded financial move today is also the right one. Do not be dazzled.',
+  ],
+  Wood: [
+    'Money invested in growth today — a skill, a relationship, a tool — pays more than saved idle.',
+    'Your financial growth is tied to your personal growth. Invest in both today.',
+    'The patient approach to building wealth is the one that works for you. Stay with it.',
+    'A small amount directed consistently today grows into something visible within months.',
+    'The opportunity that requires development time — not a quick flip — is the one for you.',
+    'What you plant financially today is worth more than what you harvest from someone else\'s work.',
+    'Growth takes the form it needs to. Give your money a direction and let it find the path.',
+  ],
+  Metal: [
+    'The financial detail everyone else glossed over is the one worth your attention today.',
+    'Precision in your money tracking today reveals something that changes a decision.',
+    'Your standard for value is higher than average. Apply it before committing to anything.',
+    'The contract, the agreement, the fine print — read it today. Your eye catches what others miss.',
+    'Quality over quantity in any financial choice today produces the better long-term result.',
+    'A financial audit of one area — subscriptions, rates, arrangements — pays off today.',
+    'Your discernment about what is actually worth the cost is your edge in every financial call.',
+  ],
+};
+
+/**
+ * Element-specific work insights. Mirrors the elemental character in a
+ * professional context — each element approaches output differently.
+ */
+const workByElement: Partial<Record<ZodiacElement, string[]>> = {
+  Fire: [
+    'Move fast on the project that has energy behind it. Momentum compounds today.',
+    'Your enthusiasm in the room today shifts the outcome. Show up with fire.',
+    'Start the ambitious thing. You can refine it — but it has to exist first.',
+    'Your drive today is unusually high. Direct it at the most important task.',
+    'The boldest professional move available to you today is also the right one.',
+    'Energy brought early to a task today produces results that careful effort later could not.',
+    'Lead with confidence in the work. Others are waiting for someone to go first.',
+  ],
+  Water: [
+    'Your best work today emerges from intuition, not a rigid plan. Let it flow.',
+    'The creative solution to the work problem is coming from below conscious thought. Wait for it.',
+    'Collaborate fluidly today — the group\'s combined intuition beats any individual analysis.',
+    'The work that feels most natural to you today is also the work most worth doing.',
+    'Adapt as the day evolves. Your flexibility is your greatest professional asset right now.',
+    'The quiet observation you have been making about the project — trust it and share it.',
+    'Work that lets you use your intuition produces your best results. Seek it today.',
+  ],
+  Earth: [
+    'Finish before you start anything new. Completion is your professional superpower today.',
+    'Your reliability is your brand. One thing done completely and correctly today reinforces it.',
+    'The methodical approach beats the brilliant shortcut every time in your context.',
+    'Protect your standards even when speed is pressuring you to lower them.',
+    'Follow through on the thing you said you would do. That consistency builds reputation.',
+    'The practical, thorough version of the work is also the version that lasts. Choose it.',
+    'Show up for the unglamorous part of the job today. It matters as much as the visible part.',
+  ],
+  Wood: [
+    'The professional investment in your growth today compounds in ways that show up in months.',
+    'Learning something new today — even something small — is work that pays the longest dividend.',
+    'Your career grows through patience and steady upward pressure. Apply some today.',
+    'The collaboration that develops slowly into trust produces the most valuable professional outcome.',
+    'Growth projects over quick wins. The long arc is the right one for you today.',
+    'Develop the skill rather than just applying what you already know. Today is a good day to stretch.',
+    'The professional relationship you invest in carefully today opens the next door.',
+  ],
+  Metal: [
+    'Your attention to quality today is what elevates the output from good to excellent.',
+    'Precision in communication today prevents the misunderstanding that would cost you a week.',
+    'The process you improve or clarify today saves everyone around you future effort.',
+    'Your professional standard is your reputation. Hold to it even when the timeline is tight.',
+    'Review the work one more time. Your eye for what is missing will find something worth correcting.',
+    'Organize before you execute. The clarity of preparation is where your best work begins.',
+    'The detail that elevates ordinary work into something polished — you see it. Add it.',
+  ],
+};
+
+/**
+ * Element-specific love insights. Elemental tone replaces the general pool so
+ * relationship guidance feels tied to the user's Five Element profile.
+ */
+const loveByElement: Partial<Record<ZodiacElement, string[]>> = {
+  Fire: [
+    'Say the warm thing before the moment passes. Your affection wants movement today.',
+    'Your magnetism is high today, but softness keeps it from becoming pressure.',
+    'Lead with enthusiasm in love, then pause long enough to let the other person meet you.',
+    'A direct message lands well today when it carries warmth instead of urgency.',
+    'The spark is real. Give it room without trying to control how quickly it grows.',
+    'Your courage in saying what you feel opens a cleaner path between hearts.',
+    'Love responds to your aliveness today. Show up bright, honest, and kind.',
+  ],
+  Water: [
+    'Trust the emotional current underneath the conversation. It tells you what words cannot.',
+    'Someone needs your listening more than your solution today. Let silence do some work.',
+    'Your intuition about a relationship is tender and accurate. Honor it without rushing.',
+    'A gentle check-in carries more love today than a dramatic gesture.',
+    'Let the connection move at its natural pace. What is real does not need forcing.',
+    'Your softness is not weakness today. It is how trust finds its way in.',
+    'Notice what you feel after spending time with someone. That is the relationship speaking.',
+  ],
+  Earth: [
+    'Love is practical today. Show care through steadiness, follow-through, and small help.',
+    'The relationship that matters most needs reliability, not intensity. Be present and consistent.',
+    'A simple promise kept today says more than a beautiful promise made loudly.',
+    'Offer comfort in a form someone can feel: time, food, patience, or help.',
+    'Slow affection is still affection. Let trust build through ordinary moments.',
+    'Your grounded presence calms someone today. Stay kind and steady.',
+    'Tend the relationship like a home: repair one small thing before it grows larger.',
+  ],
+  Wood: [
+    'A relationship grows today through encouragement, patience, and room to become more.',
+    'Ask what the connection needs next, not what it should already be.',
+    'Love improves when you support growth without trying to direct every branch.',
+    'A hopeful conversation today plants something that can mature over time.',
+    'Give someone permission to change. That generosity strengthens the bond.',
+    'Nurture the connection with one specific act of care, then let it breathe.',
+    'The healthiest love today is growing, not proving. Choose development over drama.',
+  ],
+  Metal: [
+    'Clear words protect love today. Say what you mean with respect and precision.',
+    'A boundary spoken kindly is an act of care, not distance.',
+    'Notice the quality of the connection, not just the intensity. Your discernment is sharp.',
+    'Love benefits from honesty today, especially the clean kind that does not overexplain.',
+    'Refine one relationship habit: how you ask, answer, listen, or repair.',
+    'Your standards matter. Let them guide you without turning them into a wall.',
+    'A thoughtful detail today proves you were paying attention. That matters more than volume.',
+  ],
+};
+
+/**
+ * Element-specific health insights. These keep wellness guidance emotional and
+ * personalized without implying medical diagnosis.
+ */
+const healthByElement: Partial<Record<ZodiacElement, string[]>> = {
+  Fire: [
+    'Move the heat through your body today: walk, stretch, dance, or sweat a little.',
+    'Your energy wants an outlet. Give it motion before it turns into restlessness.',
+    'Balance intensity with recovery today. Fire stays bright when it is tended, not burned out.',
+    'Start strong, then cool down on purpose. Your body needs both spark and ease.',
+    'A short burst of movement clears more tension than another hour of pushing through.',
+    'Choose food, breath, and pace that steady your inner heat instead of feeding urgency.',
+    'Your vitality rises when you act, then pause. Build that rhythm into the day.',
+  ],
+  Water: [
+    'Hydration and quiet are your allies today. Your system wants flow, not force.',
+    'Let your body soften before you ask it to perform. Ease comes first.',
+    'A bath, shower, walk near water, or slow drink can reset your whole mood.',
+    'Your nervous system needs gentleness today. Lower the volume where you can.',
+    'Listen for the subtle body signal before it becomes a louder one.',
+    'Move slowly enough to feel what your body is carrying. Then release one piece of it.',
+    'Rest is not avoidance today. It is how your energy returns to circulation.',
+  ],
+  Earth: [
+    'Simple routines support you today: regular meals, steady water, and an earlier night.',
+    'Ground your body with something basic and real: food, sunlight, movement, or sleep.',
+    'Your health responds to consistency today more than ambition. Keep it simple.',
+    'Check the foundation: posture, breath, hydration, and the tension in your jaw.',
+    'A slow walk or solid meal does more for you today than a complicated wellness plan.',
+    'Your body wants steadiness. Choose the thing you can repeat tomorrow.',
+    'Care for the basics before chasing a bigger reset. The basics are the reset today.',
+  ],
+  Wood: [
+    'Stretch into the day gently. Your body wants expansion, not pressure.',
+    'Growth energy needs movement. Loosen one stiff place in your body and your mood follows.',
+    'Choose the healthy habit that can grow over time, even if it starts small today.',
+    'Fresh air, green food, or a walk near trees helps your system feel more open.',
+    'Your body improves through patience today. Let progress be gradual and real.',
+    'Release the tension that comes from holding everything upright alone.',
+    'A flexible plan keeps you healthier than a perfect one. Bend without quitting.',
+  ],
+  Metal: [
+    'Your body benefits from clean structure today: clear meals, clear breaks, clear bedtime.',
+    'Reduce one irritant in your environment. Your system relaxes when things feel orderly.',
+    'Precision helps your health today. Notice the habit that changes your energy most.',
+    'Breathe deeply and evenly. Your lungs and focus both want more space.',
+    'Choose quality over quantity in movement, food, and rest today.',
+    'A small cleanup of your space can become a cleanup of your nervous system.',
+    'Your body is asking for refinement, not punishment. Adjust one thing with care.',
+  ],
+};
+
 export function generateDailyReading(profile: Profile, date = new Date()): DailyReading {
   const seed = getDailySeed(profile, date);
   const day = date.getDay();
   const chineseZodiac = getChineseZodiac(profile.birthday);
-  const zodiacBias = chineseZodiac.length + profile.westernZodiac.length;
   const mainFocuses = normalizeMainFocuses(profile.mainFocus);
-  const score = 55 + (Math.abs(seed + day + zodiacBias + mainFocuses.length) % 38);
   const moonPhase = getMoonPhase(date);
 
   // Real Chinese almanac data — same for everyone on this calendar day.
   const almanac = getAlmanacDay(date);
+
+  // ── Score formula (accurate, not arbitrary string lengths) ───────────────
+  // 1. Personal base: user identity + calendar date seeded (range 55–75)
+  // Narrowed range keeps day-to-day swings under 20 points so movement feels
+  // meaningful rather than arbitrary. Moon + almanac modifiers (0–13) carry
+  // the rest of the range up to 96.
+  const zodiacElement = getZodiacElement(chineseZodiac, profile.birthday);
+  const elementOffset = elementSeedOffset[zodiacElement] ?? 5;
+  const baseScore = 55 + (Math.abs(seed + elementOffset * 3571) % 21);
+
+  // 2. Day-level modifiers — same for everyone on this date
+  const moonBonus = moonPhaseBonus[moonPhase] ?? 0;
+  // Almanac bonus: more auspicious activities = more favorable day (0–5)
+  const almanacBonus = Math.min(almanac.goodFor.length, 5);
+
+  // 3. Final score capped at 96
+  const score = Math.min(96, Math.max(50, baseScore + moonBonus + almanacBonus));
+
+  // ── Lucky number — pulled from traditional zodiac lucky numbers ──────────
+  const zodiacLuckyNums = getZodiacLuckyNumbers(chineseZodiac);
+  const luckyNumber = zodiacLuckyNums[Math.abs(seed + day) % zodiacLuckyNums.length];
+
+  // ── Lucky color — weighted toward Five Elements theory ───────────────────
+  // 70% chance: pick from element-aligned color pool (2 out of 3 seeds)
+  const useElementColor = Math.abs(seed + elementOffset) % 3 !== 0;
+  const colorPool = useElementColor
+    ? (elementLuckyColors[zodiacElement] ?? luckyColors)
+    : luckyColors;
+  const luckyColor = pickFromArrayWithSeed(colorPool, seed, 5);
 
   return {
     date: todayKey(date),
@@ -748,8 +1004,8 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
     avoid: almanac.avoid,
     lunarDate: almanac.lunarDate,
     solarTerm: almanac.solarTerm,
-    luckyNumber: 1 + (Math.abs(seed + zodiacBias) % 9),
-    luckyColor: pickFromArrayWithSeed(luckyColors, seed, 5),
+    luckyNumber,
+    luckyColor,
     luckyTime: pickFromArrayWithSeed(luckyTimes, seed, 6),
     luckyDirection: pickFromArrayWithSeed(luckyDirections, seed, 7),
     moonPhase,
@@ -757,14 +1013,72 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
     chineseZodiac,
     westernZodiac: profile.westernZodiac,
     zodiacInsight: getChineseZodiacDailyInsight(chineseZodiac, seed + day),
-    westernZodiacInsight: getWesternZodiacDailyInsight(profile.westernZodiac, seed + day + 3),
-    money: pickFocusReading(mainFocuses, seed, 8, { Money: moneyReadings }, moneyReadings),
-    love: pickFocusReading(mainFocuses, seed, 9, { Love: loveReadings }, loveReadings),
-    work: pickFocusReading(mainFocuses, seed, 10, { Work: workReadings }, workReadings),
-    health: pickFocusReading(mainFocuses, seed, 11, { Health: healthReadings }, healthReadings),
+    // Offset by a large prime so western and chinese insights diverge independently
+    westernZodiacInsight: getWesternZodiacDailyInsight(profile.westernZodiac, seed + day + 104729),
+    // Day-of-week offset (multiplied by a prime) ensures the same user gets
+    // different category reads M–Su, not the same pick repeated all week.
+    // Element-specific pools replace the generic pool for money and work so
+    // Fire users get momentum-forward advice, Earth users get steady-pace advice, etc.
+    money: pickFocusReading(
+      mainFocuses, seed, 8 + day * 97,
+      { Money: moneyByElement[zodiacElement] ?? moneyReadings },
+      moneyByElement[zodiacElement] ?? moneyReadings,
+    ),
+    love: pickFocusReading(
+      mainFocuses, seed, 9 + day * 97,
+      { Love: loveByElement[zodiacElement] ?? loveReadings },
+      loveByElement[zodiacElement] ?? loveReadings,
+    ),
+    work: pickFocusReading(
+      mainFocuses, seed, 10 + day * 97,
+      { Work: workByElement[zodiacElement] ?? workReadings },
+      workByElement[zodiacElement] ?? workReadings,
+    ),
+    health: pickFocusReading(
+      mainFocuses, seed, 11 + day * 97,
+      { Health: healthByElement[zodiacElement] ?? healthReadings },
+      healthByElement[zodiacElement] ?? healthReadings,
+    ),
     warning: pickFromArrayWithSeed(warnings, seed, 12),
     action: pickFromArrayWithSeed(actions, seed, 13),
+    scoreReason: buildScoreReason(moonPhase, moonBonus, almanacBonus, zodiacElement ?? 'Wood'),
+    scoreBase: baseScore,
+    scoreMoonBonus: moonBonus,
+    scoreAlmanacBonus: almanacBonus,
   };
+}
+
+function buildScoreReason(
+  moonPhase: string,
+  moonBonus: number,
+  almanacBonus: number,
+  element: string,
+): string {
+  const parts: string[] = [];
+
+  // Moon phase contribution
+  if (moonBonus >= 6) {
+    parts.push(`${moonPhase} amplifies your ${element} energy`);
+  } else if (moonBonus >= 3) {
+    parts.push(`${moonPhase} adds upward momentum`);
+  } else if (moonBonus > 0) {
+    parts.push(`${moonPhase} brings a quiet lift`);
+  } else {
+    parts.push(`${moonPhase} calls for steady, focused effort`);
+  }
+
+  // Almanac contribution
+  if (almanacBonus >= 4) {
+    parts.push('the almanac marks today as especially auspicious');
+  } else if (almanacBonus >= 2) {
+    parts.push('the almanac supports key activities today');
+  } else if (almanacBonus === 0) {
+    parts.push('a calm almanac day favoring rest and reflection');
+  }
+
+  // Capitalise first char of the joined result
+  const joined = parts.join(' · ');
+  return joined.charAt(0).toUpperCase() + joined.slice(1) + '.';
 }
 
 function hashString(value: string) {

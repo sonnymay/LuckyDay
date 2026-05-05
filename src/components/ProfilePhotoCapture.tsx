@@ -88,8 +88,10 @@ export function ProfilePhotoCapture({
       ) : (
         <View style={styles.emptyPreview}>
           <Text style={styles.emptyIcon}>{placeholder.icon}</Text>
-          <Text style={styles.emptyTitle}>{placeholder.title}</Text>
-          <Text style={styles.emptyCopy}>{placeholder.copy}</Text>
+          <View>
+            <Text style={styles.emptyTitle}>{placeholder.title}</Text>
+            <Text style={styles.emptyCopy}>{placeholder.copy}</Text>
+          </View>
         </View>
       )}
 
@@ -213,35 +215,33 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   emptyPreview: {
-    aspectRatio: 4 / 3,
     alignItems: 'center',
     backgroundColor: colors.white,
     borderColor: colors.roseGold,
     borderRadius: radii.md,
     borderStyle: 'dashed',
     borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: 10,
     justifyContent: 'center',
-    padding: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     width: '100%',
   },
   emptyIcon: {
-    fontSize: 38,
-    lineHeight: 46,
+    fontSize: 22,
+    lineHeight: 28,
   },
   emptyTitle: {
     color: colors.mauve,
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '900',
-    marginTop: spacing.xs,
-    textAlign: 'center',
   },
   emptyCopy: {
     color: colors.muted,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    lineHeight: 20,
-    marginTop: 3,
-    textAlign: 'center',
+    lineHeight: 16,
   },
   button: {
     alignItems: 'center',

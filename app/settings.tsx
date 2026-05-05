@@ -9,11 +9,12 @@ import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
 import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
+import { elementEmoji, getZodiacElement } from '../src/lib/chineseZodiac';
 import { createProfile, getChineseZodiac, normalizeMainFocuses } from '../src/lib/luck';
 import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
 import { getPremiumStatus, PremiumStatus } from '../src/lib/purchases';
 import { getStoredProfile, resetAllStoredData, resetStoredFeedback, resetStoredProfile, saveStoredProfile } from '../src/lib/storage';
-import { colors, radii, spacing } from '../src/styles/theme';
+import { colors, fonts, radii, spacing } from '../src/styles/theme';
 import { MainFocus, Profile } from '../src/types';
 
 const focusOptions: MainFocus[] = ['Money', 'Love', 'Work', 'Health', 'Luck'];
@@ -88,6 +89,8 @@ export default function SettingsScreen() {
   const [premiumStatus, setPremiumStatus] = useState<PremiumStatus | null>(null);
   const [nickname, setNickname] = useState('');
   const [birthday, setBirthday] = useState('');
+  const [birthTime, setBirthTime] = useState('');
+  const [birthplace, setBirthplace] = useState('');
   const [mainFocus, setMainFocus] = useState<MainFocus[]>(['Luck']);
   const [notificationTime, setNotificationTime] = useState('');
   const [faceUri, setFaceUri] = useState('');
@@ -113,6 +116,8 @@ export default function SettingsScreen() {
         setPremiumStatus(status);
         setNickname(storedProfile.nickname);
         setBirthday(storedProfile.birthday);
+        setBirthTime(storedProfile.birthTime ?? '');
+        setBirthplace(storedProfile.birthplace ?? '');
         setMainFocus(normalizeMainFocuses(storedProfile.mainFocus));
         setNotificationTime(storedProfile.notificationTime ?? '');
         setFaceUri(storedProfile.photos?.faceUri ?? '');
@@ -154,8 +159,8 @@ export default function SettingsScreen() {
       ...createProfile({
         nickname,
         birthday,
-        birthTime: profile.birthTime,
-        birthplace: profile.birthplace,
+        birthTime: birthTime.trim(),
+        birthplace: birthplace.trim(),
         mainFocus,
         notificationTime,
         photos: { faceUri, leftPalmUri, rightPalmUri, handwritingUri },
@@ -259,15 +264,44 @@ export default function SettingsScreen() {
   }
 
   const currentChineseZodiac = getChineseZodiac(profile.birthday);
+  const zodiacElement = getZodiacElement(currentChineseZodiac, profile.birthday);
+  const elementDisplay = zodiacElement ? `${elementEmoji[zodiacElement]} ${zodiacElement} Element` : '';
 
   return (
-    <Screen>
-      {/* ── Profile header ── */}
-      <Card style={styles.card}>
-        <Text style={styles.title}>Your profile ✨</Text>
-        <Text style={styles.copy}>
-          {profile.westernZodiac} and {currentChineseZodiac}. LuckyDay stays local for now.
-        </Text>
+    <Screen showTabBar>
+      {/* ── Page title ── */}
+      <Text style={styles.pageTitle}>Profile ✨</Text>
+      {/* ── Astrology ID Badge ── */}
+      <Card style={styles.idBadgeCard}>
+        <View style={styles.idBadgeHeader}>
+          <View style={styles.idBadgeAvatar}>
+            <Text style={styles.idBadgeAvatarEmoji}>✨</Text>
+          </View>
+          <View style={styles.idBadgeIdentity}>
+            <Text style={styles.idBadgeName}>{profile.nickname}</Text>
+            <Text style={styles.idBadgeLabel}>LUCKYDAY ID</Text>
+          </View>
+        </View>
+        <View style={styles.idBadgeMetrics}>
+          <View style={styles.idBadgeMetric}>
+            <Text style={styles.idBadgeMetricValue}>{profile.westernZodiac}</Text>
+            <Text style={styles.idBadgeMetricLabel}>WESTERN</Text>
+          </View>
+          <View style={styles.idBadgeDivider} />
+          <View style={styles.idBadgeMetric}>
+            <Text style={styles.idBadgeMetricValue}>{currentChineseZodiac}</Text>
+            <Text style={styles.idBadgeMetricLabel}>CHINESE</Text>
+          </View>
+          {zodiacElement ? (
+            <>
+              <View style={styles.idBadgeDivider} />
+              <View style={styles.idBadgeMetric}>
+                <Text style={styles.idBadgeMetricValue}>{zodiacElement}</Text>
+                <Text style={styles.idBadgeMetricLabel}>ELEMENT</Text>
+              </View>
+            </>
+          ) : null}
+        </View>
       </Card>
 
       {/* ── Subscription status ── */}
@@ -311,6 +345,8 @@ export default function SettingsScreen() {
           <Text style={styles.label}>Birthday</Text>
           <BirthdayPicker value={birthday} onChange={setBirthday} />
         </View>
+        <Field label="Birth time (optional)" value={birthTime} onChangeText={setBirthTime} placeholder="e.g. 14:30 or 2:30 PM" />
+        <Field label="Birthplace (optional)" value={birthplace} onChangeText={setBirthplace} placeholder="e.g. London, UK" />
 
         <View style={styles.group}>
           <Text style={styles.label}>Main focuses</Text>
@@ -476,20 +512,81 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingTop: spacing.lg,
   },
-  card: {
-    backgroundColor: colors.panelStrong,
-    borderColor: colors.roseGold,
-  },
-  title: {
+  pageTitle: {
     color: colors.ink,
+    fontFamily: fonts.heavy,
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: 0.2,
+    paddingHorizontal: spacing.xs,
+  },
+  idBadgeCard: {
+    backgroundColor: colors.mauve,
+    borderColor: colors.luckyGold,
+    borderWidth: 2,
+    ...Platform.select({
+      web: { backgroundImage: `linear-gradient(135deg, ${colors.mauve} 0%, #A84878 100%)` }
+    }),
+  },
+  idBadgeHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  idBadgeAvatar: {
+    alignItems: 'center',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: 32,
+    borderWidth: 2,
+    height: 64,
+    justifyContent: 'center',
+    width: 64,
+  },
+  idBadgeAvatarEmoji: {
+    fontSize: 32,
+  },
+  idBadgeIdentity: {
+    flex: 1,
+  },
+  idBadgeName: {
+    color: colors.white,
     fontSize: 28,
     fontWeight: '900',
   },
-  copy: {
-    color: colors.muted,
+  idBadgeLabel: {
+    color: colors.champagne,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 2,
+  },
+  idBadgeMetrics: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: radii.md,
+    flexDirection: 'row',
+    padding: spacing.md,
+    justifyContent: 'space-between',
+  },
+  idBadgeMetric: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  idBadgeMetricValue: {
+    color: colors.white,
     fontSize: 16,
-    lineHeight: 23,
-    marginTop: spacing.sm,
+    fontWeight: '900',
+  },
+  idBadgeMetricLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  idBadgeDivider: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 1,
   },
   // Premium status card
   premiumStatusCard: {
