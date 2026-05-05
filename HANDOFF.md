@@ -137,6 +137,7 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 - Fortune quote card: **removed entirely** (was generic, added no value)
 - `scoreReason`: exists in data but is **intentionally not displayed**
 - Action was **promoted** from bottom of breakdown to hero card near top
+- Added a short qualitative influence explanation below the three influence chips. It explains zodiac, element, moon, and almanac context without exposing raw score arithmetic or score component numbers.
 
 ### `src/lib/luck.ts`
 - Added `ZodiacElement` to imports from `./chineseZodiac`
@@ -163,6 +164,13 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
   - Wood: stretching, fresh air, gradual growth
   - Metal: structure, breath, environmental clarity
 - Love and health reads now use element pools: `loveByElement[zodiacElement] ?? loveReadings` and `healthByElement[zodiacElement] ?? healthReadings`
+- Added contextual warning pools:
+  - `warningByElement` for Five Element-specific caution
+  - `warningByMoonPhase` for phase-specific caution
+  - `warningByAlmanacAvoid` for almanac avoid-context caution
+- Warning selection now builds a context pool from element + moon phase + almanac avoid items and compares against the previous day's deterministic warning. If the same warning would appear two days in a row for the same profile, it steps to another warning when possible.
+- Added `actionsBySolarTerm` for all 24 solar terms. On solar-term days, the "Do this today" action comes from the solar-term pool so days like `立夏 · Start of Summer` feel seasonally connected.
+- Added `actionsByAlmanacGoodFor` for concrete almanac-aware actions on ordinary days.
 - Added `scoreBase`, `scoreMoonBonus`, `scoreAlmanacBonus` to `generateDailyReading` return value
 
 ### `src/lib/chineseZodiac.ts`
@@ -177,6 +185,7 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 
 ### `src/types.ts` (changed in earlier session)
 - Added to `DailyReading`: `scoreBase: number`, `scoreMoonBonus: number`, `scoreAlmanacBonus: number`, `scoreReason: string`
+- Added to `DailyReading`: `zodiacElement: string` for qualitative influence-chip explanation copy
 
 ### `app/home.tsx` (changed in earlier session)
 - Now a pure loading screen → `router.replace('/detail')` after animation
@@ -187,6 +196,11 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 ### `app/onboarding.tsx` (changed in earlier session)
 - Post-save now routes to `router.replace('/detail')` (was `/home`)
 - Added step 3 photo trust copy before `ProfilePhotoCapture`: face = "energy field and presence," palm = "life line patterns," handwriting = "intention energy"
+
+### `app/index.tsx`
+- First-time users without a stored profile now route directly to `/onboarding`.
+- Existing users with a stored profile now route directly to `/detail`.
+- This keeps the first real reading feeling earned through profile setup instead of showing a sample reading first.
 
 ### `app/_layout.tsx` (changed in earlier session)
 - `detail` screen: `headerShown: false`
@@ -206,7 +220,8 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 
 ### Verification (2026-05-05)
 - `npm run typecheck` passes (`tsc --noEmit`)
-- `npm test` passes: 2 test files, 16 tests
+- `npm test` passes: 2 test files, 18 tests
+- Added tests for consecutive-day warning freshness and solar-term action context.
 
 ---
 

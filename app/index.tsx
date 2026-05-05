@@ -49,15 +49,15 @@ export default function WelcomeScreen() {
     getStoredProfile()
       .then((profile) => {
         if (profile) {
-          router.replace('/home');
+          router.replace('/detail');
+        } else {
+          router.replace('/onboarding');
         }
       })
-      .finally(() => setCheckingProfile(false));
+      .catch(() => router.replace('/onboarding'));
   }, []);
 
   if (checkingProfile) {
-    // Blank background — profile check is instant from AsyncStorage.
-    // No spinner avoids a flash of loading UI before redirect to /home.
     return <View style={styles.loading} />;
   }
 

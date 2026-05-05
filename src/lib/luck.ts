@@ -352,6 +352,107 @@ const warnings = [
   'The conversation that feels like small talk may carry a bigger test. Stay aware.',
 ];
 
+const warningByElement: Record<ZodiacElement, string[]> = {
+  Fire: [
+    'Your Fire energy is strong today. Pause before turning a spark into a bigger flame.',
+    'Move with courage, but do not let urgency choose your words for you.',
+    'Excitement can blur details today. Check the small thing before you charge ahead.',
+    'Your momentum is useful, but not every invitation deserves an instant yes.',
+  ],
+  Water: [
+    'Your sensitivity is picking up more than usual. Do not absorb moods that are not yours.',
+    'If the emotional current feels muddy, wait before answering or deciding.',
+    'A quiet signal matters today. Do not let a louder opinion drown it out.',
+    'Keep boundaries around your attention. Not every feeling needs immediate action.',
+  ],
+  Earth: [
+    'Steadiness helps you today, but stubbornness may make a simple issue heavier.',
+    'Do not carry someone else\'s unfinished work just because you are capable.',
+    'Check the foundation before committing more time, money, or energy.',
+    'A practical concern is worth naming early before it becomes harder to move.',
+  ],
+  Wood: [
+    'Growth energy is active, but forcing the timeline could bend the wrong branch.',
+    'Leave room for a plan to change shape. Rigidity blocks the better path today.',
+    'Do not overextend just because something has potential. Choose the healthiest growth.',
+    'A new idea needs tending, not pressure. Protect it from too many opinions.',
+  ],
+  Metal: [
+    'Your standards are sharp today. Use them to refine, not to cut people down.',
+    'Details matter, but perfection may slow the thing that only needs to be clear.',
+    'Read the agreement carefully and keep the conversation clean and specific.',
+    'Discernment is your edge today. Just do not mistake caution for certainty.',
+  ],
+};
+
+const warningByMoonPhase: Record<string, string[]> = {
+  'New Moon': [
+    'New Moon energy is tender. Keep fresh intentions private until they have roots.',
+    'Avoid announcing a beginning before you have taken the first real step.',
+  ],
+  'Waxing Crescent': [
+    'Energy is building, but the shape is still delicate. Do not rush proof.',
+    'Small progress is enough today. Comparing it too early may drain the luck from it.',
+  ],
+  'First Quarter': [
+    'First Quarter energy can feel pressured. Choose action, not reaction.',
+    'A decision may want speed today. Give it one clear breath before you answer.',
+  ],
+  'Waxing Gibbous': [
+    'You are close to clarity, but not finished. Refine before presenting the result.',
+    'Almost-ready energy can invite impatience. Check the missing piece first.',
+  ],
+  'Full Moon': [
+    'Full Moon energy magnifies everything. Keep dramatic messages for tomorrow if you can.',
+    'What feels obvious under the Full Moon may still need a calmer second look.',
+  ],
+  'Waning Gibbous': [
+    'The peak has passed. Do not keep spending energy just to prove you still can.',
+    'Share what matters, but avoid giving away more than the moment requires.',
+  ],
+  'Last Quarter': [
+    'Last Quarter energy asks for release. Do not reopen what is clearly complete.',
+    'Let the old pattern end cleanly today instead of negotiating with it again.',
+  ],
+  'Waning Crescent': [
+    'Waning Crescent energy is low and inward. Protect your rest from unnecessary demands.',
+    'This is not the moment to force a grand conclusion. Let quiet do its work.',
+  ],
+};
+
+const warningByAlmanacAvoid: Record<string, string[]> = {
+  'Love commitments': [
+    'The almanac is cautious around love commitments today. Keep relationship promises simple and honest.',
+  ],
+  'Starting big projects': [
+    'The almanac advises care with major starts today. Sketch the plan before you launch it.',
+  ],
+  'Large financial decisions': [
+    'Large money moves need extra patience today. Sleep on the choice if you can.',
+  ],
+  'Long-distance travel': [
+    'Travel energy is sensitive today. Confirm times, routes, and backup plans.',
+  ],
+  'Signing contracts': [
+    'Agreement energy is delicate today. Read the fine print and ask the obvious question.',
+  ],
+  'Making big agreements': [
+    'Big agreements need clean terms today. Do not rely on assumptions or vague promises.',
+  ],
+  'Moving home': [
+    'Transition energy is uneven today. Keep plans flexible and essentials close.',
+  ],
+  'Difficult conversations': [
+    'Hard conversations may run hotter than expected. Choose timing and tone carefully.',
+  ],
+  'Medical treatments': [
+    'Health decisions deserve extra steadiness today. Ask questions and avoid rushing your body.',
+  ],
+  'New relationships': [
+    'New connection energy is interesting but untested. Let consistency reveal the truth.',
+  ],
+};
+
 const actions = [
   'Wear your lucky color today, even as a small detail.',
   'Write down one thing you want to call into your life.',
@@ -426,6 +527,46 @@ const actions = [
   'Look up at the sky for one full minute. Then continue your day.',
   'Send an encouraging message to someone working hard right now.',
 ];
+
+const actionsBySolarTerm: Record<string, string[]> = {
+  '小寒': ['Warm your hands around tea or soup and write down one thing you are conserving for later.'],
+  '大寒': ['Do one winter reset: clear your bedside table, drink something warm, and go to bed earlier.'],
+  '立春': ['Start one small spring habit today: open a window, water a plant, or write the first line of a plan.'],
+  '雨水': ['Put water into the day on purpose: hydrate, rinse a surface clean, and let one old worry drain away.'],
+  '惊蛰': ['Wake one dormant thing gently: send the message, move your body, or restart a paused task for ten minutes.'],
+  '春分': ['Balance the day with one equal exchange: give help where it is easy and receive help without deflecting.'],
+  '清明': ['Clear one visible space and honor one root: a memory, a family tie, or a promise you still carry.'],
+  '谷雨': ['Plant something practical today: save a note, start a draft, water a plant, or prepare tomorrow\'s first step.'],
+  '立夏': ['Mark Start of Summer with light and movement: step into sunlight, drink water, and choose one lively errand.'],
+  '小满': ['Notice what is almost full: finish one nearly done task and leave room for it to mature.'],
+  '芒种': ['Choose the seed worth tending: block fifteen minutes for the task that can grow if you keep returning to it.'],
+  '夏至': ['Use the long light well: do your brightest task before noon and cool the evening down intentionally.'],
+  '小暑': ['Keep heat from becoming haste: hydrate, simplify your schedule, and finish one thing calmly.'],
+  '大暑': ['Protect your energy in the strongest heat: shade, water, and one honest no to unnecessary pressure.'],
+  '立秋': ['Begin the autumn shift: tidy one surface and choose what you are ready to stop carrying.'],
+  '处暑': ['Let the heat settle: complete one lingering errand and make your evening lighter than your morning.'],
+  '白露': ['Notice the subtle change: lay out tomorrow\'s clothes, clean your water glass, and move slowly for five minutes.'],
+  '秋分': ['Restore balance today: pair one duty with one pleasure and keep both small enough to finish.'],
+  '寒露': ['Prepare for cooler energy: check your calendar, warm your body, and protect one quiet hour.'],
+  '霜降': ['Make a gentle ending: remove one stale item from your space and close one old tab, task, or thread.'],
+  '立冬': ['Start winter mode with intention: stock one comfort, simplify one plan, and rest before you are depleted.'],
+  '小雪': ['Do one small sheltering act: warm your room, prep a simple meal, or send care to someone who feels far away.'],
+  '大雪': ['Make the day quieter on purpose: cancel one nonessential thing and give your attention to what remains.'],
+  '冬至': ['Honor the longest night with one small light: candle, lamp, or message, then name what you want to return.'],
+};
+
+const actionsByAlmanacGoodFor: Record<string, string[]> = {
+  'Clearing your space': ['Clear the area by your front door so fresh luck has a clean place to enter.'],
+  'Travel & new places': ['Take a different route for one errand and notice what the new path shows you.'],
+  'Setting intentions': ['Write one intention in plain words and put it somewhere you will see tonight.'],
+  'Rest & restoration': ['Protect a real rest window today: no phone, no multitasking, just recovery.'],
+  'Self-care & cleansing': ['Wash your face or hands slowly and treat it like a reset, not a chore.'],
+  'Planting new seeds': ['Start one tiny growth ritual: water a plant, save a dollar, or open the blank page.'],
+  'Business & money': ['Review one money detail before noon: a price, subscription, invoice, or small plan.'],
+  'Love & relationships': ['Send one warm, specific message to someone you want to keep close.'],
+  'Building & creating': ['Set a timer for fifteen minutes and build one visible piece of the thing you keep imagining.'],
+  'Health & healing': ['Give your body one direct kindness: water, a walk, a stretch, or an earlier bedtime.'],
+};
 
 const luckyColors = ['Green', 'White', 'Gold', 'Blue', 'Red', 'Black', 'Pink', 'Yellow', 'Silver', 'Purple', 'Orange', 'Cream'];
 const luckyDirections = ['North', 'South', 'East', 'West', 'Northeast', 'Northwest', 'Southeast', 'Southwest'];
@@ -663,6 +804,76 @@ function pickFocusReading(
   const activeFocus = focuses[Math.abs(seed + offset) % focuses.length];
   const pool = pools[activeFocus] ?? fallback;
   return pickFromArrayWithSeed(pool, seed, offset);
+}
+
+function addDays(date: Date, amount: number) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + amount);
+  return nextDate;
+}
+
+function buildWarningPool(
+  zodiacElement: ZodiacElement,
+  moonPhase: string,
+  avoid: string[],
+): string[] {
+  const almanacWarnings = avoid.flatMap((item) => warningByAlmanacAvoid[item] ?? []);
+  return [
+    ...warnings,
+    ...warningByElement[zodiacElement],
+    ...(warningByMoonPhase[moonPhase] ?? []),
+    ...almanacWarnings,
+  ];
+}
+
+function getWarningOffset(date: Date, zodiacElement: ZodiacElement, moonPhase: string, avoid: string[]) {
+  const elementOffset = elementSeedOffset[zodiacElement] ?? 5;
+  return 12 + date.getDay() * 97 + elementOffset * 17 + moonPhase.length + avoid.length * 31;
+}
+
+function pickContextWarning(
+  profile: Profile,
+  date: Date,
+  seed: number,
+  zodiacElement: ZodiacElement,
+  moonPhase: string,
+  avoid: string[],
+): string {
+  const pool = buildWarningPool(zodiacElement, moonPhase, avoid);
+  const offset = getWarningOffset(date, zodiacElement, moonPhase, avoid);
+  let warning = pickFromArrayWithSeed(pool, seed, offset);
+
+  const previousDate = addDays(date, -1);
+  const previousSeed = getDailySeed(profile, previousDate);
+  const previousMoonPhase = getMoonPhase(previousDate);
+  const previousAlmanac = getAlmanacDay(previousDate);
+  const previousPool = buildWarningPool(zodiacElement, previousMoonPhase, previousAlmanac.avoid);
+  const previousOffset = getWarningOffset(previousDate, zodiacElement, previousMoonPhase, previousAlmanac.avoid);
+  const previousWarning = pickFromArrayWithSeed(previousPool, previousSeed, previousOffset);
+
+  if (warning === previousWarning && pool.length > 1) {
+    const currentIndex = pool.indexOf(warning);
+    const step = 1 + (Math.abs(seed) % (pool.length - 1));
+    warning = pool[(currentIndex + step) % pool.length];
+    if (warning === previousWarning) {
+      warning = pool[(currentIndex + 1) % pool.length];
+    }
+  }
+
+  return warning;
+}
+
+function getSolarTermKey(solarTerm: string | undefined): string | undefined {
+  return solarTerm?.split(' · ')[0];
+}
+
+function pickContextAction(almanac: { goodFor: string[]; solarTerm: string | undefined }, seed: number, date: Date): string {
+  const solarTermKey = getSolarTermKey(almanac.solarTerm);
+  const solarTermActions = solarTermKey ? actionsBySolarTerm[solarTermKey] : undefined;
+  const almanacActions = almanac.goodFor.flatMap((item) => actionsByAlmanacGoodFor[item] ?? []);
+  const pool = solarTermActions?.length ? solarTermActions : [...almanacActions, ...actions];
+
+  return pickFromArrayWithSeed(pool, seed, 13 + date.getDay() * 97 + (solarTermKey?.length ?? 0));
 }
 
 const fortuneQuotes = [
@@ -1011,6 +1222,7 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
     moonPhase,
     moonMessage: moonPhaseMessages[moonPhase],
     chineseZodiac,
+    zodiacElement,
     westernZodiac: profile.westernZodiac,
     zodiacInsight: getChineseZodiacDailyInsight(chineseZodiac, seed + day),
     // Offset by a large prime so western and chinese insights diverge independently
@@ -1039,8 +1251,8 @@ export function generateDailyReading(profile: Profile, date = new Date()): Daily
       { Health: healthByElement[zodiacElement] ?? healthReadings },
       healthByElement[zodiacElement] ?? healthReadings,
     ),
-    warning: pickFromArrayWithSeed(warnings, seed, 12),
-    action: pickFromArrayWithSeed(actions, seed, 13),
+    warning: pickContextWarning(profile, date, seed, zodiacElement, moonPhase, almanac.avoid),
+    action: pickContextAction(almanac, seed, date),
     scoreReason: buildScoreReason(moonPhase, moonBonus, almanacBonus, zodiacElement ?? 'Wood'),
     scoreBase: baseScore,
     scoreMoonBonus: moonBonus,

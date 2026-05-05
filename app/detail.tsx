@@ -158,6 +158,9 @@ export default function DetailScreen() {
           </View>
         </View>
       </View>
+      <Text style={styles.influenceExplanation}>
+        {getInfluenceExplanation(reading)}
+      </Text>
 
       {/* ── Action hero — the #1 thing to do today ── */}
       <Card style={styles.actionCard}>
@@ -331,6 +334,41 @@ function getMoonChipEmoji(moonPhase: string): string {
   return map[moonPhase] ?? '🌙';
 }
 
+function getInfluenceExplanation(reading: DailyReading): string {
+  const zodiacTone: Record<string, string> = {
+    Rat: 'quick timing, resourcefulness, and spotting the useful opening',
+    Ox: 'steady effort, patience, and doing the practical thing well',
+    Tiger: 'bold movement, courage, and protecting your momentum',
+    Rabbit: 'soft influence, diplomacy, and choosing the graceful route',
+    Dragon: 'big vision, confidence, and stepping into visible energy',
+    Snake: 'intuition, strategy, and waiting until the signal is clear',
+    Horse: 'movement, direct action, and saying yes to the right invitation',
+    Goat: 'care, creativity, and making the day feel more peaceful',
+    Monkey: 'clever pivots, curiosity, and finding the hidden shortcut',
+    Rooster: 'precision, polish, and making the details work in your favor',
+    Dog: 'loyalty, protection, and trusting what feels honest',
+    Pig: 'warmth, generosity, and receiving what arrives easily',
+  };
+
+  const elementTone: Record<string, string> = {
+    Fire: 'Fire adds spark and momentum',
+    Water: 'Water adds intuition and flow',
+    Earth: 'Earth adds steadiness and practical grounding',
+    Wood: 'Wood adds growth and patient forward motion',
+    Metal: 'Metal adds clarity and discernment',
+  };
+
+  const zodiac = zodiacTone[reading.chineseZodiac] ?? 'your natural timing and instincts';
+  const element = elementTone[reading.zodiacElement] ?? 'your element shapes the day gently';
+  const almanac = reading.solarTerm
+    ? `${reading.solarTerm} gives the day a seasonal rhythm`
+    : reading.goodFor.length > 0
+      ? `the almanac favors ${reading.goodFor[0].toLowerCase()}`
+      : 'the almanac favors a quieter pace';
+
+  return `${reading.chineseZodiac} energy favors ${zodiac} today. ${element}, while ${reading.moonPhase} and ${almanac}.`;
+}
+
 function shareReading(reading: DailyReading) {
   Share.share({
     message: [
@@ -402,13 +440,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     lineHeight: 34,
     marginTop: spacing.sm,
-  },
-  scoreReason: {
-    color: colors.muted,
-    fontSize: 13,
-    fontWeight: '600',
-    lineHeight: 18,
-    marginTop: spacing.xs,
   },
   pillsRow: {
     flexDirection: 'row',
@@ -552,6 +583,14 @@ const styles = StyleSheet.create({
   },
   breakdownNeutral: {
     color: colors.faint,
+  },
+  influenceExplanation: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+    marginTop: -spacing.xs,
+    paddingHorizontal: spacing.xs,
   },
   // Action hero card
   actionCard: {

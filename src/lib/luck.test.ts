@@ -115,6 +115,7 @@ describe('luck helpers', () => {
     expect(reading.moonPhase).toBeTruthy();
     expect(reading.moonMessage).toBeTruthy();
     expect(reading.chineseZodiac).toBe('Rat');
+    expect(reading.zodiacElement).toBe('Fire');
     expect(reading.westernZodiac).toBe('Aries');
     expect(typeof reading.westernZodiacInsight).toBe('string');
     expect(reading.westernZodiacInsight.length).toBeGreaterThan(0);
@@ -151,5 +152,21 @@ describe('luck helpers', () => {
     // Score, message, lucky color/number/direction remain personalized by seed
     expect(nokReading.score).not.toBe(maliReading.score);
     expect(nokReading.mainMessage).not.toBe(maliReading.mainMessage);
+  });
+
+  it('avoids repeating the same warning on consecutive days for the same user', () => {
+    for (let day = 1; day < 20; day += 1) {
+      const today = generateDailyReading(baseProfile, new Date(2026, 4, day, 12));
+      const tomorrow = generateDailyReading(baseProfile, new Date(2026, 4, day + 1, 12));
+
+      expect(tomorrow.warning).not.toBe(today.warning);
+    }
+  });
+
+  it('uses solar-term context for seasonal actions', () => {
+    const reading = generateDailyReading(baseProfile, new Date('2026-05-05T12:00:00.000Z'));
+
+    expect(reading.solarTerm).toContain('立夏');
+    expect(reading.action).toMatch(/Start of Summer|sunlight|water|lively/);
   });
 });

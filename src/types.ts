@@ -60,6 +60,7 @@ export type DailyReading = {
   moonPhase: string;
   moonMessage: string;
   chineseZodiac: string;
+  zodiacElement: string;
   westernZodiac: string;
   /** Daily insight from Chinese zodiac animal */
   zodiacInsight: string;
