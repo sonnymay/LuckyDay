@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Share, StyleSheet, Text, View } from 'react-native';
+import { Animated, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 async function triggerShareHaptic() {
   if (Platform.OS === 'web') return;
@@ -18,7 +18,7 @@ import { generateDailyReading } from '../src/lib/luck';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
 import { getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
 import { colors, fonts, radii, spacing } from '../src/styles/theme';
-import { DailyReading } from '../src/types';
+import { DailyReading, MainFocus } from '../src/types';
 
 // ── Skeleton helpers (matches home.tsx pattern for consistency) ──────────────
 function SkeletonBlock({ width, height, style }: { width: number | string; height: number; style?: object }) {
@@ -61,6 +61,8 @@ export default function DetailScreen() {
   const [reading, setReading] = useState<DailyReading | null>(null);
   const [yesterdayScore, setYesterdayScore] = useState<number | null>(null);
   const [nickname, setNickname] = useState<string>('');
+  const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
+  const [showAllInsights, setShowAllInsights] = useState(false);
   const [loading, setLoading] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -77,6 +79,8 @@ export default function DetailScreen() {
           return;
         }
         setNickname(profile.nickname ?? '');
+        setMainFocuses(profile.mainFocus?.length ? profile.mainFocus : ['Luck']);
+        setShowAllInsights(false);
         const todayReading = generateDailyReading(profile);
         setReading(todayReading);
 
@@ -100,6 +104,10 @@ export default function DetailScreen() {
     return <DetailSkeleton />;
   }
 
+  const insightRows = getInsightRows(reading, mainFocuses);
+  const visibleInsights = showAllInsights ? insightRows : insightRows.slice(0, 3);
+  const hiddenInsightCount = Math.max(0, insightRows.length - 3);
+
   return (
     <Screen showTabBar>
     <Animated.View style={{ opacity: fadeAnim }}>
@@ -107,6 +115,38 @@ export default function DetailScreen() {
 
       {/* ── Energy score orb — the headline number ── */}
       <EnergyScoreCard label="✨ Today's luck energy" score={reading.score} message={reading.mainMessage} />
+
+      {/* ── Action hero — the #1 thing to do today ── */}
+      <Card style={styles.actionCard}>
+        <Text style={styles.actionLabel}>🍀 Do this today</Text>
+        <Text style={styles.actionText}>{reading.action}</Text>
+      </Card>
+
+      {/* ── Good for / Avoid — immediate dashboard guidance ── */}
+      {(reading.goodFor?.length > 0 || reading.avoid?.length > 0) ? (
+        <View style={styles.pillsRow}>
+          {reading.goodFor?.length > 0 ? (
+            <View style={[styles.pillsGroup, styles.goodGroup]}>
+              <Text style={styles.pillsLabel}>✅ Good for</Text>
+              <View style={styles.pillsWrap}>
+                {reading.goodFor.map((item) => (
+                  <Text key={item} style={styles.goodPill}>{item}</Text>
+                ))}
+              </View>
+            </View>
+          ) : null}
+          {reading.avoid?.length > 0 ? (
+            <View style={[styles.pillsGroup, styles.avoidGroup]}>
+              <Text style={styles.pillsLabel}>⚠️ Avoid</Text>
+              <View style={styles.pillsWrap}>
+                {reading.avoid.map((item) => (
+                  <Text key={item} style={styles.avoidPill}>{item}</Text>
+                ))}
+              </View>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       {/* ── Score scale + yesterday — context for what the number means ── */}
       <View style={styles.scoreContextCard}>
@@ -158,15 +198,6 @@ export default function DetailScreen() {
           </View>
         </View>
       </View>
-      <Text style={styles.influenceExplanation}>
-        {getInfluenceExplanation(reading)}
-      </Text>
-
-      {/* ── Action hero — the #1 thing to do today ── */}
-      <Card style={styles.actionCard}>
-        <Text style={styles.actionLabel}>🍀 Do this today</Text>
-        <Text style={styles.actionText}>{reading.action}</Text>
-      </Card>
 
       {/* ── Date + main message ── */}
       <Card style={styles.top}>
@@ -206,67 +237,28 @@ export default function DetailScreen() {
         </View>
       </View>
 
-      {/* ── Good for / Avoid ── */}
-      {(reading.goodFor?.length > 0 || reading.avoid?.length > 0) ? (
-        <View style={styles.pillsRow}>
-          {reading.goodFor?.length > 0 ? (
-            <View style={[styles.pillsGroup, styles.goodGroup]}>
-              <Text style={styles.pillsLabel}>✅ Good for</Text>
-              <View style={styles.pillsWrap}>
-                {reading.goodFor.map((item) => (
-                  <Text key={item} style={styles.goodPill}>{item}</Text>
-                ))}
-              </View>
-            </View>
-          ) : null}
-          {reading.avoid?.length > 0 ? (
-            <View style={[styles.pillsGroup, styles.avoidGroup]}>
-              <Text style={styles.pillsLabel}>⚠️ Avoid</Text>
-              <View style={styles.pillsWrap}>
-                {reading.avoid.map((item) => (
-                  <Text key={item} style={styles.avoidPill}>{item}</Text>
-                ))}
-              </View>
-            </View>
-          ) : null}
-        </View>
-      ) : null}
-
       {/* ── Full reading breakdown ── */}
       <Card style={styles.stack}>
-        <View style={styles.zodiacRow}>
-          <View style={styles.zodiacHalf}>
-            <SectionRow label="🐲 Chinese zodiac" value={reading.chineseZodiac} />
+        <Text style={styles.deepDiveTitle}>Today's top insights</Text>
+        <Text style={styles.deepDiveCopy}>A quick read first. Open the rest when you want more detail.</Text>
+        {visibleInsights.map((item, index) => (
+          <View key={item.label}>
+            {index > 0 ? <View style={styles.divider} /> : null}
+            <SectionRow label={item.label} value={item.value} />
           </View>
-          <View style={styles.zodiacDivider} />
-          <View style={styles.zodiacHalf}>
-            <SectionRow label="⭐ Western zodiac" value={reading.westernZodiac} />
-          </View>
-        </View>
-        {reading.zodiacInsight ? (
-          <>
-            <View style={styles.divider} />
-            <SectionRow label={`🐲 ${reading.chineseZodiac} insight`} value={reading.zodiacInsight} />
-          </>
+        ))}
+        {hiddenInsightCount > 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={showAllInsights ? 'Show fewer insights' : 'Show more insights'}
+            onPress={() => setShowAllInsights((current) => !current)}
+            style={({ pressed }) => [styles.showMoreButton, pressed && styles.showMoreButtonPressed]}
+          >
+            <Text style={styles.showMoreText}>
+              {showAllInsights ? 'Show less' : `Show ${hiddenInsightCount} more`}
+            </Text>
+          </Pressable>
         ) : null}
-        {reading.westernZodiacInsight ? (
-          <>
-            <View style={styles.divider} />
-            <SectionRow label={`⭐ ${reading.westernZodiac} insight`} value={reading.westernZodiacInsight} />
-          </>
-        ) : null}
-        <View style={styles.divider} />
-        <SectionRow label={`🌙 ${reading.moonPhase}`} value={reading.moonMessage ?? ''} />
-        <View style={styles.divider} />
-        <SectionRow label="💰 Money" value={reading.money} />
-        <View style={styles.divider} />
-        <SectionRow label="💗 Love" value={reading.love} />
-        <View style={styles.divider} />
-        <SectionRow label="📌 Work" value={reading.work} />
-        <View style={styles.divider} />
-        <SectionRow label="🌿 Health" value={reading.health} />
-        <View style={styles.divider} />
-        <SectionRow label="🧿 Warning" value={reading.warning} />
       </Card>
 
       {/* ── Share CTA ── */}
@@ -289,12 +281,12 @@ const SCORE_BANDS = [
 ];
 
 function getScoreContext(score: number): string {
-  if (score >= 90) return `${score} is peak energy — a day to act boldly and initiate.`;
-  if (score >= 82) return `${score} is golden flow — strong momentum, move with confidence.`;
-  if (score >= 70) return `${score} is bright and favorable — good day for forward motion.`;
-  if (score >= 60) return `${score} is steady and workable — stay consistent, avoid rushing.`;
-  if (score >= 55) return `${score} is a protect-and-prepare day — consolidate, don't overreach.`;
-  return `${score} is a rest-and-reset day — pace yourself, conserve energy.`;
+  if (score >= 90) return 'Peak energy today — a day to act boldly and initiate.';
+  if (score >= 82) return 'Peak flow today — strong momentum, move with confidence.';
+  if (score >= 75) return 'Strong energy today — good day for forward motion.';
+  if (score >= 65) return 'Good energy today — choose steady action over rushing.';
+  if (score >= 56) return 'Steady energy today — stay consistent and protect your focus.';
+  return 'Rest energy today — pace yourself and conserve attention.';
 }
 
 function getBaseStrength(base: number): string {
@@ -334,39 +326,37 @@ function getMoonChipEmoji(moonPhase: string): string {
   return map[moonPhase] ?? '🌙';
 }
 
-function getInfluenceExplanation(reading: DailyReading): string {
-  const zodiacTone: Record<string, string> = {
-    Rat: 'quick timing, resourcefulness, and spotting the useful opening',
-    Ox: 'steady effort, patience, and doing the practical thing well',
-    Tiger: 'bold movement, courage, and protecting your momentum',
-    Rabbit: 'soft influence, diplomacy, and choosing the graceful route',
-    Dragon: 'big vision, confidence, and stepping into visible energy',
-    Snake: 'intuition, strategy, and waiting until the signal is clear',
-    Horse: 'movement, direct action, and saying yes to the right invitation',
-    Goat: 'care, creativity, and making the day feel more peaceful',
-    Monkey: 'clever pivots, curiosity, and finding the hidden shortcut',
-    Rooster: 'precision, polish, and making the details work in your favor',
-    Dog: 'loyalty, protection, and trusting what feels honest',
-    Pig: 'warmth, generosity, and receiving what arrives easily',
+type InsightRow = {
+  label: string;
+  value: string;
+};
+
+function getInsightRows(reading: DailyReading, focuses: MainFocus[]): InsightRow[] {
+  const rows: InsightRow[] = [];
+  const addRow = (label: string, value: string | undefined) => {
+    if (!value || rows.some((row) => row.label === label)) return;
+    rows.push({ label, value });
   };
 
-  const elementTone: Record<string, string> = {
-    Fire: 'Fire adds spark and momentum',
-    Water: 'Water adds intuition and flow',
-    Earth: 'Earth adds steadiness and practical grounding',
-    Wood: 'Wood adds growth and patient forward motion',
-    Metal: 'Metal adds clarity and discernment',
-  };
+  addRow('🧿 Watch for', reading.warning);
 
-  const zodiac = zodiacTone[reading.chineseZodiac] ?? 'your natural timing and instincts';
-  const element = elementTone[reading.zodiacElement] ?? 'your element shapes the day gently';
-  const almanac = reading.solarTerm
-    ? `${reading.solarTerm} gives the day a seasonal rhythm`
-    : reading.goodFor.length > 0
-      ? `the almanac favors ${reading.goodFor[0].toLowerCase()}`
-      : 'the almanac favors a quieter pace';
+  for (const focus of focuses) {
+    if (focus === 'Money') addRow('💰 Money', reading.money);
+    if (focus === 'Love') addRow('💗 Love', reading.love);
+    if (focus === 'Work') addRow('📌 Work', reading.work);
+    if (focus === 'Health') addRow('🌿 Health', reading.health);
+    if (focus === 'Luck') addRow(`🐲 ${reading.chineseZodiac}`, reading.zodiacInsight);
+  }
 
-  return `${reading.chineseZodiac} energy favors ${zodiac} today. ${element}, while ${reading.moonPhase} and ${almanac}.`;
+  addRow(`🐲 ${reading.chineseZodiac}`, reading.zodiacInsight);
+  addRow(`⭐ ${reading.westernZodiac}`, reading.westernZodiacInsight);
+  addRow(`🌙 ${reading.moonPhase}`, reading.moonMessage);
+  addRow('💰 Money', reading.money);
+  addRow('💗 Love', reading.love);
+  addRow('📌 Work', reading.work);
+  addRow('🌿 Health', reading.health);
+
+  return rows;
 }
 
 function shareReading(reading: DailyReading) {
@@ -584,14 +574,6 @@ const styles = StyleSheet.create({
   breakdownNeutral: {
     color: colors.faint,
   },
-  influenceExplanation: {
-    color: colors.muted,
-    fontSize: 13,
-    fontWeight: '700',
-    lineHeight: 19,
-    marginTop: -spacing.xs,
-    paddingHorizontal: spacing.xs,
-  },
   // Action hero card
   actionCard: {
     backgroundColor: colors.mauve,
@@ -691,22 +673,40 @@ const styles = StyleSheet.create({
   stack: {
     gap: 0,
   },
-  zodiacRow: {
-    flexDirection: 'row',
-    gap: 0,
+  deepDiveTitle: {
+    color: colors.mauve,
+    fontSize: 18,
+    fontWeight: '900',
   },
-  zodiacHalf: {
-    flex: 1,
-  },
-  zodiacDivider: {
-    backgroundColor: colors.line,
-    marginHorizontal: spacing.md,
-    width: 1,
+  deepDiveCopy: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 19,
+    marginTop: spacing.xs,
   },
   divider: {
     backgroundColor: colors.line,
     height: 1,
     marginVertical: spacing.md,
+  },
+  showMoreButton: {
+    alignItems: 'center',
+    backgroundColor: colors.panel,
+    borderColor: colors.line,
+    borderRadius: radii.pill,
+    borderWidth: 1.5,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  showMoreButtonPressed: {
+    backgroundColor: colors.champagne,
+  },
+  showMoreText: {
+    color: colors.mauve,
+    fontSize: 14,
+    fontWeight: '900',
   },
   // Time + direction quick cards
   timeQuickCard: {

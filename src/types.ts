@@ -83,11 +83,13 @@ export type DailyReading = {
 };
 
 export type FeedbackRating = 'Yes' | 'Somewhat' | 'No';
+export type PredictionMatch = 'better' | 'aboutRight' | 'worse';
 
 export type Feedback = {
   id: string;
   date: string;
   rating: FeedbackRating;
+  predictionMatch?: PredictionMatch;
   overallDay?: number;
   bestTimeAccurate?: boolean;
   warningRelevant?: boolean;

@@ -6,9 +6,10 @@ import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
 import { Screen } from '../src/components/Screen';
 import { todayKey } from '../src/lib/date';
-import { getFeedbackForDate, getStoredProfile, saveFeedback } from '../src/lib/storage';
+import { generateDailyReading } from '../src/lib/luck';
+import { getFeedbackForDate, getStoredProfile, getStoredReadingHistory, getStoredFeedback, saveFeedback } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
-import { FeedbackRating } from '../src/types';
+import { DailyReading, FeedbackRating, PredictionMatch } from '../src/types';
 
 const dayRatings = [1, 2, 3, 4, 5];
 const tagOptions = ['Money', 'Love', 'Work', 'Health', 'Stress', 'Good luck', 'Bad luck', 'Surprise'];
@@ -32,6 +33,8 @@ async function triggerSuccessHaptic() {
 export default function FeedbackScreen() {
   const params = useLocalSearchParams<{ date?: string }>();
   const date = typeof params.date === 'string' ? params.date : todayKey();
+  const [reading, setReading] = useState<DailyReading | null>(null);
+  const [predictionMatch, setPredictionMatch] = useState<PredictionMatch | null>(null);
   const [overallDay, setOverallDay] = useState<number | null>(null);
   const [bestTimeAccurate, setBestTimeAccurate] = useState<boolean | null>(null);
   const [warningRelevant, setWarningRelevant] = useState<boolean | null>(null);
@@ -39,16 +42,24 @@ export default function FeedbackScreen() {
   const [note, setNote] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
+  const [savedMessage, setSavedMessage] = useState('');
   const savedAnim = useRef(new Animated.Value(0)).current;
 
   useFocusEffect(
     useCallback(() => {
       getStoredProfile().then((profile) => {
         if (!profile) router.replace('/');
+        if (!profile) return;
+
+        getStoredReadingHistory().then((items) => {
+          const storedReading = items.find((item) => item.date === date);
+          setReading(storedReading ?? generateDailyReading(profile, new Date(`${date}T12:00:00`)));
+        });
       });
 
       getFeedbackForDate(date).then((feedback) => {
         if (feedback) {
+          setPredictionMatch(feedback.predictionMatch ?? null);
           setOverallDay(feedback.overallDay ?? ratingToDayScore(feedback.rating));
           setBestTimeAccurate(feedback.bestTimeAccurate ?? null);
           setWarningRelevant(feedback.warningRelevant ?? null);
@@ -66,13 +77,16 @@ export default function FeedbackScreen() {
   }
 
   async function submit() {
-    if (!overallDay) return;
+    if (!predictionMatch && !overallDay) return;
+
+    const finalOverallDay = overallDay ?? predictionMatchToDayScore(predictionMatch);
 
     await saveFeedback({
       id: `${date}-${Date.now()}`,
       date,
-      rating: dayScoreToRating(overallDay),
-      overallDay,
+      rating: dayScoreToRating(finalOverallDay),
+      predictionMatch: predictionMatch ?? undefined,
+      overallDay: finalOverallDay,
       bestTimeAccurate: bestTimeAccurate ?? undefined,
       warningRelevant: warningRelevant ?? undefined,
       actionHelpful: actionHelpful ?? undefined,
@@ -81,6 +95,8 @@ export default function FeedbackScreen() {
       createdAt: new Date().toISOString(),
     });
 
+    const allFeedback = await getStoredFeedback();
+    setSavedMessage(buildSavedMessage(allFeedback));
     triggerSuccessHaptic();
     setSaved(true);
     Animated.timing(savedAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
@@ -95,7 +111,7 @@ export default function FeedbackScreen() {
         <Animated.View style={[styles.savedContainer, { opacity: savedAnim }]}>
           <Text style={styles.savedEmoji}>✨</Text>
           <Text style={styles.savedTitle}>Reflection saved</Text>
-          <Text style={styles.savedCopy}>Your journal is building a clearer pattern.</Text>
+          <Text style={styles.savedCopy}>{savedMessage}</Text>
         </Animated.View>
       </SafeAreaView>
     );
@@ -105,8 +121,28 @@ export default function FeedbackScreen() {
     <Screen>
       <Card style={styles.headerCard}>
         <Text style={styles.dateLabel}>{formatReflectionDate(date)}</Text>
-        <Text style={styles.title}>How did the day actually feel?</Text>
-        <Text style={styles.subtitle}>A quick reflection helps compare the reading with real life.</Text>
+        <Text style={styles.predictedLine}>We predicted: {reading ? `${reading.score} · ${getScoreBand(reading.score)}` : 'Today’s luck'}</Text>
+        <Text style={styles.title}>How did your day feel?</Text>
+        <View style={styles.matchButtons}>
+          {([
+            ['better', 'Better than predicted'],
+            ['aboutRight', 'About right'],
+            ['worse', 'Worse than predicted'],
+          ] as const).map(([value, label]) => (
+            <Pressable
+              key={value}
+              onPress={() => { triggerSelectionHaptic(); setPredictionMatch(value); }}
+              style={[styles.matchButton, predictionMatch === value && styles.selectedMatchButton]}
+            >
+              <Text style={[styles.matchButtonText, predictionMatch === value && styles.selectedMatchButtonText]}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </Card>
+
+      <Card>
+        <Text style={styles.label}>Optional detail</Text>
+        <Text style={styles.optionalHint}>Only add this when it feels useful.</Text>
         <View style={styles.dayRatingRow}>
           {dayRatings.map((item) => (
             <Pressable
@@ -119,10 +155,7 @@ export default function FeedbackScreen() {
           ))}
         </View>
         <Text style={styles.scaleHint}>1 was heavy. 5 was unusually good.</Text>
-      </Card>
-
-      <Card>
-        <Text style={styles.label}>Prediction vs. reality</Text>
+        <View style={styles.optionalDivider} />
         <ReflectionToggle label="Best time felt accurate" value={bestTimeAccurate} onChange={setBestTimeAccurate} />
         <ReflectionToggle label="Warning felt relevant" value={warningRelevant} onChange={setWarningRelevant} />
         <ReflectionToggle label="Do This Today helped" value={actionHelpful} onChange={setActionHelpful} />
@@ -151,7 +184,7 @@ export default function FeedbackScreen() {
         />
       </Card>
 
-      <AppButton label="Save reflection" onPress={submit} variant={overallDay ? 'primary' : 'secondary'} />
+      <AppButton label="Save reflection" onPress={submit} variant={predictionMatch || overallDay ? 'primary' : 'secondary'} />
     </Screen>
   );
 }
@@ -192,6 +225,12 @@ function dayScoreToRating(score: number): FeedbackRating {
   return 'No';
 }
 
+function predictionMatchToDayScore(value: PredictionMatch | null): number {
+  if (value === 'better') return 5;
+  if (value === 'aboutRight') return 3;
+  return 2;
+}
+
 function ratingToDayScore(value: FeedbackRating): number {
   if (value === 'Yes') return 5;
   if (value === 'Somewhat') return 3;
@@ -202,6 +241,26 @@ function formatReflectionDate(value: string) {
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+}
+
+function getScoreBand(score: number) {
+  if (score >= 85) return 'Peak';
+  if (score >= 75) return 'Strong';
+  if (score >= 65) return 'Good';
+  if (score >= 56) return 'Steady';
+  return 'Rest';
+}
+
+function buildSavedMessage(feedback: Array<{ predictionMatch?: PredictionMatch }>) {
+  const reflected = feedback.filter((item) => item.predictionMatch);
+  const recent = reflected.slice(0, 7);
+  const matches = recent.filter((item) => item.predictionMatch === 'aboutRight').length;
+
+  if (recent.length >= 3) {
+    return `Your readings matched your reality ${matches} of the last ${recent.length} days.`;
+  }
+
+  return `Logged. After 3 days, LuckyDay can start showing your personal accuracy pattern.`;
 }
 
 const styles = StyleSheet.create({
@@ -268,6 +327,13 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '900',
   },
+  predictedLine: {
+    color: colors.goldDeep,
+    fontSize: 15,
+    fontWeight: '900',
+    lineHeight: 21,
+    marginBottom: spacing.sm,
+  },
   subtitle: {
     color: colors.muted,
     fontSize: 15,
@@ -278,6 +344,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     marginTop: spacing.md,
+  },
+  matchButtons: {
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  matchButton: {
+    backgroundColor: colors.panel,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  selectedMatchButton: {
+    backgroundColor: colors.mauve,
+    borderColor: colors.mauve,
+  },
+  matchButtonText: {
+    color: colors.ink,
+    fontSize: 16,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  selectedMatchButtonText: {
+    color: colors.white,
+  },
+  optionalHint: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+    marginTop: spacing.xs,
+  },
+  optionalDivider: {
+    backgroundColor: colors.line,
+    height: 1,
+    marginVertical: spacing.md,
   },
   dayRating: {
     alignItems: 'center',

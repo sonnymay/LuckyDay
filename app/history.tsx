@@ -72,14 +72,46 @@ function computeAccuracySummary(history: DailyReading[], feedback: Feedback[]) {
 
   const goodDayCount = reflectedDays.filter((item) => (item.feedback.overallDay ?? ratingToDayScore(item.feedback.rating)) >= 4).length;
   const strongPeakGoodCount = reflectedDays.filter((item) => item.reading.score >= 75 && (item.feedback.overallDay ?? ratingToDayScore(item.feedback.rating)) >= 4).length;
+  const predictionAnswered = reflectedDays.filter((item) => item.feedback.predictionMatch);
+  const predictionMatched = predictionAnswered.filter((item) => item.feedback.predictionMatch === 'aboutRight').length;
 
   return {
     reflectedDays: reflectedDays.length,
+    predictionDays: predictionAnswered.length,
+    predictionMatched,
+    matchLine: predictionAnswered.length > 0
+      ? `Last 7 days: readings matched your reality ${predictionMatched}/${predictionAnswered.length} reflected days`
+      : 'Reflect after readings to reveal your match pattern.',
+    reasonTag: buildMatchTag(predictionAnswered[0]),
     strongPeakMatched: formatCount(strongPeakGoodCount, goodDayCount),
     bestTimeAccurate: formatBooleanCount(reflectedDays.map((item) => item.feedback.bestTimeAccurate)),
     warningRelevant: formatBooleanCount(reflectedDays.map((item) => item.feedback.warningRelevant)),
     actionHelpful: formatBooleanCount(reflectedDays.map((item) => item.feedback.actionHelpful)),
   };
+}
+
+function buildMatchTag(item: { reading: DailyReading; feedback: Feedback } | undefined) {
+  if (!item?.feedback.predictionMatch) return null;
+
+  const dayScore = item.feedback.overallDay ?? ratingToDayScore(item.feedback.rating);
+
+  if (item.feedback.predictionMatch === 'aboutRight') {
+    if (item.reading.score >= 75 && dayScore >= 4) return 'Match: Strong score + good day';
+    if (item.reading.goodFor.length >= 2) return 'Match: Almanac favorable';
+    return 'Match: Day felt close to the reading';
+  }
+
+  if (item.feedback.predictionMatch === 'better' && item.reading.score < 75 && dayScore >= 4) {
+    return 'Mismatch: Softer score, but day felt good';
+  }
+
+  if (item.feedback.predictionMatch === 'worse' && item.reading.score >= 75) {
+    return 'Mismatch: Strong score, but day felt harder';
+  }
+
+  return item.feedback.predictionMatch === 'better'
+    ? 'Mismatch: Day felt better than predicted'
+    : 'Mismatch: Day felt harder than predicted';
 }
 
 function formatBooleanCount(values: Array<boolean | undefined>) {
@@ -277,8 +309,9 @@ function AccuracySummaryCard({ summary }: { summary: ReturnType<typeof computeAc
         <View>
           <Text style={styles.accuracyTitle}>Prediction vs. reality</Text>
           <Text style={styles.accuracyCopy}>
-            {summary.reflectedDays > 0 ? `Last ${summary.reflectedDays} reflected ${summary.reflectedDays === 1 ? 'day' : 'days'}` : 'Reflect after readings to reveal patterns.'}
+            {summary.matchLine}
           </Text>
+          {summary.reasonTag ? <Text style={styles.reasonTag}>{summary.reasonTag}</Text> : null}
         </View>
         <Pressable
           accessibilityRole="button"
@@ -290,6 +323,7 @@ function AccuracySummaryCard({ summary }: { summary: ReturnType<typeof computeAc
         </Pressable>
       </View>
       <View style={styles.accuracyRows}>
+        <AccuracyRow label="Reading felt about right" value={formatCount(summary.predictionMatched, summary.predictionDays)} />
         <AccuracyRow label="Strong/Peak matched good days" value={summary.strongPeakMatched} />
         <AccuracyRow label="Best time felt accurate" value={summary.bestTimeAccurate} />
         <AccuracyRow label="Warning felt useful" value={summary.warningRelevant} />
@@ -564,6 +598,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 18,
     marginTop: 2,
+  },
+  reasonTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    color: colors.goldDeep,
+    fontSize: 12,
+    fontWeight: '900',
+    marginTop: spacing.sm,
+    overflow: 'hidden',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
   },
   reflectMiniButton: {
     backgroundColor: colors.mauve,

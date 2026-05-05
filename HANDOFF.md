@@ -125,19 +125,20 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 - Page title changed from `"Today's Reading ✨"` → `"${nickname}'s luck today ✨"` (falls back to generic if no nickname)
 - **Score section order (top to bottom):**
   1. `EnergyScoreCard` — animated orb, score number, mood label, main message
-  2. Score context card — 5-band scale bar + plain-English sentence + yesterday delta
-  3. Three qualitative influence chips — zodiac/moon/almanac, no raw numbers
-  4. Action hero card — dark mauve, "🍀 Do this today" + action text
-  5. Date/lunar date/solar term card + main message (alternate display)
-  6. Lucky color + lucky number quick cards
-  7. Lucky time + direction quick cards
-  8. Good for / Avoid almanac pills
-  9. Full breakdown card (zodiac insights, moon message, money, love, work, health, warning)
+  2. Action hero card — dark mauve, "🍀 Do this today" + action text
+  3. Good for / Avoid almanac pills
+  4. Score context card — 5-band scale bar + band-language sentence + yesterday delta
+  5. Three qualitative influence chips — zodiac/moon/almanac, no raw numbers
+  6. Date/lunar date/solar term card + main message (alternate display)
+  7. Lucky color + lucky number quick cards
+  8. Lucky time + direction quick cards
+  9. Progressive deep-dive card: shows top 3 insights by default, then "Show more" for the rest
   10. Share button
 - Fortune quote card: **removed entirely** (was generic, added no value)
 - `scoreReason`: exists in data but is **intentionally not displayed**
 - Action was **promoted** from bottom of breakdown to hero card near top
-- Added a short qualitative influence explanation below the three influence chips. It explains zodiac, element, moon, and almanac context without exposing raw score arithmetic or score component numbers.
+- Removed the static daily influence explanation from the main screen. Repeated identity-style language like "Metal adds clarity" belongs in profile/context surfaces, not the daily dashboard.
+- Score context copy now uses band language ("Strong energy today", "Peak flow today") instead of number-first wording, so scores do not read like school grades.
 
 ### `src/lib/luck.ts`
 - Added `ZodiacElement` to imports from `./chineseZodiac`
@@ -187,6 +188,7 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 - Added to `DailyReading`: `scoreBase: number`, `scoreMoonBonus: number`, `scoreAlmanacBonus: number`, `scoreReason: string`
 - Added to `DailyReading`: `zodiacElement: string` for qualitative influence-chip explanation copy
 - Expanded `Feedback` into a daily reflection record:
+  - `predictionMatch?: 'better' | 'aboutRight' | 'worse'`
   - `overallDay?: number` (1–5)
   - `bestTimeAccurate?: boolean`
   - `warningRelevant?: boolean`
@@ -205,17 +207,27 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 
 ### `app/feedback.tsx`
 - Reworked from simple Yes/Somewhat/No feedback into a calm daily reflection journal.
-- User can now record:
+- Main action is now 1–2 taps:
+  - Shows the prediction automatically, e.g. `"We predicted: 78 · Strong"`
+  - Asks `"How did your day feel?"`
+  - Primary buttons: `"Better than predicted"`, `"About right"`, `"Worse than predicted"`
+- Detailed fields remain optional and lower priority:
   - Overall day rating from 1–5
   - Whether the best time felt accurate
   - Whether the warning felt relevant
   - Whether "Do This Today" helped
   - Optional tags and a short note
+- Save payoff now says either:
+  - `"Logged. After 3 days, LuckyDay can start showing your personal accuracy pattern."`
+  - Or, after enough reflected days: `"Your readings matched your reality X of the last Y days."`
 - Supports editing a specific date via `?date=YYYY-MM-DD`, used by History cards.
 
 ### `app/history.tsx`
 - History now loads stored feedback alongside reading history.
-- Added a "Prediction vs. reality" summary for recent reflected days:
+- Added a clearer "Prediction vs. reality" summary for recent reflected days:
+  - `"Last 7 days: readings matched your reality X/Y reflected days"`
+  - Qualitative reason tag when possible, e.g. `"Match: Almanac favorable"` or `"Mismatch: Strong score, but day felt harder"`
+  - Reading felt about right
   - Strong/Peak matched good days
   - Best time felt accurate
   - Warning felt useful
@@ -237,6 +249,7 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 ### `src/lib/notifications.ts` (changed in earlier session)
 - All notification titles and bodies rewritten with curiosity-driven copy
 - 10 title variants, 15 body variants
+- Push notification support already exists for the user-configured daily reminder. Evening PvR reminders around 8 PM are **not** added yet because they need a separate stored notification id, settings/permission behavior, and opt-in copy to avoid surprising users.
 
 ### `app/paywall.tsx` (changed in earlier session)
 - `FEATURES` array updated to concrete daily-use benefits (not abstract premium language)
@@ -261,6 +274,9 @@ After ~20 days, zodiac insight repeats will start. After ~60 days, some mainMess
 
 ### RevenueCat key is a placeholder
 `src/lib/purchases.ts` has a hardcoded dev/test key. Must be replaced with real production key from RevenueCat dashboard before any EAS production build.
+
+### Evening reflection reminder not yet implemented
+Push notifications are already available for the morning reminder, but a separate 8 PM "How was your luck today?" reflection reminder should be added deliberately with its own storage key, cancellation behavior, settings copy, and opt-in/permission handling.
 
 ---
 
