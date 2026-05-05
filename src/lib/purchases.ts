@@ -19,8 +19,8 @@
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 /**
- * Replace with your RevenueCat iOS public API key.
- * Found at: revenuecat.com → Your App → API Keys → Public app-specific key
+ * RevenueCat iOS public API key.
+ * Before release, verify this matches the production RevenueCat app.
  */
 const REVENUE_CAT_API_KEY: string = 'appl_NGvyaLeLFXBfpaNUVjaKDGvgSo';
 

@@ -107,6 +107,7 @@ export default function DetailScreen() {
   const insightRows = getInsightRows(reading, mainFocuses);
   const visibleInsights = showAllInsights ? insightRows : insightRows.slice(0, 3);
   const hiddenInsightCount = Math.max(0, insightRows.length - 3);
+  const actionSentence = getActionSentence(reading.action);
 
   return (
     <Screen showTabBar>
@@ -119,32 +120,44 @@ export default function DetailScreen() {
       {/* ── Action hero — the #1 thing to do today ── */}
       <Card style={styles.actionCard}>
         <Text style={styles.actionLabel}>🍀 Do this today</Text>
-        <Text style={styles.actionText}>{reading.action}</Text>
+        <Text style={styles.actionText}>{actionSentence}</Text>
+      </Card>
+
+      {/* ── Best time — strong daily hook ── */}
+      <Card style={styles.bestTimeCard}>
+        <Text style={styles.bestTimeLabel}>⏰ Best time</Text>
+        <Text style={styles.bestTimeValue}>{reading.luckyTime}</Text>
+        <Text style={styles.bestTimeCopy}>Use this window for your most important small move.</Text>
       </Card>
 
       {/* ── Good for / Avoid — immediate dashboard guidance ── */}
       {(reading.goodFor?.length > 0 || reading.avoid?.length > 0) ? (
-        <View style={styles.pillsRow}>
-          {reading.goodFor?.length > 0 ? (
-            <View style={[styles.pillsGroup, styles.goodGroup]}>
-              <Text style={styles.pillsLabel}>✅ Good for</Text>
-              <View style={styles.pillsWrap}>
-                {reading.goodFor.map((item) => (
-                  <Text key={item} style={styles.goodPill}>{item}</Text>
-                ))}
+        <View style={styles.almanacBlock}>
+          <Text style={styles.almanacSubtitle}>
+            Based on the Chinese lunar calendar, moon phase, and 24 solar terms.
+          </Text>
+          <View style={styles.pillsRow}>
+            {reading.goodFor?.length > 0 ? (
+              <View style={[styles.pillsGroup, styles.goodGroup]}>
+                <Text style={styles.pillsLabel}>✅ Good for</Text>
+                <View style={styles.pillsWrap}>
+                  {reading.goodFor.map((item) => (
+                    <Text key={item} style={styles.goodPill}>{item}</Text>
+                  ))}
+                </View>
               </View>
-            </View>
-          ) : null}
-          {reading.avoid?.length > 0 ? (
-            <View style={[styles.pillsGroup, styles.avoidGroup]}>
-              <Text style={styles.pillsLabel}>⚠️ Avoid</Text>
-              <View style={styles.pillsWrap}>
-                {reading.avoid.map((item) => (
-                  <Text key={item} style={styles.avoidPill}>{item}</Text>
-                ))}
+            ) : null}
+            {reading.avoid?.length > 0 ? (
+              <View style={[styles.pillsGroup, styles.avoidGroup]}>
+                <Text style={styles.pillsLabel}>⚠️ Avoid</Text>
+                <View style={styles.pillsWrap}>
+                  {reading.avoid.map((item) => (
+                    <Text key={item} style={styles.avoidPill}>{item}</Text>
+                  ))}
+                </View>
               </View>
-            </View>
-          ) : null}
+            ) : null}
+          </View>
         </View>
       ) : null}
 
@@ -202,13 +215,11 @@ export default function DetailScreen() {
       {/* ── Date + main message ── */}
       <Card style={styles.top}>
         <View style={styles.dateRow}>
-          <Text style={styles.date}>✨ {reading.date}</Text>
-          {reading.lunarDate ? <Text style={styles.lunarDate}>🌙 {reading.lunarDate}</Text> : null}
+          <Text style={styles.date}>✨ {formatReadingDate(reading)}</Text>
         </View>
         {reading.solarTerm ? (
           <Text style={styles.solarTerm}>{reading.solarTerm}</Text>
         ) : null}
-        <Text style={styles.title}>{reading.mainMessage}</Text>
       </Card>
 
       {/* ── Lucky metrics at a glance ── */}
@@ -227,10 +238,6 @@ export default function DetailScreen() {
         </View>
       </View>
       <View style={styles.quickRow}>
-        <View style={[styles.quickCard, styles.timeQuickCard, { flex: 1 }]}>
-          <Text style={styles.quickLabel}>Best time</Text>
-          <Text style={styles.quickValue}>{reading.luckyTime}</Text>
-        </View>
         <View style={[styles.quickCard, styles.directionQuickCard, { flex: 1 }]}>
           <Text style={styles.quickLabel}>Direction</Text>
           <Text style={styles.quickValue}>{reading.luckyDirection}</Text>
@@ -287,6 +294,12 @@ function getScoreContext(score: number): string {
   if (score >= 65) return 'Good energy today — choose steady action over rushing.';
   if (score >= 56) return 'Steady energy today — stay consistent and protect your focus.';
   return 'Rest energy today — pace yourself and conserve attention.';
+}
+
+function getActionSentence(action: string): string {
+  const sentence = action.match(/^.*?[.!?](?:\s|$)/)?.[0]?.trim() ?? action.trim();
+  if (sentence.length <= 120) return sentence;
+  return `${sentence.slice(0, 117).trim()}...`;
 }
 
 function getBaseStrength(base: number): string {
@@ -374,6 +387,16 @@ function shareReading(reading: DailyReading) {
   });
 }
 
+function formatReadingDate(reading: DailyReading): string {
+  const date = new Date(`${reading.date}T00:00:00`);
+  const displayDate = Number.isNaN(date.getTime())
+    ? reading.date
+    : date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+  const solarTermName = reading.solarTerm?.split(' · ')[0];
+
+  return [displayDate, reading.lunarDate, solarTermName].filter(Boolean).join(' · ');
+}
+
 const styles = StyleSheet.create({
   skeletonScreen: {
     backgroundColor: colors.background,
@@ -430,6 +453,15 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     lineHeight: 34,
     marginTop: spacing.sm,
+  },
+  almanacBlock: {
+    gap: spacing.sm,
+  },
+  almanacSubtitle: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
   },
   pillsRow: {
     flexDirection: 'row',
@@ -598,6 +630,34 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     lineHeight: 26,
   },
+  bestTimeCard: {
+    alignItems: 'center',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderWidth: 2,
+    gap: spacing.xs,
+  },
+  bestTimeLabel: {
+    color: colors.goldDeep,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  bestTimeValue: {
+    color: colors.ink,
+    fontSize: 28,
+    fontWeight: '900',
+    lineHeight: 34,
+    textAlign: 'center',
+  },
+  bestTimeCopy: {
+    color: colors.goldDeep,
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+    textAlign: 'center',
+  },
   // Lucky color + number quick row
   quickRow: {
     flexDirection: 'row',
@@ -708,13 +768,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '900',
   },
-  // Time + direction quick cards
-  timeQuickCard: {
-    backgroundColor: colors.lavender,
-    borderColor: '#C8BFEE',
-    flexDirection: 'column',
-    gap: 4,
-  },
+  // Direction quick card
   directionQuickCard: {
     backgroundColor: colors.champagne,
     borderColor: colors.luckyGold,

@@ -12,7 +12,7 @@ import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
 import { createProfile } from '../src/lib/luck';
 import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
-import { getHasSeenPaywall, saveStoredProfile, setHasSeenPaywall } from '../src/lib/storage';
+import { saveStoredProfile } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
 import { MainFocus } from '../src/types';
 
@@ -165,6 +165,14 @@ export default function OnboardingScreen() {
         <Text style={styles.copy}>
           {getStepCopy(step)}
         </Text>
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel="Read Privacy Policy"
+          onPress={() => router.push('/privacy')}
+          style={({ pressed }) => [styles.privacyLink, pressed && { opacity: 0.65 }]}
+        >
+          <Text style={styles.privacyLinkText}>Privacy Policy</Text>
+        </Pressable>
       </Card>
 
       {step === 1 ? <View style={styles.form}>
@@ -380,6 +388,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     marginTop: spacing.sm,
+  },
+  privacyLink: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.md,
+  },
+  privacyLinkText: {
+    color: colors.champagne,
+    fontSize: 14,
+    fontWeight: '900',
+    textDecorationLine: 'underline',
   },
   form: {
     gap: spacing.md,

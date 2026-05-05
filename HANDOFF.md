@@ -8,10 +8,13 @@
 
 ## 1. Current App Status
 
-Feature-complete and working as an offline daily luck reader. **Not yet submitted** to the App Store. Still required before release:
+Feature-complete. **First submission was rejected (Guideline 2.1a — App Completeness)** due to a launch crash on iPad Air 11-inch (M3) running iPadOS 26.4.2. The crash has been diagnosed and fixed (see Section 4a below). A new EAS build is required before resubmitting.
 
-- [ ] Replace RevenueCat placeholder key with real production key (`src/lib/purchases.ts`)
-- [ ] EAS build (`eas build --platform ios --profile production`)
+Pre-release checklist:
+
+- [x] App Store crash fixed — `newArchEnabled` set to `false` in `app.json`
+- [ ] New EAS production build (`eas build --platform ios --profile production`)
+- [ ] Verify RevenueCat production app key, offerings, packages, and entitlement in the RevenueCat dashboard
 - [ ] TestFlight upload and internal testing pass
 - [ ] App Store screenshots (shot list in `APP_STORE_COPY.md`)
 - [ ] App Store Connect listing (copy in `APP_STORE_COPY.md`)
@@ -66,7 +69,8 @@ src/lib/
   storage.ts         AsyncStorage CRUD: profile, reading history, feedback, streak.
 
   purchases.ts       RevenueCat wrapper: initPurchases(), checkPremium(),
-                     purchasePackage(), getOfferings(). KEY IS PLACEHOLDER.
+                     purchasePackage(), getOfferings(). Production-looking
+                     iOS public key is present; verify dashboard config before release.
 
   notifications.ts   expo-notifications daily reminder management.
 
@@ -125,20 +129,23 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 - Page title changed from `"Today's Reading ✨"` → `"${nickname}'s luck today ✨"` (falls back to generic if no nickname)
 - **Score section order (top to bottom):**
   1. `EnergyScoreCard` — animated orb, score number, mood label, main message
-  2. Action hero card — dark mauve, "🍀 Do this today" + action text
-  3. Good for / Avoid almanac pills
-  4. Score context card — 5-band scale bar + band-language sentence + yesterday delta
-  5. Three qualitative influence chips — zodiac/moon/almanac, no raw numbers
-  6. Date/lunar date/solar term card + main message (alternate display)
-  7. Lucky color + lucky number quick cards
-  8. Lucky time + direction quick cards
-  9. Progressive deep-dive card: shows top 3 insights by default, then "Show more" for the rest
-  10. Share button
+  2. Action hero card — dark mauve, "🍀 Do this today" + one clear sentence
+  3. Best Time card — prominent near the top as the daily quick-use hook
+  4. Good for / Avoid almanac pills with qualitative trust subtitle
+  5. Score context card — 5-band scale bar + band-language sentence + yesterday delta
+  6. Three qualitative influence chips — zodiac/moon/almanac, no raw numbers
+  7. Date/lunar date/solar term card + main message (alternate display)
+  8. Lucky color + lucky number quick cards
+  9. Direction quick card
+  10. Progressive deep-dive card: shows top 3 insights by default, then "Show more" for the rest
+  11. Share button
 - Fortune quote card: **removed entirely** (was generic, added no value)
 - `scoreReason`: exists in data but is **intentionally not displayed**
 - Action was **promoted** from bottom of breakdown to hero card near top
 - Removed the static daily influence explanation from the main screen. Repeated identity-style language like "Metal adds clarity" belongs in profile/context surfaces, not the daily dashboard.
 - Score context copy now uses band language ("Strong energy today", "Peak flow today") instead of number-first wording, so scores do not read like school grades.
+- Date display now uses a reader-friendly calendar line, e.g. `"May 5, 2026 · 三月十九 · 立夏"`, instead of showing raw ISO-style dates.
+- Removed duplicate display of `reading.mainMessage` from the lower date card. The main message now appears only in the score card, preventing the repeated visible sentence bug.
 
 ### `src/lib/luck.ts`
 - Added `ZodiacElement` to imports from `./chineseZodiac`
@@ -204,6 +211,11 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 ### `app/onboarding.tsx` (changed in earlier session)
 - Post-save now routes to `router.replace('/detail')` (was `/home`)
 - Added step 3 photo trust copy before `ProfilePhotoCapture`: face = "energy field and presence," palm = "life line patterns," handwriting = "intention energy"
+- Privacy Policy link is visible in the onboarding intro card before the app collects birthday, optional birth details, or optional photos. It routes to the in-app `/privacy` screen, which links to the hosted policy at `https://luckyday-privacy.tiiny.site`.
+
+### `app/settings.tsx`
+- Privacy controls now include a visible "Read Privacy Policy" link to `/privacy`.
+- Profile, photo, feedback, and local data controls all remain on-device management actions.
 
 ### `app/feedback.tsx`
 - Reworked from simple Yes/Somewhat/No feedback into a calm daily reflection journal.
@@ -224,6 +236,10 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 
 ### `app/history.tsx`
 - History now loads stored feedback alongside reading history.
+- Day 1 / no-data state now says:
+  - `"Your luck history starts tonight."`
+  - `"Check in after your day to compare prediction vs reality."`
+- Empty-state CTA routes to today's reading instead of leaving History blank.
 - Added a clearer "Prediction vs. reality" summary for recent reflected days:
   - `"Last 7 days: readings matched your reality X/Y reflected days"`
   - Qualitative reason tag when possible, e.g. `"Match: Almanac favorable"` or `"Mismatch: Strong score, but day felt harder"`
@@ -245,6 +261,12 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 
 ### `src/components/TabBar.tsx` (changed in earlier session)
 - Today tab path changed from `/home` → `/detail`
+- Navigation icons use `@expo/vector-icons/Ionicons` for Today, History, and Profile. Web runtime visually renders the icons; Chrome accessibility exposes icon-font private glyph codes, which is expected for icon fonts and not a visible broken-box issue.
+
+### `src/components/PremiumGate.tsx`
+- Removed remaining visible free-trial copy from the locked premium overlay.
+- CTA now says `"Open Premium →"` and supporting copy says `"See App Store pricing before you purchase."`
+- Purchase/trial details remain confined to the paywall where RevenueCat/App Store packages can be shown.
 
 ### `src/lib/notifications.ts` (changed in earlier session)
 - All notification titles and bodies rewritten with curiosity-driven copy
@@ -253,14 +275,43 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 
 ### `app/paywall.tsx` (changed in earlier session)
 - `FEATURES` array updated to concrete daily-use benefits (not abstract premium language)
+- Restore Purchases is visible in the footer and routes through RevenueCat restore.
+- Paywall pricing now only displays App Store / RevenueCat package prices when packages load successfully.
+- Removed hardcoded fallback subscription prices and unverified free-trial promises.
+- Annual package copy now says "best yearly value" instead of an incorrect monthly equivalent.
+
+### `src/lib/purchases.ts`
+- RevenueCat iOS public key is configured in code and no longer labeled as a placeholder.
+- Remaining release check: verify the key, current offering, annual/monthly packages, and `premium` entitlement are all production-ready in RevenueCat before EAS production build.
 
 ### `package.json` / `package-lock.json`
 - Added `@expo/vector-icons` as an explicit Expo dependency so imports in `app/home.tsx`, `app/paywall.tsx`, and `src/components/TabBar.tsx` resolve cleanly in TypeScript.
+
+### `app.json` (changed 2026-05-05)
+- `"newArchEnabled"` changed from `true` → `false`
+- **Why:** App Store review device (iPad Air M3, iPadOS 26.4.2) crashes at launch due to an NSException thrown inside a void TurboModule method during app initialization. With New Architecture enabled, NSExceptions that escape TurboModule void methods propagate through the C++ boundary to `abort()` — JS `try/catch` cannot intercept them. With Old Architecture (bridge mode), exceptions from native modules become JavaScript errors instead of terminating the app.
+- **Which module is crashing:** The crash happens ~72ms after launch on `com.meta.react.turbomodulemanager.queue`. All native modules are compiled into `React.framework`, so the exact module cannot be identified from the crash log without native symbols. Most likely candidate: `SplashScreen.preventAutoHideAsync()` (called at module-load time in `_layout.tsx` before any component mounts) using a UIKit API that changed in iOS 26. `react-native-purchases` is NOT installed, so it is not the cause.
+- **Why not a code-level fix:** Native Obj-C NSExceptions cannot be caught by JS try/catch in the New Architecture. The only JS-level fix would be "don't call the method that throws," but without symbols we can't pinpoint the method. Disabling New Architecture is the correct unblock.
+- **Long-term path:** Once Expo SDK 55+ (or whichever version adds full iOS 26 support) ships and is stable, re-enable New Architecture and verify on iPadOS 26.
 
 ### Verification (2026-05-05)
 - `npm run typecheck` passes (`tsc --noEmit`)
 - `npm test` passes: 2 test files, 18 tests
 - Added tests for consecutive-day warning freshness and solar-term action context.
+- `git diff --check` passes
+- Launch-blocker sweep completed:
+  - Privacy Policy link is visible in onboarding and Settings/Profile.
+  - Privacy Policy URL `https://luckyday-privacy.tiiny.site` returns HTTP 200 and is not a placeholder.
+  - Paywall has visible Restore Purchases.
+  - Paywall does not show fallback/test-only prices when RevenueCat packages fail to load.
+  - RevenueCat key is configured in code; dashboard/package/entitlement verification remains before production build.
+  - App Store subscription/IAP product verification remains a true release checklist item until verified in RevenueCat and App Store Connect.
+  - Main reading quick-use area now prioritizes score, one-sentence action, Best Time, Good For, and Avoid.
+  - History has a friendly Day 1 empty state.
+  - Duplicate visible reading text check fixed the repeated `"Let yourself enjoy today without making it mean anything more."` display.
+  - Date display check fixed raw `YYYY-MM-DD` display on the main reading screen.
+  - Navigation icon check: Today, History, and Profile icons render visually in the running local web app; direct iOS simulator launch was unavailable in this environment because Apple's `simctl` tool is not installed.
+  - "Show more" on the reading screen is a local state expansion with no navigation or reload.
 
 ---
 
@@ -272,8 +323,8 @@ After ~20 days, zodiac insight repeats will start. After ~60 days, some mainMess
 ### Birth time and birthplace: collected, not used
 `profile.birthTime` and `profile.birthplace` are stored but unused in reading calculation. They were collected for future features. Do not remove them from the data model or the onboarding UI. Do not tell users they affect the reading until they actually do.
 
-### RevenueCat key is a placeholder
-`src/lib/purchases.ts` has a hardcoded dev/test key. Must be replaced with real production key from RevenueCat dashboard before any EAS production build.
+### RevenueCat production configuration needs final dashboard verification
+`src/lib/purchases.ts` has a configured iOS public key and the visible paywall no longer shows fallback/test-only pricing. Before any EAS production build, verify in RevenueCat that this key belongs to the production app, the current offering is live, annual/monthly packages are mapped to App Store Connect products, and the `premium` entitlement unlocks correctly.
 
 ### Evening reflection reminder not yet implemented
 Push notifications are already available for the morning reminder, but a separate 8 PM "How was your luck today?" reflection reminder should be added deliberately with its own storage key, cancellation behavior, settings copy, and opt-in/permission handling.
@@ -282,14 +333,20 @@ Push notifications are already available for the morning reminder, but a separat
 
 ## 6. Recommended Next Steps (Priority Order)
 
-**1. App Store screenshots (est. 2–3 hours)**
-Shot list is in `APP_STORE_COPY.md`. Run on simulator at 6.7" (iPhone 15 Pro Max) and 5.5" (iPhone 8 Plus). 6 screenshots total. Use a profile with score 85+ for the hero shot ("Peak energy" band should be highlighted). Frame the first screenshot as the full detail screen with a visually strong reading.
-
-**2. RevenueCat production key + EAS build**
-- Replace key in `src/lib/purchases.ts`
+**1. EAS build with crash fix (do this first)**
+- `app.json` already has `"newArchEnabled": false`
 - `eas build --platform ios --profile production`
 - Upload IPA to App Store Connect
-- Submit for TestFlight → then App Store review
+- Respond to rejection: "We identified a compatibility issue with the New Architecture and iOS 26. We've disabled the New Architecture (using the stable bridge mode) and submitted an updated build."
+- If Apple asks for a specific fix description, reference: `NSException thrown in void TurboModule invocation on iOS 26 with RN 0.81 + New Architecture enabled`
+
+**2. RevenueCat production key verification**
+- Verify the configured key in `src/lib/purchases.ts` against RevenueCat dashboard
+- Confirm current offering, packages, and `premium` entitlement are live
+- Verify bundle ID `com.santipap.luckyday` matches exactly in RevenueCat
+
+**3. App Store screenshots (est. 2–3 hours)**
+Shot list is in `APP_STORE_COPY.md`. Run on simulator at 6.7" (iPhone 15 Pro Max) and 5.5" (iPhone 8 Plus). 6 screenshots total. Use a profile with score 85+ for the hero shot ("Peak energy" band should be highlighted). Frame the first screenshot as the full detail screen with a visually strong reading.
 
 **3. Streak widget on detail screen (optional, pre-launch)**
 `streak.ts` already computes the streak. Surfacing it on `detail.tsx` (e.g., "🔥 Day 7 streak" below the score) would add a retention hook without additional data collection. Keep it small — one line, not a prominent card.

@@ -444,6 +444,14 @@ export default function SettingsScreen() {
         <Text style={styles.photoCopy}>
           Your profile, photo links, and feedback are stored on this device. Local storage is private to this app, but it is not encrypted.
         </Text>
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel="Read Privacy Policy"
+          onPress={() => router.push('/privacy')}
+          style={({ pressed }) => [styles.privacyPolicyLink, pressed && styles.privacyPolicyLinkPressed]}
+        >
+          <Text style={styles.privacyPolicyText}>Read Privacy Policy</Text>
+        </Pressable>
         <View style={styles.privacyActions}>
           <AppButton label="Clear feedback" variant="secondary" onPress={confirmClearFeedback} />
           <AppButton label="Delete photos only" variant="secondary" onPress={confirmDeletePhotosOnly} />
@@ -711,6 +719,23 @@ const styles = StyleSheet.create({
   // Privacy
   privacyCard: {
     gap: spacing.md,
+  },
+  privacyPolicyLink: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  privacyPolicyLinkPressed: {
+    opacity: 0.75,
+  },
+  privacyPolicyText: {
+    color: colors.mauve,
+    fontSize: 14,
+    fontWeight: '900',
   },
   privacyActions: {
     gap: spacing.sm,

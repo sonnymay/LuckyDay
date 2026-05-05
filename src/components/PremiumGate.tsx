@@ -50,13 +50,13 @@ export function PremiumGate({ children, isPremium, featureLabel }: Props) {
           <Text style={styles.lockBody}>{getLockBody(featureLabel)}</Text>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Start free trial"
+            accessibilityLabel="Open Premium"
             style={({ pressed }) => [styles.unlockButton, pressed && styles.unlockPressed]}
             onPress={() => router.push('/paywall')}
           >
-            <Text style={styles.unlockLabel}>Try free for 3 days →</Text>
+            <Text style={styles.unlockLabel}>Open Premium →</Text>
           </Pressable>
-          <Text style={styles.trialNote}>No charge until Day 4</Text>
+          <Text style={styles.trialNote}>See App Store pricing before you purchase.</Text>
         </View>
       </View>
     </View>

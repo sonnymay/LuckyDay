@@ -214,15 +214,15 @@ export default function HistoryScreen() {
             <Text style={styles.emptyIllustrationStar2}>⭐</Text>
             <Text style={styles.emptyIllustrationStar3}>✨</Text>
           </View>
-          <Text style={styles.emptyTitle}>Your first reading awaits</Text>
+          <Text style={styles.emptyTitle}>Your luck history starts tonight.</Text>
           <Text style={styles.emptyBody}>
-            Open your daily reading to start building your luck archive. Come back every day to grow your streak and unlock history insights.
+            Check in after your day to compare prediction vs reality.
           </Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open today's reading"
             style={({ pressed }) => [styles.emptyCta, pressed && styles.emptyCtaPressed]}
-            onPress={() => router.replace('/home')}
+            onPress={() => router.replace('/detail')}
           >
             <Text style={styles.emptyCtaLabel}>Open today's reading  →</Text>
           </Pressable>

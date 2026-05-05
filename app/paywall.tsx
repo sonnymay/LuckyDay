@@ -128,7 +128,11 @@ export default function PaywallScreen() {
   }, []);
 
   const handlePurchase = useCallback(async () => {
-    if (!selected) return;
+    if (!selected) {
+      Alert.alert('Premium unavailable', 'Purchases are not available right now. Please try again later.');
+      return;
+    }
+
     setPurchasing(true);
 
     try {
@@ -173,6 +177,7 @@ export default function PaywallScreen() {
   const annualPkg = packages.find((p) => p.productIdentifier.includes('annual'));
   const monthlyPkg = packages.find((p) => p.productIdentifier.includes('monthly'));
   const showPackages = packages.length > 0;
+  const canPurchase = Boolean(selected);
 
   return (
     <View style={styles.root}>
@@ -269,7 +274,7 @@ export default function PaywallScreen() {
               </View>
               <Text style={styles.packageTitle}>Annual</Text>
               <Text style={styles.packagePrice}>{annualPkg.localizedPriceString}</Text>
-              <Text style={styles.packageNote}>less than $1.25/month · cancel anytime</Text>
+              <Text style={styles.packageNote}>best yearly value · cancel anytime</Text>
             </Pressable>
           ) : null}
 
@@ -285,40 +290,30 @@ export default function PaywallScreen() {
           ) : null}
         </View>
       ) : (
-        // Fallback pricing display when RevenueCat not configured
-        <View style={styles.packages}>
-          <View style={[styles.packageCard, styles.packageSelected]}>
-            <View style={styles.bestValueBadge}>
-              <Text style={styles.bestValueText}>BEST VALUE</Text>
-            </View>
-            <Text style={styles.packageTitle}>Annual</Text>
-            <Text style={styles.packagePrice}>$29.99 / year</Text>
-            <Text style={styles.packageNote}>less than $2.50 a month</Text>
-          </View>
-          <View style={styles.packageCard}>
-            <Text style={styles.packageTitle}>Monthly</Text>
-            <Text style={styles.packagePrice}>$4.99 / month</Text>
-            <Text style={styles.packageNote}>cancel anytime</Text>
-          </View>
-        </View>
+        <Card style={styles.purchaseUnavailableCard}>
+          <Text style={styles.purchaseUnavailableTitle}>Premium pricing unavailable</Text>
+          <Text style={styles.purchaseUnavailableCopy}>
+            App Store packages could not load. Please try again later or restore an existing purchase.
+          </Text>
+        </Card>
       )}
 
       {/* CTA */}
       <AppButton
-        label={purchasing ? 'Starting your trial...' : 'Try free for 3 days →'}
+        label={purchasing ? 'Starting Premium...' : canPurchase ? 'Continue with Premium →' : 'Premium unavailable'}
         onPress={handlePurchase}
         style={styles.cta}
       />
 
       {/* Free trial note */}
       <Text style={styles.trialNote}>
-        3-day free trial · No charge until Day 4 · Cancel anytime
+        {canPurchase ? 'Subscription renews automatically · Cancel anytime in Apple ID settings' : 'Purchases are unavailable until App Store packages finish loading.'}
       </Text>
 
       {/* Footer */}
       <View style={styles.footer}>
         <Pressable onPress={handleRestore} disabled={restoring}>
-          <Text style={styles.footerLink}>{restoring ? 'Restoring...' : 'Restore purchase'}</Text>
+          <Text style={styles.footerLink}>{restoring ? 'Restoring...' : 'Restore Purchases'}</Text>
         </Pressable>
         <Text style={styles.footerDot}>·</Text>
         <Pressable onPress={() => router.push('/privacy')}>
@@ -695,6 +690,24 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 12,
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  purchaseUnavailableCard: {
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    gap: spacing.xs,
+  },
+  purchaseUnavailableTitle: {
+    color: colors.mauve,
+    fontSize: 16,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  purchaseUnavailableCopy: {
+    color: colors.muted,
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 20,
     textAlign: 'center',
   },
   cta: {
