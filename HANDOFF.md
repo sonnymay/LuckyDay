@@ -313,6 +313,15 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
   - Navigation icon check: Today, History, and Profile icons render visually in the running local web app; direct iOS simulator launch was unavailable in this environment because Apple's `simctl` tool is not installed.
   - "Show more" on the reading screen is a local state expansion with no navigation or reload.
 
+### Paywall cleanup for next build (after build 1.0.0 (7) submission)
+- Added missing `react-native-purchases` dependency so RevenueCat packages can load in native builds.
+- Updated `app/paywall.tsx` to avoid a dead-end "Premium unavailable" state: users now get a retryable App Store pricing state and can still restore purchases.
+- Moved visible package pricing into the hero when App Store packages load.
+- Replaced the duplicate daily score hero with a locked Premium reading preview.
+- Consolidated repeated feature content into one feature list and a clearer Free vs Premium comparison.
+- Did not add fake free-trial copy or fake social proof; trial/offer messaging should be added only after App Store Connect and RevenueCat have a real introductory offer configured.
+- Verification: `/usr/local/bin/npm run typecheck` passes; tests pass with `/private/tmp/luckyday-node20 node_modules/vitest/vitest.mjs run src/lib/*.test.ts` after ad-hoc signing a temporary Node 20 binary, because macOS rejects the local Vitest/Rolldown native binding under the normal signed Node binary. `git diff --check` passes.
+
 ---
 
 ## 5. Known Issues / Remaining Gaps
@@ -325,6 +334,9 @@ After ~20 days, zodiac insight repeats will start. After ~60 days, some mainMess
 
 ### RevenueCat production configuration needs final dashboard verification
 `src/lib/purchases.ts` has a configured iOS public key and the visible paywall no longer shows fallback/test-only pricing. Before any EAS production build, verify in RevenueCat that this key belongs to the production app, the current offering is live, annual/monthly packages are mapped to App Store Connect products, and the `premium` entitlement unlocks correctly.
+
+### App Store introductory offer not configured in code
+The paywall does not claim a free trial. If you want "Try free for 7 days," configure the introductory offer in App Store Connect and RevenueCat first, then update paywall copy to reflect the real offer returned by the store package.
 
 ### Evening reflection reminder not yet implemented
 Push notifications are already available for the morning reminder, but a separate 8 PM "How was your luck today?" reflection reminder should be added deliberately with its own storage key, cancellation behavior, settings copy, and opt-in/permission handling.
@@ -344,6 +356,7 @@ Push notifications are already available for the morning reminder, but a separat
 - Verify the configured key in `src/lib/purchases.ts` against RevenueCat dashboard
 - Confirm current offering, packages, and `premium` entitlement are live
 - Verify bundle ID `com.santipap.luckyday` matches exactly in RevenueCat
+- Confirm build includes `react-native-purchases` before creating the next IPA
 
 **3. App Store screenshots (est. 2–3 hours)**
 Shot list is in `APP_STORE_COPY.md`. Run on simulator at 6.7" (iPhone 15 Pro Max) and 5.5" (iPhone 8 Plus). 6 screenshots total. Use a profile with score 85+ for the hero shot ("Peak energy" band should be highlighted). Frame the first screenshot as the full detail screen with a visually strong reading.

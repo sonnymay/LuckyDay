@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  Animated,
+  ActivityIndicator,
   Platform,
   Pressable,
   ScrollView,
@@ -28,54 +28,21 @@ import {
   purchasePackage,
   restorePurchases,
 } from '../src/lib/purchases';
-import { generateDailyReading } from '../src/lib/luck';
-import { getStoredProfile } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
 
 const FEATURES = [
-  { emoji: '🎨', label: 'Lucky color, number, best time & compass direction — every day' },
-  { emoji: '💰', label: 'Full money, love, work & health breakdowns — not just scores' },
-  { emoji: '🌙', label: 'Lunar calendar dates and Chinese solar terms explained' },
+  { emoji: '🎨', label: 'Lucky color, number, best time, and direction for today' },
+  { emoji: '💰', label: 'Money, love, work, and health guidance in plain language' },
+  { emoji: '🌙', label: 'Lunar almanac, moon phase, and solar term context' },
   { emoji: '📖', label: 'Reading history to spot your personal luck patterns' },
-  { emoji: '✨', label: 'Premium share cards that stop the scroll on IG & LINE' },
-  { emoji: '🔥', label: 'Streak milestones and daily zodiac insight unlocked' },
+  { emoji: '✨', label: 'Share cards made for IG Stories and LINE' },
 ];
 
-const RITUAL_PREVIEW = [
-  { emoji: '🌅', title: 'What to do today', copy: 'Your lucky color to wear, number to carry, best hour to act, and direction to face — all specific to you.' },
-  { emoji: '💌', title: 'Share in one tap', copy: 'A beautiful card with your score, zodiac, color & number — sized perfectly for IG Stories or LINE.' },
-  { emoji: '📅', title: 'Your luck over time', copy: 'See if your score trends up on certain days, which moon phases hit hardest, and what to expect ahead.' },
-];
-
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
-
-function SkeletonBlock({ width, height, style }: { width: number | string; height: number; style?: object }) {
-  const shimmer = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
-        Animated.timing(shimmer, { toValue: 0, duration: 900, useNativeDriver: true }),
-      ])
-    ).start();
-  }, [shimmer]);
-  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.6] });
-  return (
-    <Animated.View
-      style={[{ width, height, borderRadius: 20, backgroundColor: colors.roseGold, opacity }, style]}
-    />
-  );
-}
-
-function PaywallSkeleton() {
-  return (
-    <View style={styles.skeletonScreen}>
-      <SkeletonBlock width="100%" height={320} />
-      <SkeletonBlock width="100%" height={100} style={{ borderRadius: 16 }} />
-      <SkeletonBlock width="100%" height={180} style={{ borderRadius: 16 }} />
-      <SkeletonBlock width="80%" height={56} style={{ borderRadius: 999 }} />
-    </View>
-  );
+function getBillingLabel(pkg: PurchasePackage | null) {
+  if (!pkg) return '';
+  if (pkg.productIdentifier.includes('annual')) return '/year';
+  if (pkg.productIdentifier.includes('monthly')) return '/month';
+  return '';
 }
 
 // ─── Screen ────────────────────────────────────────────────────────────────────
@@ -84,22 +51,26 @@ export default function PaywallScreen() {
   const [packages, setPackages] = useState<PurchasePackage[]>([]);
   const [selected, setSelected] = useState<PurchasePackage | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingPackages, setLoadingPackages] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
-  const [todayScore, setTodayScore] = useState<number>(88);
   const mounted = useRef(true);
+
+  const loadPackages = useCallback(async () => {
+    setLoadingPackages(true);
+    try {
+      const pkgs = await getOfferings();
+      if (!mounted.current) return;
+      setPackages(pkgs);
+      const annual = pkgs.find((p) => p.productIdentifier.includes('annual'));
+      setSelected(annual ?? pkgs[0] ?? null);
+    } finally {
+      if (mounted.current) setLoadingPackages(false);
+    }
+  }, []);
 
   useEffect(() => {
     mounted.current = true;
-
-    // Load today's real score for the orb
-    getStoredProfile()
-      .then((profile) => {
-        if (!mounted.current || !profile) return;
-        const reading = generateDailyReading(profile);
-        setTodayScore(reading.score);
-      })
-      .catch(() => undefined);
 
     getPremiumStatus()
       .then((status) => {
@@ -108,14 +79,7 @@ export default function PaywallScreen() {
           router.replace('/home');
           return;
         }
-        return getOfferings();
-      })
-      .then((pkgs) => {
-        if (!mounted.current || !pkgs) return;
-        setPackages(pkgs);
-        // Default: select annual (best value)
-        const annual = pkgs.find((p) => p.productIdentifier.includes('annual'));
-        setSelected(annual ?? pkgs[0] ?? null);
+        return loadPackages();
       })
       .catch(() => undefined)
       .finally(() => {
@@ -125,11 +89,11 @@ export default function PaywallScreen() {
     return () => {
       mounted.current = false;
     };
-  }, []);
+  }, [loadPackages]);
 
   const handlePurchase = useCallback(async () => {
     if (!selected) {
-      Alert.alert('Premium unavailable', 'Purchases are not available right now. Please try again later.');
+      await loadPackages();
       return;
     }
 
@@ -153,7 +117,7 @@ export default function PaywallScreen() {
     } finally {
       if (mounted.current) setPurchasing(false);
     }
-  }, [selected]);
+  }, [loadPackages, selected]);
 
   const handleRestore = useCallback(async () => {
     setRestoring(true);
@@ -170,14 +134,36 @@ export default function PaywallScreen() {
     }
   }, []);
 
-  if (loading) {
-    return <PaywallSkeleton />;
-  }
-
   const annualPkg = packages.find((p) => p.productIdentifier.includes('annual'));
   const monthlyPkg = packages.find((p) => p.productIdentifier.includes('monthly'));
   const showPackages = packages.length > 0;
   const canPurchase = Boolean(selected);
+  const pricingLoading = loading || loadingPackages;
+  const pricingFailed = !pricingLoading && !showPackages;
+  const priceSummary = pricingLoading
+    ? 'Loading App Store pricing...'
+    : annualPkg && monthlyPkg
+      ? `${annualPkg.localizedPriceString}/year or ${monthlyPkg.localizedPriceString}/month`
+      : selected?.localizedPriceString
+        ? `${selected.localizedPriceString}${getBillingLabel(selected)}`
+        : 'App Store pricing unavailable';
+  const selectedPrice = selected?.localizedPriceString ?? '';
+  const ctaLabel = purchasing
+    ? 'Starting Premium...'
+    : pricingLoading
+      ? 'Loading App Store pricing...'
+      : canPurchase
+        ? `Unlock Premium - ${selectedPrice}${getBillingLabel(selected)}`
+        : 'Retry pricing';
+
+  const handlePrimaryAction = () => {
+    if (pricingLoading || purchasing) return;
+    if (canPurchase) {
+      handlePurchase();
+      return;
+    }
+    loadPackages();
+  };
 
   return (
     <View style={styles.root}>
@@ -209,44 +195,59 @@ export default function PaywallScreen() {
           <Text style={styles.decorSparkleText}>✧</Text>
         </View>
         <Text style={styles.badge}>✨ LuckyDay Premium</Text>
-        <View style={styles.heroOrb}>
-          <Text style={styles.heroOrbStars}>✦ ✧ ✦</Text>
-          <Text style={styles.heroOrbNumber}>{todayScore}</Text>
-          <Text style={styles.heroOrbLabel}>TODAY'S ENERGY</Text>
-        </View>
-        <Text style={styles.headline}>Make every morning{'\n'}feel chosen</Text>
-        <Text style={styles.subhead}>
-          Unlock deeper readings, prettier share cards, and a luck history that starts to feel like
-          your private oracle.
-        </Text>
-        <View style={styles.socialProof}>
-          <Text style={styles.socialProofText}>Your personal oracle. Every morning.</Text>
-        </View>
-      </View>
-
-      <View style={styles.previewStack}>
-        {RITUAL_PREVIEW.map((item) => (
-          <View key={item.title} style={styles.previewRow}>
-            <Text style={styles.previewEmoji}>{item.emoji}</Text>
-            <View style={styles.previewCopy}>
-              <Text style={styles.previewTitle}>{item.title}</Text>
-              <Text style={styles.previewText}>{item.copy}</Text>
+        <View style={styles.lockedPreview}>
+          <View style={styles.lockedTopRow}>
+            <Text style={styles.lockedPill}>Premium reading</Text>
+            <Ionicons name="lock-closed" size={16} color={colors.goldDeep} />
+          </View>
+          <Text style={styles.lockedTitle}>Unlock to see today's full premium guidance.</Text>
+          <View style={styles.lockedMetricRow}>
+            <View style={styles.lockedMetric}>
+              <Ionicons name="time-outline" size={16} color={colors.mauve} />
+              <Text style={styles.lockedMetricLabel}>Best time</Text>
+            </View>
+            <View style={styles.lockedMetric}>
+              <Ionicons name="color-palette-outline" size={16} color={colors.mauve} />
+              <Text style={styles.lockedMetricLabel}>Lucky color</Text>
+            </View>
+            <View style={styles.lockedMetric}>
+              <Ionicons name="compass-outline" size={16} color={colors.mauve} />
+              <Text style={styles.lockedMetricLabel}>Direction</Text>
             </View>
           </View>
-        ))}
+          <View style={styles.lockedOverlay}>
+            <Ionicons name="lock-closed" size={18} color={colors.white} />
+            <Text style={styles.lockedOverlayText}>Premium locked</Text>
+          </View>
+        </View>
+        <Text style={styles.headline}>Make every morning{'\n'}feel chosen</Text>
+        <Text style={styles.priceHero}>{priceSummary}</Text>
+        {pricingLoading ? (
+          <View style={styles.pricingLoadingRow}>
+            <ActivityIndicator color={colors.champagne} />
+            <Text style={styles.pricingLoadingText}>Checking secure App Store pricing</Text>
+          </View>
+        ) : null}
+        <Text style={styles.subhead}>
+          Unlock deeper readings, prettier share cards, and a luck history that helps you spot your patterns.
+        </Text>
+        <View style={styles.socialProof}>
+          <Text style={styles.socialProofText}>Private by design · restore purchases anytime</Text>
+        </View>
       </View>
 
       {/* Value nudge — what changes today */}
       <Card style={styles.nudgeCard}>
         <Text style={styles.nudgeHeading}>What changes when you unlock</Text>
-        <View style={styles.nudgeRow}>
-          <Text style={styles.nudgeEmoji}>🔒</Text>
-          <Text style={styles.nudgeFree}>Free: energy score · zodiac animals · basic reading summary</Text>
-        </View>
-        <Text style={styles.nudgeArrow}>↓</Text>
-        <View style={styles.nudgeRow}>
-          <Text style={styles.nudgeEmoji}>✨</Text>
-          <Text style={styles.nudgePremium}>Premium: lucky color + number + time + direction · money/love/work/health detail · lunar almanac · reading history · richer share cards</Text>
+        <View style={styles.compareGrid}>
+          <View style={styles.compareColumn}>
+            <Text style={styles.compareLabel}>Free</Text>
+            <Text style={styles.compareText}>Daily score, zodiac animals, and a simple reading summary.</Text>
+          </View>
+          <View style={[styles.compareColumn, styles.comparePremium]}>
+            <Text style={styles.compareLabelPremium}>Premium</Text>
+            <Text style={styles.compareTextPremium}>Best time, color, direction, almanac context, history, and share cards.</Text>
+          </View>
         </View>
       </Card>
 
@@ -289,25 +290,31 @@ export default function PaywallScreen() {
             </Pressable>
           ) : null}
         </View>
-      ) : (
+      ) : pricingFailed ? (
         <Card style={styles.purchaseUnavailableCard}>
-          <Text style={styles.purchaseUnavailableTitle}>Premium pricing unavailable</Text>
           <Text style={styles.purchaseUnavailableCopy}>
-            App Store packages could not load. Please try again later or restore an existing purchase.
+            We couldn't load App Store pricing. Please check your connection and try again.
           </Text>
         </Card>
-      )}
+      ) : null}
+
+      {!showPackages && pricingLoading ? (
+        <Card style={styles.pricingPendingCard}>
+          <ActivityIndicator color={colors.mauve} />
+          <Text style={styles.pricingPendingText}>Loading App Store pricing...</Text>
+        </Card>
+      ) : null}
 
       {/* CTA */}
       <AppButton
-        label={purchasing ? 'Starting Premium...' : canPurchase ? 'Continue with Premium →' : 'Premium unavailable'}
-        onPress={handlePurchase}
+        label={ctaLabel}
+        onPress={handlePrimaryAction}
         style={styles.cta}
       />
 
       {/* Free trial note */}
       <Text style={styles.trialNote}>
-        {canPurchase ? 'Subscription renews automatically · Cancel anytime in Apple ID settings' : 'Purchases are unavailable until App Store packages finish loading.'}
+        Subscription renews automatically · Cancel anytime in your Apple ID settings
       </Text>
 
       {/* Footer */}
@@ -338,13 +345,6 @@ const styles = StyleSheet.create({
   root: {
     backgroundColor: colors.background,
     flex: 1,
-  },
-  skeletonScreen: {
-    backgroundColor: colors.background,
-    flex: 1,
-    gap: spacing.md,
-    padding: spacing.md,
-    paddingTop: spacing.lg,
   },
   aura1: {
     backgroundColor: 'rgba(192, 58, 120, 0.08)',
@@ -442,43 +442,88 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
-  heroOrb: {
+  lockedPreview: {
     alignItems: 'center',
     backgroundColor: colors.champagne,
     borderColor: colors.luckyGold,
-    borderRadius: 86,
+    borderRadius: radii.lg,
     borderWidth: 2,
-    height: 152,
-    justifyContent: 'center',
-    width: 152,
+    gap: spacing.sm,
+    padding: spacing.md,
+    width: '100%',
     ...Platform.select({
-      web: { boxShadow: `0 0 0 12px rgba(237, 186, 64, 0.16), 0 16px 40px rgba(45, 22, 53, 0.24)` },
+      web: { boxShadow: `0 12px 32px rgba(45, 22, 53, 0.18)` },
       default: {
         shadowColor: colors.ink,
         shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.2,
-        shadowRadius: 28,
+        shadowOpacity: 0.16,
+        shadowRadius: 22,
       },
     }),
   },
-  heroOrbStars: {
-    color: colors.luckyGold,
-    fontSize: 14,
-    fontWeight: '900',
-    letterSpacing: 5,
-    marginBottom: 2,
+  lockedTopRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
-  heroOrbNumber: {
+  lockedPill: {
+    backgroundColor: colors.white,
+    borderColor: colors.roseGold,
+    borderRadius: radii.pill,
+    borderWidth: 1,
     color: colors.goldDeep,
-    fontSize: 50,
+    fontSize: 12,
     fontWeight: '900',
-    lineHeight: 56,
+    overflow: 'hidden',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    textTransform: 'uppercase',
   },
-  heroOrbLabel: {
+  lockedTitle: {
     color: colors.goldDeep,
-    fontSize: 10,
+    fontSize: 17,
     fontWeight: '900',
-    letterSpacing: 1,
+    lineHeight: 23,
+    textAlign: 'center',
+  },
+  lockedMetricRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  lockedMetric: {
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderColor: 'rgba(192, 58, 120, 0.18)',
+    borderRadius: radii.md,
+    borderWidth: 1,
+    flex: 1,
+    gap: 4,
+    minHeight: 58,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.sm,
+  },
+  lockedMetricLabel: {
+    color: colors.mauve,
+    fontSize: 11,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  lockedOverlay: {
+    alignItems: 'center',
+    backgroundColor: colors.mauve,
+    borderRadius: radii.pill,
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  lockedOverlayText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: '900',
     textTransform: 'uppercase',
   },
   headline: {
@@ -495,75 +540,39 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     textAlign: 'center',
   },
+  priceHero: {
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    color: colors.champagne,
+    fontSize: 15,
+    fontWeight: '900',
+    overflow: 'hidden',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    textAlign: 'center',
+  },
+  pricingLoadingRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  pricingLoadingText: {
+    color: colors.champagne,
+    fontSize: 13,
+    fontWeight: '800',
+  },
   socialProof: {
     alignItems: 'center',
     gap: 4,
     marginTop: spacing.xs,
-  },
-  socialProofStar: {
-    color: colors.luckyGold,
-    fontSize: 14,
-    letterSpacing: 2,
   },
   socialProofText: {
     color: 'rgba(255,255,255,0.75)',
     fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
-  },
-  previewStack: {
-    backgroundColor: colors.panelStrong,
-    borderColor: colors.roseGold,
-    borderRadius: radii.lg,
-    borderWidth: 1.5,
-    gap: spacing.sm,
-    padding: spacing.md,
-    ...Platform.select({
-      web: { boxShadow: `0 8px 24px rgba(192, 58, 120, 0.10)` },
-      default: {
-        shadowColor: colors.mauve,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.1,
-        shadowRadius: 22,
-      },
-    }),
-  },
-  previewRow: {
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderColor: colors.line,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: spacing.sm,
-    padding: spacing.sm,
-  },
-  previewEmoji: {
-    backgroundColor: colors.champagne,
-    borderColor: colors.luckyGold,
-    borderRadius: 20,
-    borderWidth: 1,
-    fontSize: 20,
-    height: 40,
-    lineHeight: 38,
-    overflow: 'hidden',
-    textAlign: 'center',
-    width: 40,
-  },
-  previewCopy: {
-    flex: 1,
-  },
-  previewTitle: {
-    color: colors.mauve,
-    fontSize: 15,
-    fontWeight: '900',
-  },
-  previewText: {
-    color: colors.muted,
-    fontSize: 13,
-    fontWeight: '600',
-    lineHeight: 18,
-    marginTop: 2,
   },
   nudgeCard: {
     backgroundColor: colors.panelStrong,
@@ -578,32 +587,46 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
     textTransform: 'uppercase',
   },
-  nudgeRow: {
-    alignItems: 'center',
+  compareGrid: {
     flexDirection: 'row',
     gap: spacing.sm,
   },
-  nudgeEmoji: {
-    fontSize: 18,
-    lineHeight: 24,
-    width: 26,
+  compareColumn: {
+    backgroundColor: colors.white,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    flex: 1,
+    gap: spacing.xs,
+    padding: spacing.sm,
   },
-  nudgeFree: {
+  comparePremium: {
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+  },
+  compareLabel: {
     color: colors.muted,
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
-  nudgePremium: {
+  compareLabelPremium: {
     color: colors.mauve,
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
   },
-  nudgeArrow: {
-    color: colors.roseGold,
-    fontSize: 20,
-    marginLeft: 6,
+  compareText: {
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  compareTextPremium: {
+    color: colors.ink,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
   },
   featuresCard: {
     backgroundColor: colors.panel,
@@ -697,18 +720,25 @@ const styles = StyleSheet.create({
     borderColor: colors.roseGold,
     gap: spacing.xs,
   },
-  purchaseUnavailableTitle: {
-    color: colors.mauve,
-    fontSize: 16,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
   purchaseUnavailableCopy: {
     color: colors.muted,
     fontSize: 14,
     fontWeight: '600',
     lineHeight: 20,
     textAlign: 'center',
+  },
+  pricingPendingCard: {
+    alignItems: 'center',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'center',
+  },
+  pricingPendingText: {
+    color: colors.mauve,
+    fontSize: 14,
+    fontWeight: '900',
   },
   cta: {
     marginTop: spacing.xs,
