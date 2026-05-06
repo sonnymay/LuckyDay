@@ -216,7 +216,7 @@ export default function HistoryScreen() {
           </View>
           <Text style={styles.emptyTitle}>Your luck history starts tonight.</Text>
           <Text style={styles.emptyBody}>
-            Check in after your day to compare prediction vs reality.
+            Check in after your day to compare prediction vs reality. Reflect on a reading to start tracking your patterns.
           </Text>
           <Pressable
             accessibilityRole="button"
@@ -322,13 +322,19 @@ function AccuracySummaryCard({ summary }: { summary: ReturnType<typeof computeAc
           <Text style={styles.reflectMiniButtonText}>Reflect</Text>
         </Pressable>
       </View>
-      <View style={styles.accuracyRows}>
-        <AccuracyRow label="Reading felt about right" value={formatCount(summary.predictionMatched, summary.predictionDays)} />
-        <AccuracyRow label="Strong/Peak matched good days" value={summary.strongPeakMatched} />
-        <AccuracyRow label="Best time felt accurate" value={summary.bestTimeAccurate} />
-        <AccuracyRow label="Warning felt useful" value={summary.warningRelevant} />
-        <AccuracyRow label="Do This Today helped" value={summary.actionHelpful} />
-      </View>
+      {summary.reflectedDays === 0 ? (
+        <View style={styles.accuracyEmpty}>
+          <Text style={styles.accuracyEmptyText}>Reflect on a reading to start tracking your patterns.</Text>
+        </View>
+      ) : (
+        <View style={styles.accuracyRows}>
+          <AccuracyRow label="Reading felt about right" value={formatCount(summary.predictionMatched, summary.predictionDays)} />
+          <AccuracyRow label="Strong/Peak matched good days" value={summary.strongPeakMatched} />
+          <AccuracyRow label="Best time felt accurate" value={summary.bestTimeAccurate} />
+          <AccuracyRow label="Warning felt useful" value={summary.warningRelevant} />
+          <AccuracyRow label="Do This Today helped" value={summary.actionHelpful} />
+        </View>
+      )}
     </Card>
   );
 }
@@ -630,6 +636,21 @@ const styles = StyleSheet.create({
   accuracyRows: {
     gap: spacing.sm,
     marginTop: spacing.md,
+  },
+  accuracyEmpty: {
+    backgroundColor: colors.panel,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    marginTop: spacing.md,
+    padding: spacing.md,
+  },
+  accuracyEmptyText: {
+    color: colors.muted,
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+    textAlign: 'center',
   },
   accuracyRow: {
     alignItems: 'center',

@@ -18,14 +18,6 @@ export function MediaConsentCard({ accepted, onChange }: Props) {
           <Text style={styles.title}>Photo privacy</Text>
           <Text style={styles.subtitle}>Private by default</Text>
         </View>
-        <Pressable
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: accepted }}
-          onPress={() => onChange(!accepted)}
-          style={[styles.checkbox, accepted && styles.checked]}
-        >
-          {accepted ? <Text style={styles.checkmark}>✓</Text> : null}
-        </Pressable>
       </View>
       <Text style={styles.copy}>
         Photos are optional. If you add face, palm, or handwriting photos, LuckyDay saves them only on this device. You can delete them anytime.
@@ -35,7 +27,16 @@ export function MediaConsentCard({ accepted, onChange }: Props) {
         <Text style={styles.trustPill}>No account needed</Text>
         <Text style={styles.trustPill}>Delete anytime</Text>
       </View>
-      <Pressable onPress={() => onChange(!accepted)} style={styles.consentRow}>
+      {/* Toggle sits immediately next to the consent sentence — no visual separation. */}
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: accepted }}
+        onPress={() => onChange(!accepted)}
+        style={styles.consentRow}
+      >
+        <View style={[styles.checkbox, accepted && styles.checked]}>
+          {accepted ? <Text style={styles.checkmark}>✓</Text> : null}
+        </View>
         <Text style={styles.consentText}>I agree to save optional photos on this device.</Text>
       </Pressable>
     </Card>
@@ -126,12 +127,16 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   consentRow: {
+    alignItems: 'center',
     borderTopColor: colors.line,
     borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
     paddingTop: spacing.md,
   },
   consentText: {
     color: colors.ink,
+    flex: 1,
     fontSize: 16,
     fontWeight: '800',
     lineHeight: 22,

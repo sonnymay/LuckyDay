@@ -60,6 +60,7 @@ export default function RootLayout() {
         <Stack.Screen name="feedback"   options={{ title: 'How was your luck today? 🍀' }} />
         <Stack.Screen name="paywall"    options={{ headerShown: false }} />
         <Stack.Screen name="privacy"    options={{ title: 'Privacy & data 🧿' }} />
+        <Stack.Screen name="terms"      options={{ title: 'Terms of Service' }} />
       </Stack>
     </SafeAreaProvider>
   );

@@ -410,10 +410,16 @@ export default function HomeScreen() {
         </View>
       </Card>
 
-      <AppButton
-        label={savingShareCard ? 'Saving your luck...' : 'Save & share my luck'}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Save and share my luck"
+        disabled={savingShareCard}
         onPress={() => saveShareCard(reading, shareCardRef, setSavingShareCard)}
-      />
+        style={({ pressed }) => [styles.shareButton, pressed && styles.shareButtonPressed, savingShareCard && styles.shareButtonDisabled]}
+      >
+        <Ionicons name="share-social-outline" size={20} color={colors.white} />
+        <Text style={styles.shareButtonText}>{savingShareCard ? 'Saving your luck...' : 'Save & share my luck'}</Text>
+      </Pressable>
 
       {/* Premium teaser removed — PremiumGate locks + header Upgrade button handle conversion */}
 
@@ -943,6 +949,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     textTransform: 'uppercase',
+  },
+  shareButton: {
+    alignItems: 'center',
+    backgroundColor: colors.mauve,
+    borderColor: colors.roseGold,
+    borderRadius: radii.pill,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  shareButtonPressed: {
+    opacity: 0.82,
+  },
+  shareButtonDisabled: {
+    opacity: 0.7,
+  },
+  shareButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: '900',
   },
   premiumTeaserCard: {
     backgroundColor: colors.mauve,

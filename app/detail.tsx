@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 async function triggerShareHaptic() {
   if (Platform.OS === 'web') return;
@@ -9,7 +10,6 @@ async function triggerShareHaptic() {
   } catch {}
 }
 import { router, useFocusEffect } from 'expo-router';
-import { AppButton } from '../src/components/AppButton';
 import { Card } from '../src/components/Card';
 import { EnergyScoreCard } from '../src/components/EnergyScoreCard';
 import { Screen } from '../src/components/Screen';
@@ -112,6 +112,10 @@ export default function DetailScreen() {
   return (
     <Screen showTabBar>
     <Animated.View style={{ opacity: fadeAnim }}>
+      <View style={styles.brandRow}>
+        <Text style={styles.brandMark}>LuckyDay</Text>
+        <Text style={styles.brandSub}>Daily luck dashboard</Text>
+      </View>
       <Text style={styles.pageTitle}>{nickname ? `${nickname}'s luck today ✨` : "Today's Reading ✨"}</Text>
 
       {/* ── Energy score orb — the headline number ── */}
@@ -269,11 +273,15 @@ export default function DetailScreen() {
       </Card>
 
       {/* ── Share CTA ── */}
-      <AppButton
-        label="🔗 Share today's reading"
-        variant="secondary"
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Share today's reading"
         onPress={() => { triggerShareHaptic(); shareReading(reading); }}
-      />
+        style={({ pressed }) => [styles.shareButton, pressed && styles.shareButtonPressed]}
+      >
+        <Ionicons name="share-outline" size={20} color={colors.mauve} />
+        <Text style={styles.shareButtonText}>Share today's reading</Text>
+      </Pressable>
     </Animated.View>
     </Screen>
   );
@@ -410,8 +418,25 @@ const styles = StyleSheet.create({
     fontFamily: fonts.heavy,
     fontSize: 28,
     fontWeight: '900',
-    letterSpacing: -0.5,
     paddingTop: spacing.sm,
+  },
+  brandRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: spacing.xs,
+  },
+  brandMark: {
+    color: colors.mauve,
+    fontFamily: fonts.heavy,
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+  brandSub: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '800',
   },
   top: {
     backgroundColor: colors.panelStrong,
@@ -774,5 +799,25 @@ const styles = StyleSheet.create({
     borderColor: colors.luckyGold,
     flexDirection: 'column',
     gap: 4,
+  },
+  shareButton: {
+    alignItems: 'center',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    borderRadius: radii.pill,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  shareButtonPressed: {
+    opacity: 0.78,
+  },
+  shareButtonText: {
+    color: colors.mauve,
+    fontSize: 16,
+    fontWeight: '900',
   },
 });

@@ -8,12 +8,13 @@
 
 ## 1. Current App Status
 
-Feature-complete. **First submission was rejected (Guideline 2.1a — App Completeness)** due to a launch crash on iPad Air 11-inch (M3) running iPadOS 26.4.2. The crash has been diagnosed and fixed (see Section 4a below). A new EAS build is required before resubmitting.
+Feature-complete. **First submission was rejected (Guideline 2.1a — App Completeness)** due to a launch crash on iPad Air 11-inch (M3) running iPadOS 26.4.2. The crash has been diagnosed and fixed (see Section 4a below). Apple review currently still has build `1.0.0 (7)` attached; do not cancel it until a newer build has passed real-device RevenueCat/StoreKit testing.
 
 Pre-release checklist:
 
 - [x] App Store crash fixed — `newArchEnabled` set to `false` in `app.json`
-- [ ] New EAS production build (`eas build --platform ios --profile production`)
+- [x] New EAS production build created after crash/paywall fix — build `1.0.0 (8)` finished in Expo
+- [ ] Real iPhone / StoreKit sandbox pass for build `1.0.0 (8)` or newer
 - [ ] Verify RevenueCat production app key, offerings, packages, and entitlement in the RevenueCat dashboard
 - [ ] TestFlight upload and internal testing pass
 - [ ] App Store screenshots (shot list in `APP_STORE_COPY.md`)
@@ -26,13 +27,14 @@ Pre-release checklist:
 ```
 app/
   _layout.tsx        Root Stack navigator. Screens: index, onboarding, home, detail,
-                     history, settings, feedback, paywall, privacy.
+                     history, settings, feedback, paywall, privacy, terms.
                      detail / history / settings all have headerShown: false
                      (TabBar handles nav).
 
   index.tsx          Entry: checks AsyncStorage for profile → /detail or onboarding.
 
-  onboarding.tsx     3-step profile setup. On complete → router.replace('/detail').
+  onboarding.tsx     4-step profile setup with welcome/value screen first.
+                     On complete → router.replace('/detail').
 
   home.tsx           LOADING SCREEN ONLY. Shows star-particle animation while
                      generating the first reading, then router.replace('/detail').
@@ -49,6 +51,8 @@ app/
   paywall.tsx        RevenueCat paywall. Triggered by PremiumGate component.
 
   privacy.tsx        Privacy policy screen.
+
+  terms.tsx          In-app Terms screen + Apple standard subscription terms link.
 
 src/lib/
   luck.ts            Core reading engine. generateDailyReading(), score formula,
@@ -207,15 +211,63 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 - Do NOT add content here
 - Removed visible `scoreReason` rendering from the home UI. `scoreReason` remains in data but is hidden from users.
 - Tightened star particle position typing to percentage template strings so `Animated.Text` style typechecks.
+- App Store readiness polish: the save/share CTA now uses an `Ionicons` share icon button with a clear saving/disabled state.
 
 ### `app/onboarding.tsx` (changed in earlier session)
 - Post-save now routes to `router.replace('/detail')` (was `/home`)
+- App Store readiness polish: onboarding is now 4 steps with a welcome/value screen before collecting birthday, optional birth time/place, or optional photos.
+- Privacy Policy and Terms links are visible in the intro card before profile collection begins.
+- Birthday helper copy now explains that the date anchors zodiac and lunar calendar context while staying on-device.
 - Added step 3 photo trust copy before `ProfilePhotoCapture`: face = "energy field and presence," palm = "life line patterns," handwriting = "intention energy"
 - Privacy Policy link is visible in the onboarding intro card before the app collects birthday, optional birth details, or optional photos. It routes to the in-app `/privacy` screen, which links to the hosted policy at `https://luckyday-privacy.tiiny.site`.
 
 ### `app/settings.tsx`
 - Privacy controls now include a visible "Read Privacy Policy" link to `/privacy`.
 - Profile, photo, feedback, and local data controls all remain on-device management actions.
+- App Store readiness polish:
+  - Replaced `LUCKYDAY ID` with `Your profile · saved locally`.
+  - Added a Terms link beside Privacy Policy.
+  - Moved the normal Save settings action above optional photos and local data controls.
+  - Grouped reset/delete actions under a visually separate local data controls card.
+  - Replaced the chain-link emoji share action with an `Ionicons` share icon.
+  - Softened optional photo copy: photos are optional, LuckyDay works without them, and they can be removed anytime.
+
+### `app/paywall.tsx`
+- Paywall pricing state now stays calm:
+  - Initial state shows `Loading App Store pricing...` with a spinner.
+  - Success state shows real RevenueCat/App Store localized prices.
+  - CTA reads `Unlock Premium — {price}{period}` only when a real package is loaded.
+  - Failure state shows one calm error message and one retry path only.
+  - Removed `App Store pricing unavailable` from the hero badge state.
+  - Purchase remains blocked unless a real package is loaded.
+- Footer now includes Restore Purchases, Privacy, Terms, and Not now.
+- No free-trial copy is shown unless a real App Store/RevenueCat introductory offer is added later.
+
+### `app/terms.tsx`
+- Added an in-app Terms of Service screen.
+- Includes simple app-use terms and a link to Apple's standard subscription terms.
+
+### `src/components/BirthdayPicker.tsx`
+- Added Year / Month / Day labels above the three picker columns.
+- Selected Year, Month, and Day now have stronger visual treatment.
+- Added a selected-date summary and helper copy explaining why the date matters.
+
+### `src/components/EnergyScoreCard.tsx`
+- Score unit now reads `/100 luck energy`.
+- Added a small helper line: `Luck energy is your simple daily momentum signal.`
+
+### `app/detail.tsx`
+- Added subtle LuckyDay branding at the top of the primary Today dashboard.
+- Replaced emoji share CTA with an `Ionicons` share button.
+- Kept score/order/progressive-disclosure flow intact.
+
+### `app/history.tsx`
+- Prediction vs Reality summary no longer shows rows of `—` when there are no reflections.
+- Empty states now say: `Reflect on a reading to start tracking your patterns.`
+- Calendar already includes day-of-week headers and remains unchanged.
+
+### `app/_layout.tsx`
+- Registered the new `terms` route.
 
 ### `app/feedback.tsx`
 - Reworked from simple Yes/Somewhat/No feedback into a calm daily reflection journal.

@@ -89,10 +89,11 @@ export function EnergyScoreCard({ label, score, message }: Props) {
         })}
         <View style={styles.orbInner}>
           <Text style={styles.score}>{displayScore}</Text>
-          <Text style={styles.scoreUnit}>luck energy</Text>
+          <Text style={styles.scoreUnit}>/100</Text>
         </View>
       </View>
       <Text style={styles.moodPill}>{energyMood(displayScore)}</Text>
+      <Text style={styles.energyHelp}>Luck energy is your simple daily momentum signal.</Text>
     </Card>
   );
 }
@@ -262,10 +263,10 @@ const styles = StyleSheet.create({
   scoreUnit: {
     color: colors.goldDeep,
     fontFamily: fonts.heavy,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '900',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    opacity: 0.7,
   },
   moodPill: {
     backgroundColor: 'rgba(255, 240, 199, 0.16)',
@@ -280,5 +281,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     textTransform: 'uppercase',
+  },
+  energyHelp: {
+    color: 'rgba(255,255,255,0.82)',
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginHorizontal: spacing.md,
+    textAlign: 'center',
   },
 });

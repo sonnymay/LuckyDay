@@ -146,14 +146,14 @@ export default function PaywallScreen() {
       ? `${annualPkg.localizedPriceString}/year or ${monthlyPkg.localizedPriceString}/month`
       : selected?.localizedPriceString
         ? `${selected.localizedPriceString}${getBillingLabel(selected)}`
-        : 'App Store pricing unavailable';
+        : 'Pricing loads securely from the App Store';
   const selectedPrice = selected?.localizedPriceString ?? '';
   const ctaLabel = purchasing
     ? 'Starting Premium...'
     : pricingLoading
       ? 'Loading App Store pricing...'
       : canPurchase
-        ? `Unlock Premium - ${selectedPrice}${getBillingLabel(selected)}`
+        ? `Unlock Premium — ${selectedPrice}${getBillingLabel(selected)}`
         : 'Retry pricing';
 
   const handlePrimaryAction = () => {
@@ -312,10 +312,12 @@ export default function PaywallScreen() {
         style={styles.cta}
       />
 
-      {/* Free trial note */}
-      <Text style={styles.trialNote}>
-        Subscription renews automatically · Cancel anytime in your Apple ID settings
-      </Text>
+      {/* Subscription disclosure — only visible once a package price has loaded */}
+      {canPurchase ? (
+        <Text style={styles.trialNote}>
+          Subscription renews automatically · Cancel anytime in your Apple ID settings
+        </Text>
+      ) : null}
 
       {/* Footer */}
       <View style={styles.footer}>
@@ -325,6 +327,10 @@ export default function PaywallScreen() {
         <Text style={styles.footerDot}>·</Text>
         <Pressable onPress={() => router.push('/privacy')}>
           <Text style={styles.footerLink}>Privacy</Text>
+        </Pressable>
+        <Text style={styles.footerDot}>·</Text>
+        <Pressable onPress={() => router.push('/terms')}>
+          <Text style={styles.footerLink}>Terms</Text>
         </Pressable>
         <Text style={styles.footerDot}>·</Text>
         <Pressable onPress={() => router.replace('/home')}>

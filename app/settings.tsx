@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '../src/components/AppButton';
 import { BirthdayPicker } from '../src/components/BirthdayPicker';
 import { Card } from '../src/components/Card';
@@ -279,7 +280,7 @@ export default function SettingsScreen() {
           </View>
           <View style={styles.idBadgeIdentity}>
             <Text style={styles.idBadgeName}>{profile.nickname}</Text>
-            <Text style={styles.idBadgeLabel}>LUCKYDAY ID</Text>
+            <Text style={styles.idBadgeLabel}>Saved locally on this device</Text>
           </View>
         </View>
         <View style={styles.idBadgeMetrics}>
@@ -332,9 +333,9 @@ export default function SettingsScreen() {
 
       {/* ── How it works ── */}
       <Card style={styles.howItWorksCard}>
-        <Text style={styles.photoTitle}>How LuckyDay works</Text>
+        <Text style={styles.contextTitle}>How LuckyDay works</Text>
         <Text style={styles.photoCopy}>
-          Your reading blends your birthday-based Chinese zodiac, your chosen focuses, Chinese almanac guidance, and local daily timing patterns. It is a gentle ritual guide, not a guarantee.
+          Your daily reading blends birthday-based zodiac context, your focus, the Chinese almanac, moon phase, and local timing. It is a gentle ritual guide, not a guarantee.
         </Text>
       </Card>
 
@@ -373,10 +374,17 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      <AppButton label="Save settings" onPress={saveSettings} />
+      {saveConfirmed ? (
+        <Animated.View style={[styles.saveConfirm, { opacity: saveAnim }]}>
+          <Text style={styles.saveConfirmText}>✓ Settings saved</Text>
+        </Animated.View>
+      ) : null}
+
       {/* ── Optional photos ── */}
       <View style={styles.photoStack}>
         <Text style={styles.photoTitle}>Optional luck photos 🍀</Text>
-        <Text style={styles.photoCopy}>Add, retake, or remove photos anytime. Photo links are saved on this device and are not encrypted.</Text>
+        <Text style={styles.photoCopy}>Photos are optional. LuckyDay works without them, and you can add, retake, or remove them anytime from this device.</Text>
         <ProfilePhotoCapture
           label="Face"
           hint="Take a clear photo in soft light."
@@ -420,7 +428,7 @@ export default function SettingsScreen() {
             style={({ pressed }) => [styles.quickActionButton, pressed && styles.quickActionPressed]}
             onPress={() => requestStoreReviewIfAvailable()}
           >
-            <Text style={styles.quickActionEmoji}>⭐</Text>
+            <Ionicons name="star-outline" size={26} color={colors.mauve} />
             <Text style={styles.quickActionLabel}>Rate LuckyDay</Text>
           </Pressable>
           <Pressable
@@ -432,7 +440,7 @@ export default function SettingsScreen() {
               })
             }
           >
-            <Text style={styles.quickActionEmoji}>🔗</Text>
+            <Ionicons name="share-social-outline" size={26} color={colors.mauve} />
             <Text style={styles.quickActionLabel}>Share LuckyDay</Text>
           </Pressable>
         </View>
@@ -440,32 +448,42 @@ export default function SettingsScreen() {
 
       {/* ── Privacy controls ── */}
       <Card style={styles.privacyCard}>
-        <Text style={styles.photoTitle}>Privacy controls 🧿</Text>
+        <Text style={styles.photoTitle}>Data & privacy 🧿</Text>
         <Text style={styles.photoCopy}>
-          Your profile, photo links, and feedback are stored on this device. Local storage is private to this app, but it is not encrypted.
+          Your profile, optional photo links, and feedback are stored locally on this device.
         </Text>
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel="Read Privacy Policy"
-          onPress={() => router.push('/privacy')}
-          style={({ pressed }) => [styles.privacyPolicyLink, pressed && styles.privacyPolicyLinkPressed]}
-        >
-          <Text style={styles.privacyPolicyText}>Read Privacy Policy</Text>
-        </Pressable>
+        <View style={styles.legalLinksRow}>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Read Privacy Policy"
+            onPress={() => router.push('/privacy')}
+            style={({ pressed }) => [styles.privacyPolicyLink, pressed && styles.privacyPolicyLinkPressed]}
+          >
+            <Text style={styles.privacyPolicyText}>Privacy Policy</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Read Terms of Service"
+            onPress={() => router.push('/terms')}
+            style={({ pressed }) => [styles.privacyPolicyLink, pressed && styles.privacyPolicyLinkPressed]}
+          >
+            <Text style={styles.privacyPolicyText}>Terms</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.dangerLabel}>Local data controls</Text>
         <View style={styles.privacyActions}>
           <AppButton label="Clear feedback" variant="secondary" onPress={confirmClearFeedback} />
           <AppButton label="Delete photos only" variant="secondary" onPress={confirmDeletePhotosOnly} />
-          <AppButton label="Delete all local data" variant="danger" onPress={confirmDeleteLocalData} />
+          <View style={styles.dangerAction}>
+            <AppButton label="Reset profile" variant="danger" onPress={confirmReset} />
+            <Text style={styles.dangerHint}>Removes your nickname, birthday, and focuses. Photos are kept.</Text>
+          </View>
+          <View style={styles.dangerAction}>
+            <AppButton label="Delete all local data" variant="danger" onPress={confirmDeleteLocalData} />
+            <Text style={styles.dangerHint}>Removes everything including photos. Cannot be undone.</Text>
+          </View>
         </View>
       </Card>
-
-      <AppButton label="Save settings" onPress={saveSettings} />
-      {saveConfirmed ? (
-        <Animated.View style={[styles.saveConfirm, { opacity: saveAnim }]}>
-          <Text style={styles.saveConfirmText}>✓ Settings saved</Text>
-        </Animated.View>
-      ) : null}
-      <AppButton label="Reset profile" variant="danger" onPress={confirmReset} />
     </Screen>
   );
 }
@@ -669,6 +687,11 @@ const styles = StyleSheet.create({
     borderColor: '#C8BFEE',
     gap: spacing.sm,
   },
+  contextTitle: {
+    color: colors.mauve,
+    fontSize: 18,
+    fontWeight: '900',
+  },
   form: {
     gap: spacing.md,
   },
@@ -706,10 +729,6 @@ const styles = StyleSheet.create({
   quickActionPressed: {
     opacity: 0.78,
   },
-  quickActionEmoji: {
-    fontSize: 26,
-    lineHeight: 32,
-  },
   quickActionLabel: {
     color: colors.mauve,
     fontSize: 13,
@@ -718,7 +737,14 @@ const styles = StyleSheet.create({
   },
   // Privacy
   privacyCard: {
+    backgroundColor: '#FFF8F4',
+    borderColor: '#F5BFAA',
     gap: spacing.md,
+  },
+  legalLinksRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   privacyPolicyLink: {
     alignSelf: 'flex-start',
@@ -737,8 +763,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '900',
   },
+  dangerLabel: {
+    color: '#8B3B1A',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
   privacyActions: {
     gap: spacing.sm,
+  },
+  dangerAction: {
+    gap: 6,
+  },
+  dangerHint: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 17,
+    paddingHorizontal: spacing.xs,
   },
   // Form fields
   group: {

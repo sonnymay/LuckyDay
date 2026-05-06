@@ -32,7 +32,7 @@ const focusEmoji: Record<MainFocus, string> = {
   Health: '🌿',
   Luck: '🍀',
 };
-const totalSteps = 3;
+const totalSteps = 4;
 
 export default function OnboardingScreen() {
   const [step, setStep] = useState(1);
@@ -63,16 +63,16 @@ export default function OnboardingScreen() {
   }, [step, progressAnim]);
 
   const widthInterpolation = progressAnim.interpolate({
-    inputRange: [1, 2, 3],
-    outputRange: ['33.33%', '66.66%', '100%']
+    inputRange: [1, 2, 3, 4],
+    outputRange: ['25%', '50%', '75%', '100%']
   });
 
   function goNext() {
-    if (step === 1 && !validateIdentity()) {
+    if (step === 2 && !validateIdentity()) {
       return;
     }
 
-    if (step === 2 && !validateFocus()) {
+    if (step === 3 && !validateFocus()) {
       return;
     }
 
@@ -152,7 +152,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <Screen>
+    <Screen key={step}>
       <Card style={styles.intro}>
         {/* Decorative circles for depth */}
         <View style={styles.decorCircle1} pointerEvents="none" />
@@ -165,17 +165,40 @@ export default function OnboardingScreen() {
         <Text style={styles.copy}>
           {getStepCopy(step)}
         </Text>
-        <Pressable
-          accessibilityRole="link"
-          accessibilityLabel="Read Privacy Policy"
-          onPress={() => router.push('/privacy')}
-          style={({ pressed }) => [styles.privacyLink, pressed && { opacity: 0.65 }]}
-        >
-          <Text style={styles.privacyLinkText}>Privacy Policy</Text>
-        </Pressable>
+        <View style={styles.legalLinks}>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Read Privacy Policy"
+            onPress={() => router.push('/privacy')}
+            style={({ pressed }) => [styles.privacyLink, pressed && { opacity: 0.65 }]}
+          >
+            <Text style={styles.privacyLinkText}>Privacy Policy</Text>
+          </Pressable>
+          <Text style={styles.legalDot}>·</Text>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Read Terms of Service"
+            onPress={() => router.push('/terms')}
+            style={({ pressed }) => [styles.privacyLink, pressed && { opacity: 0.65 }]}
+          >
+            <Text style={styles.privacyLinkText}>Terms</Text>
+          </Pressable>
+        </View>
       </Card>
 
-      {step === 1 ? <View style={styles.form}>
+      {step === 1 ? (
+        <Card style={styles.welcomeCard}>
+          <Text style={styles.welcomeTitle}>Your first reading should feel earned.</Text>
+          <Text style={styles.welcomeCopy}>
+            LuckyDay blends your birthday-based zodiac, your chosen focus, the lunar calendar, moon phase, and seasonal timing into one calm daily check-in.
+          </Text>
+          <Text style={styles.welcomeCopy}>
+            Your birthday helps anchor the zodiac and lunar context. Birth time and place are optional and can be skipped.
+          </Text>
+        </Card>
+      ) : null}
+
+      {step === 2 ? <View style={styles.form}>
         <Field label="Nickname" value={nickname} onChangeText={setNickname} placeholder="Mali" />
         <View style={styles.group}>
           <Text style={styles.label}>Birthday</Text>
@@ -185,7 +208,7 @@ export default function OnboardingScreen() {
         <Field label="Birthplace optional" value={birthplace} onChangeText={setBirthplace} placeholder="Bangkok" />
       </View> : null}
 
-      {step === 2 ? <View style={styles.form}>
+      {step === 3 ? <View style={styles.form}>
         <View style={styles.group}>
           <Text style={styles.label}>Main focuses</Text>
           <View style={styles.chips}>
@@ -211,7 +234,7 @@ export default function OnboardingScreen() {
         </View>
       </View> : null}
 
-      {step === 3 ? <View style={styles.photoStack}>
+      {step === 4 ? <View style={styles.photoStack}>
         <Card style={styles.photoIntroCard}>
           <Text style={styles.photoIntroEmoji}>🌸</Text>
           <View style={styles.photoIntroCopy}>
@@ -271,14 +294,16 @@ export default function OnboardingScreen() {
 }
 
 function getStepTitle(step: number) {
-  if (step === 1) return 'Tell LuckyDay about you ✨';
-  if (step === 2) return 'Choose your daily focus 🍀';
+  if (step === 1) return 'Welcome to LuckyDay ✨';
+  if (step === 2) return 'Tell LuckyDay about you ✨';
+  if (step === 3) return 'Choose your daily focus 🍀';
   return 'Add a personal touch 🌸';
 }
 
 function getStepCopy(step: number) {
-  if (step === 1) return 'Your profile stays on your phone. Private by default, easy to update anytime.';
-  if (step === 2) return 'Pick what you want today’s guidance to support. Add a reminder if you want a daily nudge.';
+  if (step === 1) return 'A simple daily dashboard for what to do, what to avoid, and when your energy is strongest.';
+  if (step === 2) return 'Your profile stays on your phone. Private by default, easy to update anytime.';
+  if (step === 3) return 'Pick what you want today’s guidance to support. Add a reminder if you want a daily nudge.';
   return 'Photos are optional and stay on this device. Skip them now or add them later from Settings.';
 }
 
@@ -389,9 +414,19 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginTop: spacing.sm,
   },
+  legalLinks: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  legalDot: {
+    color: colors.champagne,
+    fontSize: 14,
+    fontWeight: '900',
+  },
   privacyLink: {
     alignSelf: 'flex-start',
-    marginTop: spacing.md,
   },
   privacyLinkText: {
     color: colors.champagne,
@@ -401,6 +436,23 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing.md,
+  },
+  welcomeCard: {
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    gap: spacing.sm,
+  },
+  welcomeTitle: {
+    color: colors.mauve,
+    fontSize: 22,
+    fontWeight: '900',
+    lineHeight: 28,
+  },
+  welcomeCopy: {
+    color: colors.muted,
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 22,
   },
   navActions: {
     gap: spacing.sm,

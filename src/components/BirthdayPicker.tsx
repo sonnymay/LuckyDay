@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, radii, spacing } from '../styles/theme';
 
@@ -8,6 +8,9 @@ type Props = {
 };
 
 const itemHeight = 42;
+/** Snap interval: item height + gap between items. Must match scrollContent gap. */
+const ITEM_STEP = itemHeight + spacing.xs; // 48
+
 const months = [
   { label: 'Jan', value: '01' },
   { label: 'Feb', value: '02' },
@@ -24,15 +27,20 @@ const months = [
 ];
 
 export function BirthdayPicker({ value, onChange }: Props) {
-  const [selectedYear, setSelectedYear] = useState(() => value.slice(0, 4));
-  const [selectedMonth, setSelectedMonth] = useState(() => value.slice(5, 7));
-  const [selectedDay, setSelectedDay] = useState(() => value.slice(8, 10));
+  // Default year to 1990 so the year column is pre-scrolled to the most common adult range.
+  // Month and day are left empty so the "Selected:" bar only appears once the user
+  // has explicitly picked all three — preventing false confirmation.
+  const [selectedYear, setSelectedYear] = useState(() => value.slice(0, 4) || '1990');
+  const [selectedMonth, setSelectedMonth] = useState(() => value.slice(5, 7) || '');
+  const [selectedDay, setSelectedDay] = useState(() => value.slice(8, 10) || '');
   const years = useMemo(() => buildYears(), []);
   const days = useMemo(() => buildDays(selectedYear, selectedMonth), [selectedMonth, selectedYear]);
+  const selectedMonthLabel = months.find((month) => month.value === selectedMonth)?.label;
 
   useEffect(() => {
     if (!value) {
-      setSelectedYear('');
+      // Keep year at 1990 for scroll position; clear month + day so the bar stays hidden.
+      setSelectedYear('1990');
       setSelectedMonth('');
       setSelectedDay('');
       return;
@@ -69,46 +77,92 @@ export function BirthdayPicker({ value, onChange }: Props) {
       <View style={styles.columns}>
         <WheelColumn
           accessibilityLabel="Birth year"
+          label="Year"
           items={years.map((year) => ({ label: year, value: year }))}
           onSelect={(year) => update({ year })}
           selectedValue={selectedYear}
         />
         <WheelColumn
           accessibilityLabel="Birth month"
+          label="Month"
           items={months}
           onSelect={(month) => update({ month })}
           selectedValue={selectedMonth}
         />
         <WheelColumn
           accessibilityLabel="Birth day"
+          label="Day"
           items={days.map((day) => ({ label: String(Number(day)), value: day }))}
           onSelect={(day) => update({ day })}
           selectedValue={selectedDay}
         />
       </View>
-      <Text style={styles.help}>Scroll and tap your birthday.</Text>
+      {selectedYear && selectedMonthLabel && selectedDay ? (
+        <Text style={styles.selectedSummary}>
+          Selected: {selectedMonthLabel} {Number(selectedDay)}, {selectedYear}
+        </Text>
+      ) : null}
+      <Text style={styles.help}>Tap to pick your year, month, and day.</Text>
     </View>
   );
 }
 
 function WheelColumn({
   accessibilityLabel,
+  label,
   items,
   onSelect,
   selectedValue,
 }: {
   accessibilityLabel: string;
+  label: string;
   items: { label: string; value: string }[];
   onSelect: (value: string) => void;
   selectedValue: string;
 }) {
+  const scrollRef = useRef<ScrollView>(null);
+
+  // Scroll to the selected item whenever selectedValue or items change.
+  // This keeps the visual position in sync with state on every render cycle.
+  useEffect(() => {
+    const index = items.findIndex((item) => item.value === selectedValue);
+    if (index < 0) return;
+    // Defer one frame to ensure layout has completed before scrolling.
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: index * ITEM_STEP, animated: false });
+    }, 0);
+  }, [selectedValue, items]);
+
+  function handlePress(value: string) {
+    // Scroll the column so the tapped item is visually at the top of the viewport,
+    // then update state. This keeps the highlight and the "Selected:" bar in sync.
+    const index = items.findIndex((item) => item.value === value);
+    if (index >= 0) {
+      scrollRef.current?.scrollTo({ y: index * ITEM_STEP, animated: true });
+    }
+    onSelect(value);
+  }
+
+  function handleMomentumScrollEnd(e: { nativeEvent: { contentOffset: { y: number } } }) {
+    // When the user finishes scrolling, snap-select the item nearest the top of the viewport.
+    const index = Math.round(e.nativeEvent.contentOffset.y / ITEM_STEP);
+    const clamped = Math.max(0, Math.min(index, items.length - 1));
+    if (items[clamped]?.value !== selectedValue) {
+      onSelect(items[clamped].value);
+    }
+  }
+
   return (
     <View style={styles.column}>
+      <Text style={styles.columnLabel}>{label}</Text>
       <ScrollView
+        ref={scrollRef}
         accessibilityLabel={accessibilityLabel}
         contentContainerStyle={styles.scrollContent}
+        decelerationRate="fast"
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         showsVerticalScrollIndicator={false}
-        snapToInterval={itemHeight}
+        snapToInterval={ITEM_STEP}
       >
         {items.map((item) => {
           const selected = item.value === selectedValue;
@@ -117,7 +171,7 @@ function WheelColumn({
             <Pressable
               accessibilityRole="button"
               key={item.value}
-              onPress={() => onSelect(item.value)}
+              onPress={() => handlePress(item.value)}
               style={[styles.item, selected && styles.selectedItem]}
             >
               <Text style={[styles.itemText, selected && styles.selectedItemText]}>{item.label}</Text>
@@ -170,9 +224,18 @@ const styles = StyleSheet.create({
     flex: 1,
     maxHeight: itemHeight * 4,
   },
+  columnLabel: {
+    color: colors.mauve,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+  },
   scrollContent: {
     gap: spacing.xs,
-    paddingVertical: spacing.xs,
+    paddingBottom: spacing.xs,
   },
   item: {
     alignItems: 'center',
@@ -183,7 +246,7 @@ const styles = StyleSheet.create({
   selectedItem: {
     backgroundColor: colors.champagne,
     borderColor: colors.luckyGold,
-    borderWidth: 1,
+    borderWidth: 2,
   },
   itemText: {
     color: colors.faint,
@@ -194,6 +257,19 @@ const styles = StyleSheet.create({
     color: colors.goldDeep,
     fontSize: 18,
     fontWeight: '900',
+  },
+  selectedSummary: {
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    color: colors.goldDeep,
+    fontSize: 14,
+    fontWeight: '900',
+    overflow: 'hidden',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    textAlign: 'center',
   },
   help: {
     color: colors.muted,
