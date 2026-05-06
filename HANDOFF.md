@@ -1,6 +1,6 @@
 # LuckyDay — Codex Handoff Document
 
-**Last updated:** 2026-05-05
+**Last updated:** 2026-05-06
 **Stack:** Expo SDK 54, React Native, expo-router ~6.0.23, TypeScript, RevenueCat IAP
 **Target:** iOS App Store (primary). Android and Web secondary.
 
@@ -8,12 +8,14 @@
 
 ## 1. Current App Status
 
-Feature-complete. **First submission was rejected (Guideline 2.1a — App Completeness)** due to a launch crash on iPad Air 11-inch (M3) running iPadOS 26.4.2. The crash has been diagnosed and fixed (see Section 4a below). Apple review currently still has build `1.0.0 (7)` attached; do not cancel it until a newer build has passed real-device RevenueCat/StoreKit testing.
+Feature-complete. **Build `1.0.0 (7)` was rejected again (Guideline 2.1a — App Completeness)** due to a launch crash on iPad Air 11-inch (M3) running iPadOS 26.4.2. The new crash logs still point at launch-time React exception handling. Current source now includes an additional splash-screen crash hardening fix (see Section 4a below). Do not resubmit build 7.
 
 Pre-release checklist:
 
-- [x] App Store crash fixed — `newArchEnabled` set to `false` in `app.json`
+- [x] App Store crash mitigation 1 — `newArchEnabled` set to `false` in `app.json`
+- [x] App Store crash mitigation 2 — `_layout.tsx` catches native splash-screen promise failures
 - [x] New EAS production build created after crash/paywall fix — build `1.0.0 (8)` finished in Expo
+- [x] Build 9 UX polish — birthday picker desync, coin label wrap, consent toggle, paywall copy (see Section 4b)
 - [ ] Real iPhone / StoreKit sandbox pass for build `1.0.0 (8)` or newer
 - [ ] Verify RevenueCat production app key, offerings, packages, and entitlement in the RevenueCat dashboard
 - [ ] TestFlight upload and internal testing pass
@@ -218,6 +220,9 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 - App Store readiness polish: onboarding is now 4 steps with a welcome/value screen before collecting birthday, optional birth time/place, or optional photos.
 - Privacy Policy and Terms links are visible in the intro card before profile collection begins.
 - Birthday helper copy now explains that the date anchors zodiac and lunar calendar context while staying on-device.
+- Build 9 blocker fix: Step 2 navigation has extra spacing and bottom padding so Back and Continue remain separated and visible on small iPhones.
+- Privacy Policy and Terms links now show only on Step 1 instead of repeating on every onboarding header.
+- Step content is clipped horizontally to reduce picker-induced horizontal overflow risk.
 - Added step 3 photo trust copy before `ProfilePhotoCapture`: face = "energy field and presence," palm = "life line patterns," handwriting = "intention energy"
 - Privacy Policy link is visible in the onboarding intro card before the app collects birthday, optional birth details, or optional photos. It routes to the in-app `/privacy` screen, which links to the hosted policy at `https://luckyday-privacy.tiiny.site`.
 
@@ -231,6 +236,8 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
   - Grouped reset/delete actions under a visually separate local data controls card.
   - Replaced the chain-link emoji share action with an `Ionicons` share icon.
   - Softened optional photo copy: photos are optional, LuckyDay works without them, and they can be removed anytime.
+  - Build 9 polish: `Clear feedback` is now `Clear reflections` with explanatory copy; `Delete photos only` has explanatory copy; `Delete all local data` is visually more severe than `Reset profile`.
+  - `Morning reminder optional` label changed to `Morning reminder` with optionality in helper text.
 
 ### `app/paywall.tsx`
 - Paywall pricing state now stays calm:
@@ -251,6 +258,9 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 - Added Year / Month / Day labels above the three picker columns.
 - Selected Year, Month, and Day now have stronger visual treatment.
 - Added a selected-date summary and helper copy explaining why the date matters.
+- Build 9 blocker fix: first-time onboarding now defaults to a complete `Jan 1, 1990` selection and sends `1990-01-01` to the parent form on load.
+- The instructional helper is hidden once a complete date is selected, so it no longer conflicts with the `Selected:` confirmation.
+- Picker wrapper/columns are width-constrained to avoid Step 2 horizontal overflow.
 
 ### `src/components/EnergyScoreCard.tsx`
 - Score unit now reads `/100 luck energy`.
@@ -268,6 +278,7 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 
 ### `app/_layout.tsx`
 - Registered the new `terms` route.
+- Build 7 rejection follow-up: wrapped `SplashScreen.preventAutoHideAsync()` and `SplashScreen.hideAsync()` with catches so a native splash module exception/rejection on iPadOS 26 does not abort launch through React's exception manager.
 
 ### `app/feedback.tsx`
 - Reworked from simple Yes/Somewhat/No feedback into a calm daily reflection journal.
@@ -341,9 +352,9 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 
 ### `app.json` (changed 2026-05-05)
 - `"newArchEnabled"` changed from `true` → `false`
-- **Why:** App Store review device (iPad Air M3, iPadOS 26.4.2) crashes at launch due to an NSException thrown inside a void TurboModule method during app initialization. With New Architecture enabled, NSExceptions that escape TurboModule void methods propagate through the C++ boundary to `abort()` — JS `try/catch` cannot intercept them. With Old Architecture (bridge mode), exceptions from native modules become JavaScript errors instead of terminating the app.
-- **Which module is crashing:** The crash happens ~72ms after launch on `com.meta.react.turbomodulemanager.queue`. All native modules are compiled into `React.framework`, so the exact module cannot be identified from the crash log without native symbols. Most likely candidate: `SplashScreen.preventAutoHideAsync()` (called at module-load time in `_layout.tsx` before any component mounts) using a UIKit API that changed in iOS 26. `react-native-purchases` is NOT installed, so it is not the cause.
-- **Why not a code-level fix:** Native Obj-C NSExceptions cannot be caught by JS try/catch in the New Architecture. The only JS-level fix would be "don't call the method that throws," but without symbols we can't pinpoint the method. Disabling New Architecture is the correct unblock.
+- **Updated crash diagnosis from Apple logs dated 2026-05-06:** build `1.0.0 (7)` had `newArchEnabled: false`, but still crashed at launch on `com.facebook.react.ExceptionsManagerQueue` with `EXC_CRASH / SIGABRT`. This means the old-architecture bridge converted the native startup failure into a React fatal exception instead of a TurboModule abort.
+- **Most likely culprit:** `SplashScreen.preventAutoHideAsync()` was called at module-load time in `_layout.tsx` without a `.catch()`. If the iPadOS 26 splash native module rejects/throws during startup, the unhandled failure is fatal in release. Current source now catches both `preventAutoHideAsync()` and `hideAsync()` failures.
+- **Why not RevenueCat:** build 7's `package.json` did not include `react-native-purchases`, and the crash occurs before paywall interaction.
 - **Long-term path:** Once Expo SDK 55+ (or whichever version adds full iOS 26 support) ships and is stable, re-enable New Architecture and verify on iPadOS 26.
 
 ### Verification (2026-05-05)
@@ -374,6 +385,69 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 - Did not add fake free-trial copy or fake social proof; trial/offer messaging should be added only after App Store Connect and RevenueCat have a real introductory offer configured.
 - Verification: `/usr/local/bin/npm run typecheck` passes; tests pass with `/private/tmp/luckyday-node20 node_modules/vitest/vitest.mjs run src/lib/*.test.ts` after ad-hoc signing a temporary Node 20 binary, because macOS rejects the local Vitest/Rolldown native binding under the normal signed Node binary. `git diff --check` passes.
 
+### 4b. Build 9 UX Polish + Launch Crash Follow-up (2026-05-06)
+
+Fixes applied after live review of the Build 8/9 candidate and after Apple's May 6 crash logs for rejected build `1.0.0 (7)`.
+
+#### `src/components/BirthdayPicker.tsx` — picker desync + default position
+- **Root cause of visual/state desync:** `WheelColumn` had no scroll ref. Tapping an item updated state but left the scroll position unchanged, so the highlight and the "Selected:" bar could disagree.
+- **Fix:** Added `scrollRef` to each `WheelColumn`. On item press, `scrollTo` is called to center that item visually before `onSelect` fires. `onMomentumScrollEnd` reads the final scroll offset and derives the selected index, keeping scroll position and state permanently in sync.
+- **Snap interval corrected:** `snapToInterval` was `itemHeight` (42px) but actual item step including gap is `itemHeight + spacing.xs` (48px). Changed to `ITEM_STEP = 48` so snapping aligns with item positions.
+- **Default position:** `DEFAULT_BIRTHDAY = '1990-01-01'`. On first render with no `value` prop, the picker defaults to Jan 1 1990 and immediately calls `onChange('1990-01-01')`, so the parent form is never silently blocked by an invisible missing-date state. The user can still scroll to any date before tapping Continue.
+- **Help text:** Hidden once a complete date is selected (replaces "Selected:" summary). Picker no longer shows both simultaneously.
+- **Scroll-on-mount:** `useEffect` fires on `selectedValue`/`items` change and scrolls to the correct index via `setTimeout(() => scrollTo, 0)` to guarantee layout has completed.
+
+#### `app/onboarding.tsx` — duplicate helper text + step header off-screen
+- **Duplicate copy removed:** Deleted the `<Text style={styles.helpText}>This anchors your zodiac and lunar calendar context. It stays on this device.</Text>` line that appeared below `<BirthdayPicker>`. The BirthdayPicker component already shows its own help text; the duplicate was a copy-paste artifact from the Codex pass.
+- **Step header visibility:** Added `key={step}` to `<Screen>` so the ScrollView remounts on each step transition and always starts at scroll position 0. Without this, the BirthdayPicker's nested ScrollViews caused the parent to auto-scroll past the "STEP 2 OF 4" header on load.
+
+#### `src/components/EnergyScoreCard.tsx` — "/100 LUCK ENERGY" wrapping
+- Changed `scoreUnit` text from `/100 luck energy` to `/100`. The word "luck energy" was uppercase + letter-spaced inside a 132px circle at 13px, causing a two-line wrap in the bottom-left quadrant that read as a layout glitch.
+- `fontSize` bumped to 15, `letterSpacing` reduced to 0.5, `opacity: 0.7` so it reads as a secondary label next to the large score number.
+- The existing `energyHelp` line below the orb ("Luck energy is your simple daily momentum signal.") retains the full phrase in context where it has room to breathe.
+- **Note:** The HANDOFF Section 4 entry for `EnergyScoreCard.tsx` from the earlier Codex pass says "Score unit now reads `/100 luck energy`" — this is now superseded. The coin shows `/100` only.
+
+#### `src/components/MediaConsentCard.tsx` — toggle not adjacent to consent sentence
+- **Problem:** The checkbox was in the card `header` row (top of the card), visually separated from the consent sentence "I agree to save optional photos on this device." by the privacy copy block and three trust pills. Reviewers could miss the toggle entirely.
+- **Fix:** Removed the checkbox from the header row. The `consentRow` is now a horizontal flex row containing the checkbox immediately left of the consent sentence — toggle and text are always adjacent with no visual separation.
+- `consentRow` style updated: `flexDirection: 'row'`, `alignItems: 'center'`, `gap: spacing.sm`. `consentText` gets `flex: 1` so it wraps cleanly next to the fixed-size checkbox.
+
+#### `app/paywall.tsx` — subscription renewal notice shown during failed pricing state
+- **Problem:** `trialNote` ("Subscription renews automatically · Cancel anytime in your Apple ID settings") was always rendered below the CTA button. When pricing fails and the CTA reads "Retry pricing", this renewal notice is nonsensical — there is nothing to subscribe to yet.
+- **Fix:** `trialNote` is now wrapped in `{canPurchase ? ... : null}`. It only renders when a real App Store package is loaded and selected. The legal disclosure (`legal` block at the bottom of the screen) remains unconditional since it covers the full app store context.
+
+#### `app/settings.tsx` — two quick polish wins
+- **Profile subtitle capitalisation (#13):** "Your profile · saved locally" → "Saved locally on this device". The lowercase "saved" after the centre-dot looked like a sentence fragment.
+- **Destructive action context (#14):** local data actions now use the `DataAction` component with `description` and `tone` props:
+  - Clear reflections → "Clears your reflection notes and ratings."
+  - Delete photos only → "Removes your face, palm, and handwriting photos. Profile stays intact."
+  - Reset profile → "Removes your nickname, birthday, and focuses. Photos are kept."
+  - Delete all local data → "Removes everything including photos. Cannot be undone."
+- `Delete all local data` uses the strongest visual tone so it reads as more severe than reset.
+- "Morning reminder optional" labels were changed to "Morning reminder" with optionality moved to helper text.
+
+#### Crash diagnosis correction (recorded for Codex continuity)
+The prior HANDOFF entry attributed the launch crash to `react-native-purchases` / `RC.configure()`. That was wrong — `react-native-purchases` was never in `package.json`. The actual crash path:
+- Build 6 (New Arch on): `ObjCTurboModule::performVoidMethodInvocation` → `_objc_terminate()` → `abort()`. Fixed by `newArchEnabled: false`.
+- Build 7 (Old Arch): `com.facebook.react.ExceptionsManagerQueue` crash. Old arch converted the same native startup failure into a React JS fatal. Fixed by catching `SplashScreen.preventAutoHideAsync()` and `hideAsync()` rejections in `_layout.tsx`.
+- Both crashes occurred within ~72ms of launch, before JS had time to call any user-interaction code.
+
+#### Verification status
+- `/usr/local/bin/npm run typecheck` passes.
+- `PATH=/private/tmp:$PATH /usr/local/bin/npm test` passes: 2 files, 18 tests.
+- `git diff --check` passes.
+
+#### Next commit/build command
+
+```bash
+cd /Users/santipapmay/Downloads/LuckyDay
+git add -A
+git commit -m "Build 9: launch crash hardening and UX polish"
+eas build --platform ios --profile production
+```
+
+Do not resubmit rejected build `1.0.0 (7)`. Submit a fresh build from the current source after committing.
+
 ---
 
 ## 5. Known Issues / Remaining Gaps
@@ -397,12 +471,13 @@ Push notifications are already available for the morning reminder, but a separat
 
 ## 6. Recommended Next Steps (Priority Order)
 
-**1. EAS build with crash fix (do this first)**
+**1. Commit and EAS build with current crash hardening (do this first)**
 - `app.json` already has `"newArchEnabled": false`
+- `app/_layout.tsx` now catches splash-screen startup failures
 - `eas build --platform ios --profile production`
 - Upload IPA to App Store Connect
-- Respond to rejection: "We identified a compatibility issue with the New Architecture and iOS 26. We've disabled the New Architecture (using the stable bridge mode) and submitted an updated build."
-- If Apple asks for a specific fix description, reference: `NSException thrown in void TurboModule invocation on iOS 26 with RN 0.81 + New Architecture enabled`
+- Respond to rejection: "We addressed an iPadOS 26 launch crash by disabling React Native New Architecture and hardening the splash-screen startup calls so native splash failures cannot abort launch. We submitted a new build for review."
+- Do not resubmit build `1.0.0 (7)`.
 
 **2. RevenueCat production key verification**
 - Verify the configured key in `src/lib/purchases.ts` against RevenueCat dashboard

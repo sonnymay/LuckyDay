@@ -10,6 +10,7 @@ type Props = {
 const itemHeight = 42;
 /** Snap interval: item height + gap between items. Must match scrollContent gap. */
 const ITEM_STEP = itemHeight + spacing.xs; // 48
+const DEFAULT_BIRTHDAY = '1990-01-01';
 
 const months = [
   { label: 'Jan', value: '01' },
@@ -27,22 +28,22 @@ const months = [
 ];
 
 export function BirthdayPicker({ value, onChange }: Props) {
-  // Default year to 1990 so the year column is pre-scrolled to the most common adult range.
-  // Month and day are left empty so the "Selected:" bar only appears once the user
-  // has explicitly picked all three — preventing false confirmation.
-  const [selectedYear, setSelectedYear] = useState(() => value.slice(0, 4) || '1990');
-  const [selectedMonth, setSelectedMonth] = useState(() => value.slice(5, 7) || '');
-  const [selectedDay, setSelectedDay] = useState(() => value.slice(8, 10) || '');
+  // Default to a complete date so first-time users are never blocked by invisible
+  // missing month/day state. They can still adjust any column before continuing.
+  const initialValue = value || DEFAULT_BIRTHDAY;
+  const [selectedYear, setSelectedYear] = useState(() => initialValue.slice(0, 4));
+  const [selectedMonth, setSelectedMonth] = useState(() => initialValue.slice(5, 7));
+  const [selectedDay, setSelectedDay] = useState(() => initialValue.slice(8, 10));
   const years = useMemo(() => buildYears(), []);
   const days = useMemo(() => buildDays(selectedYear, selectedMonth), [selectedMonth, selectedYear]);
   const selectedMonthLabel = months.find((month) => month.value === selectedMonth)?.label;
 
   useEffect(() => {
     if (!value) {
-      // Keep year at 1990 for scroll position; clear month + day so the bar stays hidden.
       setSelectedYear('1990');
-      setSelectedMonth('');
-      setSelectedDay('');
+      setSelectedMonth('01');
+      setSelectedDay('01');
+      onChange(DEFAULT_BIRTHDAY);
       return;
     }
 
@@ -51,7 +52,7 @@ export function BirthdayPicker({ value, onChange }: Props) {
       setSelectedMonth(value.slice(5, 7));
       setSelectedDay(value.slice(8, 10));
     }
-  }, [value]);
+  }, [onChange, value]);
 
   function update(next: { year?: string; month?: string; day?: string }) {
     const year = next.year ?? selectedYear;
@@ -72,8 +73,13 @@ export function BirthdayPicker({ value, onChange }: Props) {
     onChange('');
   }
 
+  const hasCompleteDate = Boolean(selectedYear && selectedMonthLabel && selectedDay);
+
   return (
     <View style={styles.wrapper}>
+      {!hasCompleteDate ? (
+        <Text style={styles.help}>Tap to pick your year, month, and day.</Text>
+      ) : null}
       <View style={styles.columns}>
         <WheelColumn
           accessibilityLabel="Birth year"
@@ -97,12 +103,11 @@ export function BirthdayPicker({ value, onChange }: Props) {
           selectedValue={selectedDay}
         />
       </View>
-      {selectedYear && selectedMonthLabel && selectedDay ? (
+      {hasCompleteDate ? (
         <Text style={styles.selectedSummary}>
           Selected: {selectedMonthLabel} {Number(selectedDay)}, {selectedYear}
         </Text>
       ) : null}
-      <Text style={styles.help}>Tap to pick your year, month, and day.</Text>
     </View>
   );
 }
@@ -209,6 +214,9 @@ function getDaysInMonth(year: string, month: string) {
 const styles = StyleSheet.create({
   wrapper: {
     gap: spacing.sm,
+    maxWidth: '100%',
+    overflow: 'hidden',
+    width: '100%',
   },
   columns: {
     backgroundColor: colors.panel,
@@ -219,10 +227,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     overflow: 'hidden',
     padding: spacing.sm,
+    width: '100%',
   },
   column: {
     flex: 1,
     maxHeight: itemHeight * 4,
+    minWidth: 0,
+    overflow: 'hidden',
   },
   columnLabel: {
     color: colors.mauve,
@@ -259,6 +270,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   selectedSummary: {
+    alignSelf: 'stretch',
     backgroundColor: colors.champagne,
     borderColor: colors.luckyGold,
     borderRadius: radii.pill,

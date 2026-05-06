@@ -152,7 +152,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <Screen key={step}>
+    <Screen key={step} contentStyle={styles.screenContent}>
       <Card style={styles.intro}>
         {/* Decorative circles for depth */}
         <View style={styles.decorCircle1} pointerEvents="none" />
@@ -165,7 +165,7 @@ export default function OnboardingScreen() {
         <Text style={styles.copy}>
           {getStepCopy(step)}
         </Text>
-        <View style={styles.legalLinks}>
+        {step === 1 ? <View style={styles.legalLinks}>
           <Pressable
             accessibilityRole="link"
             accessibilityLabel="Read Privacy Policy"
@@ -183,7 +183,7 @@ export default function OnboardingScreen() {
           >
             <Text style={styles.privacyLinkText}>Terms</Text>
           </Pressable>
-        </View>
+        </View> : null}
       </Card>
 
       {step === 1 ? (
@@ -228,9 +228,9 @@ export default function OnboardingScreen() {
         </View>
 
         <View style={styles.group}>
-          <Text style={styles.label}>Morning reminder optional</Text>
+          <Text style={styles.label}>Morning reminder</Text>
           <TimePickerInput value={notificationTime} onChange={setNotificationTime} />
-          <Text style={styles.helpText}>Leave empty to skip reminders.</Text>
+          <Text style={styles.helpText}>Optional. Leave empty to skip reminders.</Text>
         </View>
       </View> : null}
 
@@ -282,7 +282,7 @@ export default function OnboardingScreen() {
       </View> : null}
 
       <View style={styles.navActions}>
-        {step > 1 ? <AppButton label="Back" variant="secondary" onPress={goBack} /> : null}
+        {step > 1 ? <AppButton label="Back" variant="secondary" onPress={goBack} style={styles.backButton} /> : null}
         {step < totalSteps ? (
           <AppButton label="Continue" onPress={goNext} />
         ) : (
@@ -359,6 +359,10 @@ function Field({ label, value, onChangeText, placeholder }: FieldProps) {
 }
 
 const styles = StyleSheet.create({
+  screenContent: {
+    overflow: 'hidden',
+    paddingBottom: spacing.xl2,
+  },
   intro: {
     backgroundColor: colors.mauve,
     borderColor: colors.roseGold,
@@ -455,7 +459,13 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   navActions: {
-    gap: spacing.sm,
+    gap: spacing.md,
+    marginTop: spacing.sm,
+    paddingBottom: spacing.lg,
+    rowGap: spacing.md,
+  },
+  backButton: {
+    marginBottom: spacing.xs,
   },
   photoStack: {
     gap: spacing.md,

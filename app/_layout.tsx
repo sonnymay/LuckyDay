@@ -8,7 +8,9 @@ import { initPurchases } from '../src/lib/purchases';
 import { colors } from '../src/styles/theme';
 
 // Keep the splash screen up while fonts load.
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync().catch(() => {
+  // If the native splash module rejects on a new iOS version, keep launch non-fatal.
+});
 
 export default function RootLayout() {
   // Load Nunito — requires: npx expo install @expo-google-fonts/nunito
@@ -23,7 +25,7 @@ export default function RootLayout() {
 
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded || fontError) {
-      await SplashScreen.hideAsync();
+      await SplashScreen.hideAsync().catch(() => undefined);
     }
   }, [fontsLoaded, fontError]);
 

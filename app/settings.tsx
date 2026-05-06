@@ -368,9 +368,9 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.group}>
-          <Text style={styles.label}>Morning reminder optional</Text>
+          <Text style={styles.label}>Morning reminder</Text>
           <TimePickerInput value={notificationTime} onChange={setNotificationTime} />
-          <Text style={styles.helpText}>Leave empty to skip reminders.</Text>
+          <Text style={styles.helpText}>Optional. Leave empty to skip reminders.</Text>
         </View>
       </View>
 
@@ -472,16 +472,28 @@ export default function SettingsScreen() {
         </View>
         <Text style={styles.dangerLabel}>Local data controls</Text>
         <View style={styles.privacyActions}>
-          <AppButton label="Clear feedback" variant="secondary" onPress={confirmClearFeedback} />
-          <AppButton label="Delete photos only" variant="secondary" onPress={confirmDeletePhotosOnly} />
-          <View style={styles.dangerAction}>
-            <AppButton label="Reset profile" variant="danger" onPress={confirmReset} />
-            <Text style={styles.dangerHint}>Removes your nickname, birthday, and focuses. Photos are kept.</Text>
-          </View>
-          <View style={styles.dangerAction}>
-            <AppButton label="Delete all local data" variant="danger" onPress={confirmDeleteLocalData} />
-            <Text style={styles.dangerHint}>Removes everything including photos. Cannot be undone.</Text>
-          </View>
+          <DataAction
+            description="Clears your reflection notes and ratings."
+            label="Clear reflections"
+            onPress={confirmClearFeedback}
+          />
+          <DataAction
+            description="Removes your face, palm, and handwriting photos. Profile stays intact."
+            label="Delete photos only"
+            onPress={confirmDeletePhotosOnly}
+          />
+          <DataAction
+            description="Removes your nickname, birthday, and focuses. Photos are kept."
+            label="Reset profile"
+            onPress={confirmReset}
+            tone="danger"
+          />
+          <DataAction
+            description="Removes everything including photos. Cannot be undone."
+            label="Delete all local data"
+            onPress={confirmDeleteLocalData}
+            tone="critical"
+          />
         </View>
       </Card>
     </Screen>
@@ -525,6 +537,40 @@ function Field({ label, value, onChangeText, placeholder }: FieldProps) {
         value={value}
       />
     </View>
+  );
+}
+
+function DataAction({
+  description,
+  label,
+  onPress,
+  tone = 'default',
+}: {
+  description: string;
+  label: string;
+  onPress: () => void;
+  tone?: 'default' | 'danger' | 'critical';
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.dataAction,
+        tone === 'danger' && styles.dataActionDanger,
+        tone === 'critical' && styles.dataActionCritical,
+        pressed && styles.dataActionPressed,
+      ]}
+    >
+      <Text style={[
+        styles.dataActionLabel,
+        tone === 'danger' && styles.dataActionDangerLabel,
+        tone === 'critical' && styles.dataActionCriticalLabel,
+      ]}>
+        {label}
+      </Text>
+      <Text style={styles.dataActionDescription}>{description}</Text>
+    </Pressable>
   );
 }
 
@@ -773,15 +819,43 @@ const styles = StyleSheet.create({
   privacyActions: {
     gap: spacing.sm,
   },
-  dangerAction: {
-    gap: 6,
+  dataAction: {
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.line,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  dangerHint: {
+  dataActionDanger: {
+    backgroundColor: colors.panel,
+    borderColor: colors.roseGold,
+  },
+  dataActionCritical: {
+    backgroundColor: '#FFF1F1',
+    borderColor: colors.red,
+    borderWidth: 2,
+  },
+  dataActionPressed: {
+    opacity: 0.75,
+  },
+  dataActionLabel: {
+    color: colors.ink,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  dataActionDangerLabel: {
+    color: colors.mauve,
+  },
+  dataActionCriticalLabel: {
+    color: colors.red,
+  },
+  dataActionDescription: {
     color: colors.muted,
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 17,
-    paddingHorizontal: spacing.xs,
   },
   // Form fields
   group: {
