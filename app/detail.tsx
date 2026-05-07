@@ -122,12 +122,12 @@ export default function DetailScreen() {
     <Animated.View style={{ opacity: fadeAnim }}>
       <View style={styles.brandRow}>
         <Text style={styles.brandMark}>LuckyDay</Text>
-        <Text style={styles.brandSub}>Daily luck dashboard</Text>
+        <Text style={styles.brandSub}>{formatReadingDate(reading)}</Text>
       </View>
       <Text style={styles.pageTitle}>{nickname ? `${nickname}'s luck today ✨` : "Today's Reading ✨"}</Text>
 
       {/* ── Energy score orb — the headline number ── */}
-      <EnergyScoreCard label="✨ Today's luck energy" score={reading.score} message={reading.mainMessage} />
+      <EnergyScoreCard score={reading.score} message={reading.mainMessage} />
 
       <View style={styles.streakRow}>
         <View style={styles.streakPill}>
@@ -150,15 +150,11 @@ export default function DetailScreen() {
       <Card style={styles.bestTimeCard}>
         <Text style={styles.bestTimeLabel}>⏰ Best time</Text>
         <Text style={styles.bestTimeValue}>{reading.luckyTime}</Text>
-        <Text style={styles.bestTimeCopy}>Use this window for your most important small move.</Text>
       </Card>
 
       {/* ── Good for / Avoid — immediate dashboard guidance ── */}
       {(reading.goodFor?.length > 0 || reading.avoid?.length > 0) ? (
         <View style={styles.almanacBlock}>
-          <Text style={styles.almanacSubtitle}>
-            Based on the Chinese lunar calendar, moon phase, and 24 solar terms.
-          </Text>
           <View style={styles.pillsRow}>
             {reading.goodFor?.length > 0 ? (
               <View style={[styles.pillsGroup, styles.goodGroup]}>
@@ -184,7 +180,7 @@ export default function DetailScreen() {
         </View>
       ) : null}
 
-      {/* ── Score scale + yesterday — context for what the number means ── */}
+      {/* ── Score scale + influences — context for what the number means ── */}
       <View style={styles.scoreContextCard}>
         <View style={styles.scoreScaleRow}>
           {SCORE_BANDS.map((band) => (
@@ -204,46 +200,35 @@ export default function DetailScreen() {
             {getDeltaExplanation(reading.score, yesterdayScore, reading.moonPhase)}
           </Text>
         ) : null}
+        <View style={styles.divider} />
+        <View style={styles.breakdownRow}>
+          <View style={styles.breakdownChip}>
+            <Text style={styles.breakdownEmoji}>{getZodiacEmoji(reading.chineseZodiac)}</Text>
+            <View>
+              <Text style={styles.breakdownLabel}>{reading.chineseZodiac}</Text>
+              <Text style={styles.breakdownValue}>{getBaseStrength(reading.scoreBase)}</Text>
+            </View>
+          </View>
+          <View style={styles.breakdownChip}>
+            <Text style={styles.breakdownEmoji}>{getMoonChipEmoji(reading.moonPhase)}</Text>
+            <View>
+              <Text style={styles.breakdownLabel}>{reading.moonPhase}</Text>
+              <Text style={[styles.breakdownValue, reading.scoreMoonBonus === 0 && styles.breakdownNeutral]}>
+                {reading.scoreMoonBonus >= 6 ? 'Peak lift' : reading.scoreMoonBonus >= 3 ? 'Clear lift' : reading.scoreMoonBonus > 0 ? 'Gentle lift' : 'Neutral'}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.breakdownChip}>
+            <Text style={styles.breakdownEmoji}>📖</Text>
+            <View>
+              <Text style={styles.breakdownLabel}>Almanac</Text>
+              <Text style={[styles.breakdownValue, reading.scoreAlmanacBonus === 0 && styles.breakdownNeutral]}>
+                {reading.scoreAlmanacBonus >= 4 ? 'Very auspicious' : reading.scoreAlmanacBonus >= 2 ? 'Favorable' : 'Quiet day'}
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
-
-      {/* ── Influence breakdown — what shaped today's reading ── */}
-      <View style={styles.breakdownRow}>
-        <View style={styles.breakdownChip}>
-          <Text style={styles.breakdownEmoji}>{getZodiacEmoji(reading.chineseZodiac)}</Text>
-          <View>
-            <Text style={styles.breakdownLabel}>{reading.chineseZodiac}</Text>
-            <Text style={styles.breakdownValue}>{getBaseStrength(reading.scoreBase)}</Text>
-          </View>
-        </View>
-        <View style={styles.breakdownChip}>
-          <Text style={styles.breakdownEmoji}>{getMoonChipEmoji(reading.moonPhase)}</Text>
-          <View>
-            <Text style={styles.breakdownLabel}>{reading.moonPhase}</Text>
-            <Text style={[styles.breakdownValue, reading.scoreMoonBonus === 0 && styles.breakdownNeutral]}>
-              {reading.scoreMoonBonus >= 6 ? 'Peak lift' : reading.scoreMoonBonus >= 3 ? 'Clear lift' : reading.scoreMoonBonus > 0 ? 'Gentle lift' : 'Neutral'}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.breakdownChip}>
-          <Text style={styles.breakdownEmoji}>📖</Text>
-          <View>
-            <Text style={styles.breakdownLabel}>Almanac</Text>
-            <Text style={[styles.breakdownValue, reading.scoreAlmanacBonus === 0 && styles.breakdownNeutral]}>
-              {reading.scoreAlmanacBonus >= 4 ? 'Very auspicious' : reading.scoreAlmanacBonus >= 2 ? 'Favorable' : 'Quiet day'}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* ── Date + main message ── */}
-      <Card style={styles.top}>
-        <View style={styles.dateRow}>
-          <Text style={styles.date}>✨ {formatReadingDate(reading)}</Text>
-        </View>
-        {reading.solarTerm ? (
-          <Text style={styles.solarTerm}>{reading.solarTerm}</Text>
-        ) : null}
-      </Card>
 
       {/* ── Lucky metrics at a glance ── */}
       <View style={styles.quickRow}>
@@ -255,22 +240,21 @@ export default function DetailScreen() {
             <Text style={styles.colorMeaning}>{getLuckyColorMeaning(reading.luckyColor)}</Text>
           </View>
         </View>
-        <View style={[styles.quickCard, styles.numberQuickCard, { flex: 2 }]}>
-          <Text style={styles.quickLabel}>Lucky no.</Text>
-          <Text style={styles.numberValue}>{reading.luckyNumber}</Text>
-        </View>
-      </View>
-      <View style={styles.quickRow}>
-        <View style={[styles.quickCard, styles.directionQuickCard, { flex: 1 }]}>
-          <Text style={styles.quickLabel}>Direction</Text>
-          <Text style={styles.quickValue}>{reading.luckyDirection}</Text>
+        <View style={{ flex: 2, gap: spacing.md }}>
+          <View style={[styles.quickCard, styles.numberQuickCard, { flex: 1 }]}>
+            <Text style={styles.quickLabel}>Lucky no.</Text>
+            <Text style={styles.numberValue}>{reading.luckyNumber}</Text>
+          </View>
+          <View style={[styles.quickCard, styles.directionQuickCard, { flex: 1 }]}>
+            <Text style={styles.quickLabel}>Direction</Text>
+            <Text style={styles.quickValue}>{reading.luckyDirection}</Text>
+          </View>
         </View>
       </View>
 
       {/* ── Full reading breakdown ── */}
       <Card style={styles.stack}>
         <Text style={styles.deepDiveTitle}>Today's top insights</Text>
-        <Text style={styles.deepDiveCopy}>A quick read first. Open the rest when you want more detail.</Text>
         {visibleInsights.map((item, index) => (
           <View key={item.label}>
             {index > 0 ? <View style={styles.divider} /> : null}
@@ -440,14 +424,12 @@ const styles = StyleSheet.create({
   pageTitle: {
     color: colors.ink,
     fontFamily: fonts.heavy,
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '900',
     paddingTop: spacing.sm,
   },
   brandRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 6,
     paddingTop: spacing.xs,
   },
   brandMark: {
@@ -460,7 +442,7 @@ const styles = StyleSheet.create({
   brandSub: {
     color: colors.muted,
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '600',
   },
   streakRow: {
     alignItems: 'center',
@@ -489,39 +471,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
-  top: {
-    backgroundColor: colors.panelStrong,
-    borderColor: colors.roseGold,
-  },
-  dateRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  date: {
-    color: colors.mauve,
-    fontSize: 14,
-    fontWeight: '800',
-  },
   lunarDate: {
     color: colors.muted,
     fontSize: 13,
     fontWeight: '700',
-  },
-  solarTerm: {
-    backgroundColor: colors.champagne,
-    borderColor: colors.luckyGold,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    color: colors.goldDeep,
-    alignSelf: 'flex-start',
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-    marginTop: spacing.xs,
-    overflow: 'hidden',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
   },
   title: {
     color: colors.ink,
@@ -532,12 +485,6 @@ const styles = StyleSheet.create({
   },
   almanacBlock: {
     gap: spacing.sm,
-  },
-  almanacSubtitle: {
-    color: colors.muted,
-    fontSize: 13,
-    fontWeight: '700',
-    lineHeight: 18,
   },
   pillsRow: {
     flexDirection: 'row',
@@ -609,7 +556,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     flex: 1,
     justifyContent: 'center',
-    opacity: 0.45,
+    opacity: 0.6,
   },
   scoreBandActive: {
     opacity: 1,
@@ -701,9 +648,9 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: colors.white,
-    fontFamily: fonts.bold,
+    fontFamily: fonts.regular,
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '500',
     lineHeight: 26,
   },
   bestTimeCard: {
@@ -725,13 +672,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '900',
     lineHeight: 34,
-    textAlign: 'center',
-  },
-  bestTimeCopy: {
-    color: colors.goldDeep,
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 20,
     textAlign: 'center',
   },
   // Lucky color + number quick row
@@ -762,11 +702,20 @@ const styles = StyleSheet.create({
     }),
   },
   colorSwatch: {
-    borderColor: colors.luckyGold,
+    borderColor: colors.ink,
     borderRadius: radii.pill,
     borderWidth: 2,
     height: 44,
     width: 44,
+    ...Platform.select({
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.18,
+        shadowRadius: 3,
+        elevation: 2,
+      },
+    }),
   },
   quickCopy: {
     flex: 1,
@@ -811,15 +760,10 @@ const styles = StyleSheet.create({
   },
   deepDiveTitle: {
     color: colors.mauve,
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  deepDiveCopy: {
-    color: colors.muted,
     fontSize: 13,
-    fontWeight: '700',
-    lineHeight: 19,
-    marginTop: spacing.xs,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
   divider: {
     backgroundColor: colors.line,

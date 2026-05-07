@@ -4,7 +4,6 @@ import { Card } from './Card';
 import { colors, fonts, radii, spacing } from '../styles/theme';
 
 type Props = {
-  label: string;
   score: number;
   message: string;
 };
@@ -14,7 +13,7 @@ const haloRadius = 86;
 const haloDotSize = 10;
 const REVEAL_DURATION = 1200;
 
-export function EnergyScoreCard({ label, score, message }: Props) {
+export function EnergyScoreCard({ score, message }: Props) {
   const progress = useRef(new Animated.Value(0)).current;
   const sparkleAnim = useRef(new Animated.Value(0.3)).current;
   const [displayScore, setDisplayScore] = useState(0);
@@ -60,12 +59,6 @@ export function EnergyScoreCard({ label, score, message }: Props) {
       <Animated.Text style={[styles.sparkleThree, { opacity: sparkleAnim }]}>✦</Animated.Text>
       <Animated.Text style={[styles.flower, { opacity: sparkleAnim }]}>❀</Animated.Text>
       <Animated.Text style={[styles.flowerTwo, { opacity: sparkleAnim }]}>✿</Animated.Text>
-      <View style={styles.labelPill}>
-        <Text style={styles.label}>{label}</Text>
-      </View>
-      <View style={styles.messagePanel}>
-        <Text style={styles.message}>{message}</Text>
-      </View>
       <View style={styles.orb}>
         <View style={styles.orbGlow} pointerEvents="none" />
         {Array.from({ length: haloSegments }).map((_, index) => {
@@ -93,13 +86,15 @@ export function EnergyScoreCard({ label, score, message }: Props) {
         </View>
       </View>
       <Text style={styles.moodPill}>{energyMood(displayScore)}</Text>
-      <Text style={styles.energyHelp}>Luck energy is your simple daily momentum signal.</Text>
+      <View style={styles.messagePanel}>
+        <Text style={styles.message}>{message}</Text>
+      </View>
     </Card>
   );
 }
 
 function energyMood(score: number) {
-  if (score >= 90) return '✦ Peak energy today';
+  if (score >= 90) return 'Peak energy today';
   if (score >= 82) return 'Golden flow';
   if (score >= 70) return 'Bright momentum';
   if (score >= 60) return 'Soft steady luck';
@@ -177,21 +172,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     position: 'absolute',
     left: 30,
-  },
-  labelPill: {
-    backgroundColor: 'rgba(255, 240, 199, 0.15)',
-    borderColor: 'rgba(255, 240, 199, 0.32)',
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  label: {
-    color: colors.champagne,
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
   },
   messagePanel: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -281,13 +261,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     textTransform: 'uppercase',
-  },
-  energyHelp: {
-    color: 'rgba(255,255,255,0.82)',
-    fontSize: 13,
-    fontWeight: '700',
-    lineHeight: 18,
-    marginHorizontal: spacing.md,
-    textAlign: 'center',
   },
 });

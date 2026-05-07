@@ -507,6 +507,41 @@ Fixes applied after Apple rejected build `1.0.0 (9)` for a launch crash on iPhon
 
 ---
 
+### 4d. UX/UI Polish Pass (2026-05-07)
+
+Full detail-screen audit and polish. No feature changes; all immutable design rules preserved.
+
+#### `app/detail.tsx`
+- **Brand row**: Changed from row to column layout. Replaced "Daily luck dashboard" subtitle with `formatReadingDate(reading)` — date/lunar date/solar term now appears directly under "LuckyDay" in the header.
+- **Page title**: `fontSize` 28 → 22. Score orb is now the clear visual headline.
+- **Orphaned date Card removed**: The `<Card style={styles.top}>` block (date + solar term, mid-scroll) was redundant with the brand row date. Deleted entirely.
+- **Score context + influence chips merged**: `breakdownRow` (3 qualitative chips) moved inside `scoreContextCard` with a divider. One border, one visual unit.
+- **Lucky metrics layout**: Direction card no longer takes a lonely full-width row. Color card stays wide-left (flex: 3); Number and Direction stack vertically in a right column (flex: 2). No content removed.
+- **Noise text removed**: Three meta-instruction strings deleted — almanac source attribution, "A quick read first…" (insights section), "Use this window for your most important small move." (best time card).
+- **Action card body text**: `fontFamily` `fonts.bold` → `fonts.regular`, `fontWeight` '800' → '500'. Reads as a suggestion, not a command.
+- **Score band opacity**: Inactive band labels (REST/STEADY/STRONG/PEAK) 0.45 → 0.6. Now legible at normal viewing distance.
+- **Header gap**: `brandRow` gap 2 → 6px. LuckyDay and date line have breathing room.
+- **"TODAY'S TOP INSIGHTS" label**: `fontSize` 18 → 13, added `textTransform: 'uppercase'`, `letterSpacing: 0.8`. Now matches the app's all-caps label convention.
+- **Color swatch**: Border changed from `colors.luckyGold` to `colors.ink` (width 2), added subtle drop shadow. Light colors (Silver, White) now assert themselves on the pink card background.
+
+#### `src/components/EnergyScoreCard.tsx`
+- **Removed `label` prop**: "TODAY'S LUCK ENERGY" pill removed. Two label pills in one card was one too many.
+- **Reordered card content**: Orb (number) is now first inside the card, followed by mood pill, then the message sentence. Previous order was label → sentence → number, which buried the score. New reading order: number → mood → message.
+- **Removed `energyHelp` text**: "Luck energy is your simple daily momentum signal." was onboarding copy that never left. Deleted.
+- **`energyMood` decoration fix**: "✦ Peak energy today" → "Peak energy today". Consistent with all other mood labels.
+
+#### `src/components/TabBar.tsx`
+- "Profile" → "You". Matches the app's personal fortune register.
+
+#### `app/home.tsx`
+- Updated `EnergyScoreCard` call to remove the now-deleted `label` prop.
+
+#### Verification (2026-05-07)
+- `npm run typecheck` passes.
+- `npm test` passes: 2 files, 18 tests.
+
+---
+
 ## 5. Known Issues / Remaining Gaps
 
 ### Pool content ceiling (~20 days)

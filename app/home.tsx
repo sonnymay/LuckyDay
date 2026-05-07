@@ -298,7 +298,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <EnergyScoreCard label="✨ Today's luck energy" score={reading.score} message={reading.mainMessage} />
+      <EnergyScoreCard score={reading.score} message={reading.mainMessage} />
 
       {/* ── Daily wisdom quote — visible to all users, changes daily ── */}
       {reading.fortuneQuote ? (
