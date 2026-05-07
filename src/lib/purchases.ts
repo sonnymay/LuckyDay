@@ -73,24 +73,31 @@ async function getRevenueCat() {
 
 let initialized = false;
 
-export async function initPurchases(): Promise<void> {
-  if (initialized) return;
+async function ensurePurchasesConfigured(): Promise<typeof import('react-native-purchases').default | null> {
+  if (initialized && Purchases) return Purchases;
+
   const RC = await getRevenueCat();
-  if (!RC || REVENUE_CAT_API_KEY === 'YOUR_REVENUECAT_IOS_KEY_HERE') return;
+  if (!RC || REVENUE_CAT_API_KEY === 'YOUR_REVENUECAT_IOS_KEY_HERE') return null;
 
   try {
     RC.configure({ apiKey: REVENUE_CAT_API_KEY });
     initialized = true;
+    return RC;
   } catch (error) {
     console.warn('[LuckyDay] RevenueCat init failed:', error);
+    return null;
   }
+}
+
+export async function initPurchases(): Promise<void> {
+  await ensurePurchasesConfigured();
 }
 
 // ─── Premium status ───────────────────────────────────────────────────────────
 
 export async function getPremiumStatus(): Promise<PremiumStatus> {
-  const RC = await getRevenueCat();
-  if (!RC || !initialized) return { isPremium: false, expiresAt: null };
+  const RC = await ensurePurchasesConfigured();
+  if (!RC) return { isPremium: false, expiresAt: null };
 
   try {
     const info = await RC.getCustomerInfo();
@@ -109,8 +116,8 @@ export async function getPremiumStatus(): Promise<PremiumStatus> {
 // ─── Offerings ────────────────────────────────────────────────────────────────
 
 export async function getOfferings(): Promise<PurchasePackage[]> {
-  const RC = await getRevenueCat();
-  if (!RC || !initialized) return [];
+  const RC = await ensurePurchasesConfigured();
+  if (!RC) return [];
 
   try {
     const offerings = await RC.getOfferings();
@@ -135,8 +142,8 @@ export type PurchaseResult =
   | { success: false; cancelled: boolean; error?: string };
 
 export async function purchasePackage(pkg: PurchasePackage): Promise<PurchaseResult> {
-  const RC = await getRevenueCat();
-  if (!RC || !initialized) {
+  const RC = await ensurePurchasesConfigured();
+  if (!RC) {
     return { success: false, cancelled: false, error: 'Purchases not configured' };
   }
 
@@ -170,8 +177,8 @@ export async function purchasePackage(pkg: PurchasePackage): Promise<PurchaseRes
 // ─── Restore ─────────────────────────────────────────────────────────────────
 
 export async function restorePurchases(): Promise<PremiumStatus> {
-  const RC = await getRevenueCat();
-  if (!RC || !initialized) return { isPremium: false, expiresAt: null };
+  const RC = await ensurePurchasesConfigured();
+  if (!RC) return { isPremium: false, expiresAt: null };
 
   try {
     const info = await RC.restorePurchases();

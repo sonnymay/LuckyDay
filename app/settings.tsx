@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '../src/components/AppButton';
 import { BirthdayPicker } from '../src/components/BirthdayPicker';
@@ -392,7 +391,7 @@ export default function SettingsScreen() {
           onChange={(uri) => updatePhoto(uri, setFaceUri, setFaceUpdatedAt)}
           onRemove={() => removePhoto(setFaceUri, setFaceUpdatedAt)}
           updatedAt={faceUpdatedAt}
-          cameraType={ImagePicker.CameraType.front}
+          cameraType="front"
         />
         <ProfilePhotoCapture
           label="Left palm"

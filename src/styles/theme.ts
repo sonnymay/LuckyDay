@@ -47,9 +47,8 @@ export const radii = {
 };
 
 /**
- * Custom font families — loaded in app/_layout.tsx via expo-font.
- * Falls back gracefully to system font if not yet loaded.
- * Requires: npx expo install @expo-google-fonts/nunito
+ * Custom font family names. The app no longer blocks launch on font loading;
+ * iOS falls back to the system font if these variants are not available yet.
  */
 export const fonts = {
   regular: 'Nunito-Regular',

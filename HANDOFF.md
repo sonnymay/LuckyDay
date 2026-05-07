@@ -8,7 +8,7 @@
 
 ## 1. Current App Status
 
-Feature-complete. **Build `1.0.0 (7)` was rejected again (Guideline 2.1a — App Completeness)** due to a launch crash on iPad Air 11-inch (M3) running iPadOS 26.4.2. The new crash logs still point at launch-time React exception handling. Current source now includes an additional splash-screen crash hardening fix (see Section 4a below). Do not resubmit build 7.
+Feature-complete. **Build `1.0.0 (9)` was rejected (Guideline 2.1a — App Completeness)** due to a launch crash on iPhone 17 Pro Max running iOS 26.4.2. The new crash logs still point at a native exception routed through React's exception queue within ~90–170ms of launch. Current source now removes optional native startup calls from the root launch path (see Section 4c below). Do not resubmit build 9.
 
 Pre-release checklist:
 
@@ -16,6 +16,7 @@ Pre-release checklist:
 - [x] App Store crash mitigation 2 — `_layout.tsx` catches native splash-screen promise failures
 - [x] New EAS production build created after crash/paywall fix — build `1.0.0 (8)` finished in Expo
 - [x] Build 9 UX polish — birthday picker desync, coin label wrap, consent toggle, paywall copy (see Section 4b)
+- [x] Build 10 crash mitigation — remove root splash/font/purchases startup calls and lazy-load camera/notification modules (see Section 4c)
 - [ ] Real iPhone / StoreKit sandbox pass for build `1.0.0 (8)` or newer
 - [ ] Verify RevenueCat production app key, offerings, packages, and entitlement in the RevenueCat dashboard
 - [ ] TestFlight upload and internal testing pass
@@ -278,7 +279,7 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 
 ### `app/_layout.tsx`
 - Registered the new `terms` route.
-- Build 7 rejection follow-up: wrapped `SplashScreen.preventAutoHideAsync()` and `SplashScreen.hideAsync()` with catches so a native splash module exception/rejection on iPadOS 26 does not abort launch through React's exception manager.
+- Build 10 launch hardening supersedes the earlier splash-screen catch approach: root startup no longer imports or calls `expo-splash-screen`, `expo-font`, or RevenueCat.
 
 ### `app/feedback.tsx`
 - Reworked from simple Yes/Somewhat/No feedback into a calm daily reflection journal.
@@ -450,6 +451,60 @@ Do not resubmit rejected build `1.0.0 (7)`. Submit a fresh build from the curren
 
 ---
 
+### 4c. Build 10 Launch Crash Mitigation (2026-05-06)
+
+Fixes applied after Apple rejected build `1.0.0 (9)` for a launch crash on iPhone 17 Pro Max running iOS 26.4.2.
+
+#### Crash log summary
+- All three build 9 crash logs show `EXC_CRASH / SIGABRT`.
+- Faulting queue: `com.facebook.react.ExceptionsManagerQueue`.
+- Crashes occur almost immediately after process launch: roughly 90ms, 94ms, and 170ms.
+- The repeated stack shape is `objc_exception_throw` → app native frame offsets → `NSInvocation invoke` → React exception queue → `abort()`.
+- This means the previous splash `.catch()` hardening was not enough. The failure is still a native module call during early startup, before the first user interaction.
+
+#### `app/_layout.tsx` — root startup made intentionally minimal
+- Removed `expo-splash-screen` import and all `preventAutoHideAsync()` / `hideAsync()` calls.
+- Removed `expo-font` / `useFonts()` import and the startup font gate.
+- Removed root-level `initPurchases()` call.
+- Root layout now renders the navigator immediately inside `SafeAreaProvider`.
+- Goal: no optional native module invocation should happen from the root file before the app can render.
+
+#### `app/index.tsx` — entry screen simplified to redirect-only
+- Removed the dead sample reading preview UI. It was unreachable because the screen always redirects after checking stored profile.
+- Removed startup `Animated.timing(... useNativeDriver ...)`.
+- Entry screen now only checks for a stored profile and redirects to `/detail` or `/onboarding`, with a plain background while it checks.
+- Goal: avoid starting NativeAnimated or building preview components during the first launch window.
+
+#### `src/lib/purchases.ts` — RevenueCat lazy configuration
+- Added `ensurePurchasesConfigured()` and moved RevenueCat configuration into purchase/status/offerings/restore calls.
+- Paywall and restore still work, but RevenueCat is no longer initialized from `_layout.tsx` at app startup.
+- Purchase is still blocked unless real packages load.
+
+#### `src/components/ProfilePhotoCapture.tsx`, `app/onboarding.tsx`, `app/settings.tsx`
+- Removed static `expo-image-picker` imports from onboarding/settings/photo capture module load.
+- `ProfilePhotoCapture` now dynamically imports `expo-image-picker` only when the user taps `Take photo`.
+- Face camera selection now passes a simple `"front"` value into the component.
+
+#### `src/lib/notifications.ts`
+- Removed static `expo-notifications` import.
+- Notification APIs are dynamically imported only when scheduling or cancelling a reminder.
+- If the module is unavailable, reminder scheduling returns `unsupported` instead of affecting launch.
+
+#### `src/styles/theme.ts`
+- Updated font comment to reflect that the app no longer blocks launch on font loading.
+
+#### Verification status
+- `/usr/local/bin/npm run typecheck` passes.
+- `PATH=/private/tmp:$PATH /usr/local/bin/npm test` passes: 2 files, 18 tests.
+- `git diff --check` passes.
+
+#### Build guidance
+- Do not resubmit rejected build `1.0.0 (9)`.
+- Commit these changes, create build `1.0.0 (10)` or newer, upload it to App Store Connect, and submit that build for review.
+- Reply to Apple: "We removed optional native module calls from app startup, including splash-screen control, startup font loading, startup purchase initialization, and static camera/notification module loading. The app now renders first and loads those native modules only when the related feature is used."
+
+---
+
 ## 5. Known Issues / Remaining Gaps
 
 ### Pool content ceiling (~20 days)
@@ -471,13 +526,14 @@ Push notifications are already available for the morning reminder, but a separat
 
 ## 6. Recommended Next Steps (Priority Order)
 
-**1. Commit and EAS build with current crash hardening (do this first)**
+**1. Commit and EAS build with build 10 crash hardening (do this first)**
 - `app.json` already has `"newArchEnabled": false`
-- `app/_layout.tsx` now catches splash-screen startup failures
+- `app/_layout.tsx` no longer imports or calls optional splash/font/purchases native modules at startup
+- camera picker, notifications, and RevenueCat now initialize lazily only when their feature is used
 - `eas build --platform ios --profile production`
 - Upload IPA to App Store Connect
-- Respond to rejection: "We addressed an iPadOS 26 launch crash by disabling React Native New Architecture and hardening the splash-screen startup calls so native splash failures cannot abort launch. We submitted a new build for review."
-- Do not resubmit build `1.0.0 (7)`.
+- Respond to rejection: "We removed optional native module calls from app startup and submitted a new build for review."
+- Do not resubmit build `1.0.0 (9)`.
 
 **2. RevenueCat production key verification**
 - Verify the configured key in `src/lib/purchases.ts` against RevenueCat dashboard

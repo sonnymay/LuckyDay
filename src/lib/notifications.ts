@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 const REMINDER_NOTIFICATION_KEY = 'luckyday.reminderNotificationId.v1';
@@ -44,6 +43,11 @@ export async function syncLocalDailyReminder(time?: string, reading?: ReminderRe
 
   if (!isValidReminderTime(reminderTime)) {
     return 'invalid';
+  }
+
+  const Notifications = await getNotifications();
+  if (!Notifications) {
+    return 'unsupported';
   }
 
   const permission = await Notifications.requestPermissionsAsync();
@@ -123,8 +127,19 @@ async function cancelStoredReminder() {
   }
 
   try {
-    await Notifications.cancelScheduledNotificationAsync(notificationId);
+    const Notifications = await getNotifications();
+    if (Notifications) {
+      await Notifications.cancelScheduledNotificationAsync(notificationId);
+    }
   } finally {
     await AsyncStorage.removeItem(REMINDER_NOTIFICATION_KEY);
+  }
+}
+
+async function getNotifications(): Promise<typeof import('expo-notifications') | null> {
+  try {
+    return await import('expo-notifications');
+  } catch {
+    return null;
   }
 }

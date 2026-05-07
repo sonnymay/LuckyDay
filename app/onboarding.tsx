@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
 import { AppButton } from '../src/components/AppButton';
 import { BirthdayPicker } from '../src/components/BirthdayPicker';
 import { Card } from '../src/components/Card';
@@ -256,7 +255,7 @@ export default function OnboardingScreen() {
           value={faceUri}
           onChange={(uri) => updatePhoto(uri, setFaceUri, setFaceUpdatedAt)}
           updatedAt={faceUpdatedAt}
-          cameraType={ImagePicker.CameraType.front}
+          cameraType="front"
         />
         <ProfilePhotoCapture
           label="Left palm"

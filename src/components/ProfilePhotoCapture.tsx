@@ -1,5 +1,4 @@
 import { Alert, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 
 async function triggerCaptureHaptic() {
   if (Platform.OS === 'web') return;
@@ -20,7 +19,7 @@ type Props = {
   onChange: (uri: string) => void;
   onRemove?: () => void;
   updatedAt?: string;
-  cameraType?: ImagePicker.CameraType;
+  cameraType?: 'front' | 'back';
 };
 
 export function ProfilePhotoCapture({
@@ -30,11 +29,12 @@ export function ProfilePhotoCapture({
   onChange,
   onRemove,
   updatedAt,
-  cameraType = ImagePicker.CameraType.back,
+  cameraType = 'back',
 }: Props) {
   const placeholder = getPhotoPlaceholder(label);
 
   async function capture() {
+    const ImagePicker = await import('expo-image-picker');
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       Alert.alert('Camera permission needed', 'LuckyDay needs the camera to take this setup photo.');
@@ -44,7 +44,7 @@ export function ProfilePhotoCapture({
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
-      cameraType,
+      cameraType: cameraType === 'front' ? ImagePicker.CameraType.front : ImagePicker.CameraType.back,
       quality: 0.75,
     });
 

@@ -1,41 +1,11 @@
-import { useCallback, useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import { initPurchases } from '../src/lib/purchases';
 import { colors } from '../src/styles/theme';
 
-// Keep the splash screen up while fonts load.
-void SplashScreen.preventAutoHideAsync().catch(() => {
-  // If the native splash module rejects on a new iOS version, keep launch non-fatal.
-});
-
 export default function RootLayout() {
-  // Load Nunito — requires: npx expo install @expo-google-fonts/nunito
-  // If the package isn't installed yet, the app falls back to system font gracefully.
-  const [fontsLoaded, fontError] = useFonts(loadFonts());
-
-  useEffect(() => {
-    initPurchases().catch(() => {
-      // Initialization failure is non-fatal — app runs in free mode
-    });
-  }, []);
-
-  const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded || fontError) {
-      await SplashScreen.hideAsync().catch(() => undefined);
-    }
-  }, [fontsLoaded, fontError]);
-
-  // Don't render until fonts resolve (either loaded or errored — both are fine)
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
-
   return (
-    <SafeAreaProvider onLayout={onLayoutRootView}>
+    <SafeAreaProvider>
       <StatusBar style="dark" backgroundColor={colors.background} />
       <Stack
         screenOptions={{
@@ -66,29 +36,4 @@ export default function RootLayout() {
       </Stack>
     </SafeAreaProvider>
   );
-}
-
-/**
- * Load Nunito font variants.
- * Wrapped in a function so the try/catch handles the case where
- * @expo-google-fonts/nunito isn't installed yet — app still launches
- * using the system font rather than crashing.
- */
-function loadFonts(): Record<string, any> {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const {
-      Nunito_400Regular,
-      Nunito_700Bold,
-      Nunito_900Black,
-    } = require('@expo-google-fonts/nunito');
-    return {
-      'Nunito-Regular': Nunito_400Regular,
-      'Nunito-Bold':    Nunito_700Bold,
-      'Nunito-Black':   Nunito_900Black,
-    };
-  } catch {
-    // Package not installed — run: npx expo install @expo-google-fonts/nunito
-    return {};
-  }
 }
