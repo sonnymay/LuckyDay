@@ -232,7 +232,7 @@ export default function DetailScreen() {
 
       {/* ── Lucky metrics at a glance ── */}
       <View style={styles.quickRow}>
-        <View style={[styles.quickCard, { flex: 3 }]}>
+        <View style={[styles.quickCard, { flex: 3, justifyContent: 'center' }]}>
           <View style={[styles.colorSwatch, { backgroundColor: getLuckyColorHex(reading.luckyColor) }]} />
           <View style={styles.quickCopy}>
             <Text style={styles.quickLabel}>Lucky color</Text>
