@@ -536,6 +536,13 @@ Full detail-screen audit and polish. No feature changes; all immutable design ru
 #### `app/home.tsx`
 - Updated `EnergyScoreCard` call to remove the now-deleted `label` prop.
 
+#### Second pass fixes (2026-05-07, post browser review)
+- "DO THIS TODAY" label → "TRY THIS TODAY" (suggestion not command)
+- `streakRow.marginTop`: `-spacing.xs` → `spacing.xs` (removes overlap with hero card bottom edge)
+- `quickCopy`: added `justifyContent: 'center'` (vertically centers Lucky Color card text)
+- `directionQuickCard`: added `alignItems: 'center'` + `justifyContent: 'center'` (matches Number card alignment)
+- `colorSwatch`: `borderWidth` 2→3, `shadowOpacity` 0.18→0.3, `elevation` 2→4 (Silver/light colors now pop on pink background)
+
 #### Verification (2026-05-07)
 - `npm run typecheck` passes.
 - `npm test` passes: 2 files, 18 tests.

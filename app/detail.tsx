@@ -142,7 +142,7 @@ export default function DetailScreen() {
 
       {/* ── Action hero — the #1 thing to do today ── */}
       <Card style={styles.actionCard}>
-        <Text style={styles.actionLabel}>🍀 Do this today</Text>
+        <Text style={styles.actionLabel}>🍀 Try this today</Text>
         <Text style={styles.actionText}>{actionSentence}</Text>
       </Card>
 
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.sm,
     justifyContent: 'center',
-    marginTop: -spacing.xs,
+    marginTop: spacing.xs,
   },
   streakPill: {
     backgroundColor: colors.champagne,
@@ -704,21 +704,22 @@ const styles = StyleSheet.create({
   colorSwatch: {
     borderColor: colors.ink,
     borderRadius: radii.pill,
-    borderWidth: 2,
+    borderWidth: 3,
     height: 44,
     width: 44,
     ...Platform.select({
       default: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.18,
-        shadowRadius: 3,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 4,
       },
     }),
   },
   quickCopy: {
     flex: 1,
+    justifyContent: 'center',
   },
   quickLabel: {
     color: colors.mauve,
@@ -790,10 +791,12 @@ const styles = StyleSheet.create({
   },
   // Direction quick card
   directionQuickCard: {
+    alignItems: 'center',
     backgroundColor: colors.champagne,
     borderColor: colors.luckyGold,
     flexDirection: 'column',
     gap: 4,
+    justifyContent: 'center',
   },
   shareButton: {
     alignItems: 'center',
