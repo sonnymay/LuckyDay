@@ -16,7 +16,8 @@ import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
 import { generateDailyReading } from '../src/lib/luck';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
-import { getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
+import { getNextMilestoneTarget, getReadingStreak } from '../src/lib/streak';
+import { getStoredProfile, getStoredReadingHistory, saveReadingHistoryItem } from '../src/lib/storage';
 import { colors, fonts, radii, spacing } from '../src/styles/theme';
 import { DailyReading, MainFocus } from '../src/types';
 
@@ -62,6 +63,8 @@ export default function DetailScreen() {
   const [yesterdayScore, setYesterdayScore] = useState<number | null>(null);
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
+  const [streak, setStreak] = useState(0);
+  const [nextMilestoneTarget, setNextMilestoneTarget] = useState<number | null>(null);
   const [showAllInsights, setShowAllInsights] = useState(false);
   const [loading, setLoading] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -83,6 +86,11 @@ export default function DetailScreen() {
         setShowAllInsights(false);
         const todayReading = generateDailyReading(profile);
         setReading(todayReading);
+        const nextHistory = [todayReading, ...history.filter((item) => item.date !== todayReading.date)];
+        const currentStreak = getReadingStreak(nextHistory);
+        setStreak(currentStreak);
+        setNextMilestoneTarget(getNextMilestoneTarget(currentStreak));
+        saveReadingHistoryItem(todayReading).catch(() => undefined);
 
         // Find the most recent reading that isn't today
         const past = history.filter((h) => h.date !== todayReading.date);
@@ -120,6 +128,17 @@ export default function DetailScreen() {
 
       {/* ── Energy score orb — the headline number ── */}
       <EnergyScoreCard label="✨ Today's luck energy" score={reading.score} message={reading.mainMessage} />
+
+      <View style={styles.streakRow}>
+        <View style={styles.streakPill}>
+          <Text style={styles.streakText}>{getStreakLabel(streak)}</Text>
+        </View>
+        {nextMilestoneTarget && streak > 0 ? (
+          <Text style={styles.streakHint}>
+            {nextMilestoneTarget - streak} days to your {nextMilestoneTarget}-day milestone
+          </Text>
+        ) : null}
+      </View>
 
       {/* ── Action hero — the #1 thing to do today ── */}
       <Card style={styles.actionCard}>
@@ -310,6 +329,11 @@ function getActionSentence(action: string): string {
   return `${sentence.slice(0, 117).trim()}...`;
 }
 
+function getStreakLabel(streak: number): string {
+  if (streak <= 1) return 'Day 1 ritual streak';
+  return `${streak}-day ritual streak`;
+}
+
 function getBaseStrength(base: number): string {
   if (base >= 75) return 'Strong today';
   if (base >= 65) return 'Rising today';
@@ -437,6 +461,33 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 12,
     fontWeight: '800',
+  },
+  streakRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    justifyContent: 'center',
+    marginTop: -spacing.xs,
+  },
+  streakPill: {
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.pill,
+    borderWidth: 1.5,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+  },
+  streakText: {
+    color: colors.goldDeep,
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.3,
+  },
+  streakHint: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
   },
   top: {
     backgroundColor: colors.panelStrong,

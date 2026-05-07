@@ -1,6 +1,6 @@
 # LuckyDay — Codex Handoff Document
 
-**Last updated:** 2026-05-06
+**Last updated:** 2026-05-07
 **Stack:** Expo SDK 54, React Native, expo-router ~6.0.23, TypeScript, RevenueCat IAP
 **Target:** iOS App Store (primary). Android and Web secondary.
 
@@ -280,6 +280,8 @@ Scores cap at 96 and floor at 50. Do not change these bounds.
 ### `app/_layout.tsx`
 - Registered the new `terms` route.
 - Build 10 launch hardening supersedes the earlier splash-screen catch approach: root startup no longer imports or calls `expo-splash-screen`, `expo-font`, or RevenueCat.
+- Post-build-10 improvement: `detail.tsx` now saves today's generated reading into local reading history from the actual primary Today screen. This keeps History and streaks accurate now that `home.tsx` is not the content screen.
+- Added a compact ritual streak pill below the energy score. It uses existing streak helpers, stays qualitative/simple, and does not expose score arithmetic.
 
 ### `app/feedback.tsx`
 - Reworked from simple Yes/Somewhat/No feedback into a calm daily reflection journal.
@@ -544,8 +546,8 @@ Push notifications are already available for the morning reminder, but a separat
 **3. App Store screenshots (est. 2–3 hours)**
 Shot list is in `APP_STORE_COPY.md`. Run on simulator at 6.7" (iPhone 15 Pro Max) and 5.5" (iPhone 8 Plus). 6 screenshots total. Use a profile with score 85+ for the hero shot ("Peak energy" band should be highlighted). Frame the first screenshot as the full detail screen with a visually strong reading.
 
-**3. Streak widget on detail screen (optional, pre-launch)**
-`streak.ts` already computes the streak. Surfacing it on `detail.tsx` (e.g., "🔥 Day 7 streak" below the score) would add a retention hook without additional data collection. Keep it small — one line, not a prominent card.
+**3. Streak widget on detail screen — completed after build 10 upload**
+`detail.tsx` now records today's reading and shows a compact ritual streak pill below the score. This improves retention and makes History more reliable without collecting new data.
 
 **4. AI-generated per-reading content (post-launch)**
 Long-term fix for the generic content ceiling. Architecture: call a backend edge function (Supabase or similar) on reading generation with zodiac, element, mainFocus[], and almanac data. Generate `zodiacInsight`, `westernZodiacInsight`, `money`, `love`, `work`, `health` via Claude API. Cache to AsyncStorage keyed by `dateKey`. Show a brief loading state (< 2s). This is the only complete fix for the personalization gap — the pool approach has a hard ceiling.
