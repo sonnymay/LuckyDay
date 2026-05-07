@@ -536,6 +536,12 @@ Full detail-screen audit and polish. No feature changes; all immutable design ru
 #### `app/home.tsx`
 - Updated `EnergyScoreCard` call to remove the now-deleted `label` prop.
 
+#### Third pass fixes (2026-05-07, post second browser review)
+- `quickCopy`: `flex: 1` → `flexShrink: 1` — `flex: 1` absorbed all space, making `justifyContent: center` on the color card a no-op. Now the [swatch + text] group actually centers.
+- `streakRow`: switched from `flexDirection: row + flexWrap` to column with `alignItems: center` — pill and milestone hint now reliably center-stack.
+- Added `influencesLabel` ("WHAT SHAPED TODAY") above the influence chips inside `scoreContextCard` — makes the merged score+chips card semantically coherent.
+- `deepDiveTitle`: added `✨` emoji prefix to match the emoji-label convention used throughout the app.
+
 #### Second pass fixes (2026-05-07, post browser review)
 - "DO THIS TODAY" label → "TRY THIS TODAY" (suggestion not command)
 - `streakRow.marginTop`: `-spacing.xs` → `spacing.xs` (removes overlap with hero card bottom edge)

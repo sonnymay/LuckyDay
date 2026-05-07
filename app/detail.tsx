@@ -201,6 +201,7 @@ export default function DetailScreen() {
           </Text>
         ) : null}
         <View style={styles.divider} />
+        <Text style={styles.influencesLabel}>What shaped today</Text>
         <View style={styles.breakdownRow}>
           <View style={styles.breakdownChip}>
             <Text style={styles.breakdownEmoji}>{getZodiacEmoji(reading.chineseZodiac)}</Text>
@@ -254,7 +255,7 @@ export default function DetailScreen() {
 
       {/* ── Full reading breakdown ── */}
       <Card style={styles.stack}>
-        <Text style={styles.deepDiveTitle}>Today's top insights</Text>
+        <Text style={styles.deepDiveTitle}>✨ Today's top insights</Text>
         {visibleInsights.map((item, index) => (
           <View key={item.label}>
             {index > 0 ? <View style={styles.divider} /> : null}
@@ -446,10 +447,7 @@ const styles = StyleSheet.create({
   },
   streakRow: {
     alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    justifyContent: 'center',
+    gap: spacing.xs,
     marginTop: spacing.xs,
   },
   streakPill: {
@@ -718,7 +716,7 @@ const styles = StyleSheet.create({
     }),
   },
   quickCopy: {
-    flex: 1,
+    flexShrink: 1,
     justifyContent: 'center',
   },
   quickLabel: {
@@ -770,6 +768,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.line,
     height: 1,
     marginVertical: spacing.md,
+  },
+  influencesLabel: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    marginBottom: spacing.xs,
+    textTransform: 'uppercase',
   },
   showMoreButton: {
     alignItems: 'center',
