@@ -613,7 +613,29 @@ Class component that catches **render-time** errors in its subtree (something th
 #### Why this approach
 Render errors and async errors are two distinct failure modes — we cover both. The global handler keeps the app alive when a useEffect throws or a Promise rejects unhandled; the ErrorBoundary keeps it alive when render itself throws.
 
-**Trade-off:** containment hides the underlying bug. Pair with Sentry/Bugsnag in v1.1 to get the actual JS line that fires the error in production. The persisted `luckyday.lastError.v1` is a stop-gap, not a substitute for cloud crash reporting.
+**Trade-off:** containment hides the underlying bug. Sentry crash reporting is now wired (see below) — once `EXPO_PUBLIC_SENTRY_DSN` is set, every contained error is also sent to Sentry with a symbolicated stack trace. The persisted `luckyday.lastError.v1` becomes a redundant local fallback.
+
+#### `src/lib/sentry.ts` — new (Sentry wrapper, env-gated, lazy)
+Same pattern as `analytics.ts` and `purchases.ts`: dynamic `import('@sentry/react-native')` only fires after first paint, keeping Sentry's native module off the iOS launch path. Inert until `EXPO_PUBLIC_SENTRY_DSN` is set.
+
+API: `initSentryAsync()`, `captureException(error, context)`, `captureMessage(message, level)`, `setSentryUser(userId)`.
+
+Wired into:
+- `errorHandler.ts` global handler → `captureException(error, { source: 'globalHandler' })`
+- `errorHandler.ts` unhandled rejection → `captureException(err, { source: 'unhandledRejection' })`
+- `ErrorBoundary.componentDidCatch` → `captureException(error, { source: 'ErrorBoundary' })`
+- `_layout.tsx` `useEffect` → `initSentryAsync()` after first paint
+
+#### `app.json` plugin
+Added `"@sentry/react-native/expo"` to the `plugins` array. The plugin handles native iOS init and uploads sourcemaps during EAS build (when `SENTRY_AUTH_TOKEN` is set). Without the plugin, errors would be reported but stack traces would be obfuscated minified JS.
+
+#### Activation steps (user action, not committed)
+1. Create a free Sentry account at sentry.io → new React Native project
+2. Copy the DSN
+3. Add to `.env`: `EXPO_PUBLIC_SENTRY_DSN=https://...`
+4. For EAS production: `eas secret:create --name EXPO_PUBLIC_SENTRY_DSN --value "https://..."`
+5. For sourcemap upload: `eas secret:create --name SENTRY_AUTH_TOKEN --value "..."` (org-level token from Sentry → Settings → Auth Tokens)
+6. Next EAS build will upload sourcemaps automatically; first crash will appear in Sentry dashboard with the actual JS file/line/function
 
 #### Build & submit
 - EAS `autoIncrement: true` will assign build number 11 automatically.

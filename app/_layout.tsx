@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from '../src/styles/theme';
 import { track } from '../src/lib/analytics';
 import { installGlobalErrorHandler } from '../src/lib/errorHandler';
+import { initSentryAsync } from '../src/lib/sentry';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 
 // Install at module load time so the very first render of any child
@@ -13,8 +14,9 @@ installGlobalErrorHandler();
 
 export default function RootLayout() {
   useEffect(() => {
-    // Fire after first paint — track() lazy-loads PostHog so this stays
-    // off the iOS 26 launch crash path.
+    // Fire after first paint — both calls lazy-load native modules so they
+    // stay off the iOS 26 launch crash path.
+    void initSentryAsync();
     track('app_opened');
   }, []);
 

@@ -24,6 +24,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { captureException } from './sentry';
 
 const LAST_ERROR_KEY = 'luckyday.lastError.v1';
 
@@ -66,6 +67,9 @@ export function installGlobalErrorHandler(): void {
       // Storage may itself be the failure — ignore.
     });
 
+    // Forward to Sentry for cloud crash reporting. No-op if SENTRY_DSN unset.
+    captureException(error, { isFatal: !!isFatal, source: 'globalHandler' });
+
     // Always forward to the previous handler in non-fatal mode so RN's
     // dev red-box still shows in development. In production, RN's default
     // handler aborts on fatal — we override that by passing isFatal=false.
@@ -89,6 +93,7 @@ export function installGlobalErrorHandler(): void {
         timestamp: new Date().toISOString(),
       };
       AsyncStorage.setItem(LAST_ERROR_KEY, JSON.stringify(stored)).catch(() => {});
+      captureException(err, { source: 'unhandledRejection' });
     });
   }
 }

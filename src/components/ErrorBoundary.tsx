@@ -21,6 +21,7 @@
 import { Component, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { captureException } from '../lib/sentry';
 
 const LAST_ERROR_KEY = 'luckyday.lastError.v1';
 
@@ -49,6 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
         timestamp: new Date().toISOString(),
       }),
     ).catch(() => {});
+    captureException(error, { source: 'ErrorBoundary' });
   }
 
   reset = (): void => {
