@@ -233,13 +233,11 @@ export default function DetailScreen() {
 
       {/* ── Lucky metrics at a glance ── */}
       <View style={styles.quickRow}>
-        <View style={[styles.quickCard, { flex: 3, justifyContent: 'center' }]}>
+        <View style={[styles.quickCard, styles.colorQuickCard, { flex: 3 }]}>
           <View style={[styles.colorSwatch, { backgroundColor: getLuckyColorHex(reading.luckyColor) }]} />
-          <View style={styles.quickCopy}>
-            <Text style={styles.quickLabel}>Lucky color</Text>
-            <Text style={styles.quickValue}>{reading.luckyColor}</Text>
-            <Text style={styles.colorMeaning}>{getLuckyColorMeaning(reading.luckyColor)}</Text>
-          </View>
+          <Text style={styles.quickLabel}>Lucky color</Text>
+          <Text style={styles.quickValue}>{reading.luckyColor}</Text>
+          <Text style={styles.colorMeaning}>{getLuckyColorMeaning(reading.luckyColor)}</Text>
         </View>
         <View style={{ flex: 2, gap: spacing.md }}>
           <View style={[styles.quickCard, styles.numberQuickCard, { flex: 1 }]}>
@@ -699,6 +697,12 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  colorQuickCard: {
+    alignItems: 'center',
+    flexDirection: 'column',
+    gap: spacing.xs,
+    justifyContent: 'center',
+  },
   colorSwatch: {
     borderColor: colors.ink,
     borderRadius: radii.pill,
@@ -714,10 +718,6 @@ const styles = StyleSheet.create({
         elevation: 4,
       },
     }),
-  },
-  quickCopy: {
-    flexShrink: 1,
-    justifyContent: 'center',
   },
   quickLabel: {
     color: colors.mauve,
