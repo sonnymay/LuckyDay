@@ -169,4 +169,22 @@ describe('luck helpers', () => {
     expect(reading.solarTerm).toContain('立夏');
     expect(reading.action).toMatch(/Start of Summer|sunlight|water|lively/);
   });
+
+  it('score is always an integer within the 50–96 range across a sample of dates', () => {
+    for (let day = 1; day <= 28; day += 1) {
+      const reading = generateDailyReading(baseProfile, new Date(2026, 0, day, 12));
+      expect(reading.score).toBeGreaterThanOrEqual(50);
+      expect(reading.score).toBeLessThanOrEqual(96);
+      expect(Number.isInteger(reading.score)).toBe(true);
+    }
+  });
+
+  it('same profile and date always produce the same score (deterministic)', () => {
+    const date = new Date('2026-06-15T12:00:00.000Z');
+    const r1 = generateDailyReading(baseProfile, date);
+    const r2 = generateDailyReading(baseProfile, date);
+    expect(r1.score).toBe(r2.score);
+    expect(r1.mainMessage).toBe(r2.mainMessage);
+    expect(r1.luckyColor).toBe(r2.luckyColor);
+  });
 });

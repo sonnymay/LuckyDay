@@ -16,13 +16,20 @@
  * isPremium() returns false and the paywall shows.
  */
 
+import { track } from './analytics';
+
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 /**
  * RevenueCat iOS public API key.
- * Before release, verify this matches the production RevenueCat app.
+ *
+ * Override at build time via EXPO_PUBLIC_REVENUECAT_IOS_KEY (e.g. for staging).
+ * Falls back to the production key.
+ *
+ * Note: this is a public client key — safe to embed in the binary.
  */
-const REVENUE_CAT_API_KEY: string = 'appl_NGvyaLeLFXBfpaNUVjaKDGvgSo';
+const REVENUE_CAT_API_KEY: string =
+  process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? 'appl_NGvyaLeLFXBfpaNUVjaKDGvgSo';
 
 export const ENTITLEMENT_ID = 'premium';
 
@@ -142,23 +149,33 @@ export type PurchaseResult =
   | { success: false; cancelled: boolean; error?: string };
 
 export async function purchasePackage(pkg: PurchasePackage): Promise<PurchaseResult> {
+  track('purchase_started', { productId: pkg.productIdentifier });
+
   const RC = await ensurePurchasesConfigured();
   if (!RC) {
+    track('purchase_failed', { productId: pkg.productIdentifier, reason: 'not_configured' });
     return { success: false, cancelled: false, error: 'Purchases not configured' };
   }
 
   try {
     const offerings = await RC.getOfferings();
     const current = offerings.current;
-    if (!current) return { success: false, cancelled: false, error: 'No offerings available' };
+    if (!current) {
+      track('purchase_failed', { productId: pkg.productIdentifier, reason: 'no_offerings' });
+      return { success: false, cancelled: false, error: 'No offerings available' };
+    }
 
     const rcPkg = current.availablePackages.find(
       (p: RevenueCatPackage) => p.storeProduct.productIdentifier === pkg.productIdentifier,
     );
-    if (!rcPkg) return { success: false, cancelled: false, error: 'Package not found' };
+    if (!rcPkg) {
+      track('purchase_failed', { productId: pkg.productIdentifier, reason: 'package_not_found' });
+      return { success: false, cancelled: false, error: 'Package not found' };
+    }
 
     const result = await RC.purchasePackage(rcPkg);
     const isPremium = !!result.customerInfo.entitlements.active[ENTITLEMENT_ID];
+    track('purchase_succeeded', { productId: pkg.productIdentifier, isPremium });
     return { success: true, isPremium };
   } catch (error: unknown) {
     // User cancelled — not an error
@@ -168,8 +185,10 @@ export async function purchasePackage(pkg: PurchasePackage): Promise<PurchaseRes
       'userCancelled' in error &&
       (error as { userCancelled: boolean }).userCancelled
     ) {
+      track('purchase_cancelled', { productId: pkg.productIdentifier });
       return { success: false, cancelled: true };
     }
+    track('purchase_failed', { productId: pkg.productIdentifier, reason: 'exception' });
     return { success: false, cancelled: false, error: String(error) };
   }
 }
@@ -183,8 +202,12 @@ export async function restorePurchases(): Promise<PremiumStatus> {
   try {
     const info = await RC.restorePurchases();
     const entitlement = info.entitlements.active[ENTITLEMENT_ID];
+    const isPremium = !!entitlement;
+    if (isPremium) {
+      track('purchase_restored');
+    }
     return {
-      isPremium: !!entitlement,
+      isPremium,
       expiresAt: entitlement?.expirationDate ? new Date(entitlement.expirationDate) : null,
     };
   } catch {
