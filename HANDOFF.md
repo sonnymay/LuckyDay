@@ -8,20 +8,21 @@
 
 ## 1. Current App Status
 
-Feature-complete. **Build `1.0.0 (9)` was rejected (Guideline 2.1a — App Completeness)** due to a launch crash on iPhone 17 Pro Max running iOS 26.4.2. The new crash logs still point at a native exception routed through React's exception queue within ~90–170ms of launch. Current source now removes optional native startup calls from the root launch path (see Section 4c below). Do not resubmit build 9.
+**Build `1.0.0 (10)` submitted and in Apple review (2026-05-07).** Build 9 was rejected (Guideline 2.1a — App Completeness) due to a launch crash on iPhone 17 Pro Max running iOS 26.4.2. Build 10 includes crash mitigation (see Section 4c). Do not resubmit build 9.
 
-Pre-release checklist:
+App Store Connect metadata (screenshots, listing copy, privacy URL) was sufficient for all prior reviews — rejection was crash-only, not metadata. Screenshots and listing are not blockers.
+
+Submission checklist:
 
 - [x] App Store crash mitigation 1 — `newArchEnabled` set to `false` in `app.json`
 - [x] App Store crash mitigation 2 — `_layout.tsx` catches native splash-screen promise failures
-- [x] New EAS production build created after crash/paywall fix — build `1.0.0 (8)` finished in Expo
 - [x] Build 9 UX polish — birthday picker desync, coin label wrap, consent toggle, paywall copy (see Section 4b)
 - [x] Build 10 crash mitigation — remove root splash/font/purchases startup calls and lazy-load camera/notification modules (see Section 4c)
-- [ ] Real iPhone / StoreKit sandbox pass for build `1.0.0 (8)` or newer
-- [ ] Verify RevenueCat production app key, offerings, packages, and entitlement in the RevenueCat dashboard
-- [ ] TestFlight upload and internal testing pass
-- [ ] App Store screenshots (shot list in `APP_STORE_COPY.md`)
-- [ ] App Store Connect listing (copy in `APP_STORE_COPY.md`)
+- [x] App Store screenshots uploaded (sufficient for Apple review)
+- [x] App Store Connect listing metadata complete
+- [x] RevenueCat dashboard fully configured — key, bundle ID, products, entitlement, offering (see Section 4e)
+- [ ] **StoreKit sandbox pass on real device** — paywall untested on hardware; verify before app goes live
+- [ ] **Update annual price in App Store Connect** — change `com.luckyday.premium.annual` from $29.99 → $19.99 before Build 10 is approved
 
 ---
 
@@ -592,8 +593,8 @@ After ~20 days, zodiac insight repeats will start. After ~60 days, some mainMess
 ### Birth time and birthplace: collected, not used
 `profile.birthTime` and `profile.birthplace` are stored but unused in reading calculation. They were collected for future features. Do not remove them from the data model or the onboarding UI. Do not tell users they affect the reading until they actually do.
 
-### RevenueCat production configuration needs final dashboard verification
-`src/lib/purchases.ts` has a configured iOS public key and the visible paywall no longer shows fallback/test-only pricing. Before any EAS production build, verify in RevenueCat that this key belongs to the production app, the current offering is live, annual/monthly packages are mapped to App Store Connect products, and the `premium` entitlement unlocks correctly.
+### ~~RevenueCat production configuration needs final dashboard verification~~ — RESOLVED 2026-05-07
+Dashboard fully verified: iOS key, bundle ID, both products under iOS app, `premium` entitlement, `default` offering with `$rc_monthly` and `$rc_annual` packages. Outstanding: StoreKit sandbox test on real device has not been done.
 
 ### App Store introductory offer not configured in code
 The paywall does not claim a free trial. If you want "Try free for 7 days," configure the introductory offer in App Store Connect and RevenueCat first, then update paywall copy to reflect the real offer returned by the store package.
@@ -603,31 +604,30 @@ Push notifications are already available for the morning reminder, but a separat
 
 ---
 
-## 6. Recommended Next Steps (Priority Order)
+## 6. Next Steps (Post-Submission — Build 10 in Review)
 
-**1. Commit and EAS build with build 10 crash hardening (do this first)**
-- `app.json` already has `"newArchEnabled": false`
-- `app/_layout.tsx` no longer imports or calls optional splash/font/purchases native modules at startup
-- camera picker, notifications, and RevenueCat now initialize lazily only when their feature is used
-- `eas build --platform ios --profile production`
-- Upload IPA to App Store Connect
-- Respond to rejection: "We removed optional native module calls from app startup and submitted a new build for review."
-- Do not resubmit build `1.0.0 (9)`.
+**Do not create a new EAS build unless Apple rejects Build 10.**
 
-**2. RevenueCat production key verification**
-- Verify the configured key in `src/lib/purchases.ts` against RevenueCat dashboard
-- Confirm current offering, packages, and `premium` entitlement are live
-- Verify bundle ID `com.santipap.luckyday` matches exactly in RevenueCat
-- Confirm build includes `react-native-purchases` before creating the next IPA
+**1. Update annual price in App Store Connect — do before approval**
+Change `com.luckyday.premium.annual` from $29.99 → $19.99. Subscription prices can be changed at any time without a new build. Do it now so users who install at launch see the correct price.
 
-**3. App Store screenshots (est. 2–3 hours)**
-Shot list is in `APP_STORE_COPY.md`. Run on simulator at 6.7" (iPhone 15 Pro Max) and 5.5" (iPhone 8 Plus). 6 screenshots total. Use a profile with score 85+ for the hero shot ("Peak energy" band should be highlighted). Frame the first screenshot as the full detail screen with a visually strong reading.
+**2. StoreKit sandbox test — do before app goes live**
+Test the full purchase flow on a real iPhone using a sandbox Apple ID. Verify:
+- Paywall loads pricing (not "We couldn't load App Store pricing")
+- Monthly and annual packages appear
+- Tapping a package triggers the StoreKit sheet
+- Purchase completes and `isPremium()` returns true
+- Restore purchases works
+If any step fails, diagnose in RevenueCat dashboard logs before the app is live.
 
-**3. Streak widget on detail screen — completed after build 10 upload**
-`detail.tsx` now records today's reading and shows a compact ritual streak pill below the score. This improves retention and makes History more reliable without collecting new data.
+**3. If Apple rejects Build 10 again**
+Read the rejection reason carefully. If it is another crash: pull the new crash log, identify the specific call site, remove or guard it, create Build 11. Do not guess — use the actual symbolicated crash log.
 
-**4. AI-generated per-reading content (post-launch)**
-Long-term fix for the generic content ceiling. Architecture: call a backend edge function (Supabase or similar) on reading generation with zodiac, element, mainFocus[], and almanac data. Generate `zodiacInsight`, `westernZodiacInsight`, `money`, `love`, `work`, `health` via Claude API. Cache to AsyncStorage keyed by `dateKey`. Show a brief loading state (< 2s). This is the only complete fix for the personalization gap — the pool approach has a hard ceiling.
+**4. Post-launch v1.1 priorities**
+- Introductory free trial (configure in App Store Connect + RevenueCat, update paywall copy)
+- Evening reflection reminder (8 PM push, separate storage key, opt-in UI)
+- AI-generated per-reading content (Supabase edge function + Claude API, cache by dateKey)
+- Improved screenshot set (portrait device screenshots for next App Store update)
 
 ---
 
