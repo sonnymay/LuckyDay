@@ -4,13 +4,17 @@
 **Stack:** Expo SDK 54, React Native, expo-router ~6.0.23, TypeScript, RevenueCat IAP, PostHog analytics
 **Target:** iOS App Store (primary). Android and Web secondary.
 
-> **2026-05-08 02:30 — Build 10 REJECTED.** Apple rejected on iPad Air 11-inch / iPadOS 26.4.2 with the same Guideline 2.1(a) crash-on-launch. Crash signature: JS-thrown unhandled exception → `RCTExceptionsManager` → `objc_exception_rethrow` → `abort()`. **Not** a native module init crash anymore — Build 10's lazy-load mitigation worked at the native layer; the new failure is a JS-level exception escalating to fatal. Build 11 (Section 4g) installs a global JS error handler + React ErrorBoundary so unhandled exceptions are contained instead of aborting.
+> **2026-05-08 02:30 — Build 10 REJECTED.** Apple rejected on iPad Air 11-inch / iPadOS 26.4.2 with the same Guideline 2.1(a) crash-on-launch. Crash signature: JS-thrown unhandled exception → `RCTExceptionsManager` → `objc_exception_rethrow` → `abort()`. **Not** a native module init crash anymore — Build 10's lazy-load mitigation worked at the native layer; the new failure is a JS-level exception escalating to fatal.
+>
+> **2026-05-08 03:08 — Build 12 in EAS queue.** Build 11 errored at the EAS Run-fastlane step because the `@sentry/react-native/expo` plugin tried to invoke `sentry-cli` for sourcemap upload without an org slug — there were no Sentry credentials configured yet. Plugin removed from `app.json`; runtime Sentry SDK still works (lazy import). Build number 11 was consumed by the failed attempt, so the next successful build is **#12**. Build 12 contains the Section 4g crash containment layer. EAS auto-submit to App Store Connect is scheduled.
 
 ---
 
 ## 1. Current App Status
 
-**Build `1.0.0 (10)` REJECTED (2026-05-08, 12:07 AM).** Same Guideline 2.1(a) crash-on-launch, this time on **iPad Air 11-inch (M3) / iPadOS 26.4.2**. Three identical crash logs all show JS-thrown unhandled exception escalating to native abort. **Build 11 ready to ship** — adds global JS error handler + React ErrorBoundary (Section 4g). Build & submit Build 11 via EAS.
+**Build `1.0.0 (10)` REJECTED (2026-05-08, 12:07 AM).** Same Guideline 2.1(a) crash-on-launch, this time on **iPad Air 11-inch (M3) / iPadOS 26.4.2**. Three identical crash logs all show JS-thrown unhandled exception escalating to native abort.
+
+**Build `1.0.0 (12)` is now in EAS queue (2026-05-08, 03:08 AM)** with the Section 4g crash containment layer (global JS error handler + React ErrorBoundary). Build 11 was consumed by a failed EAS attempt (Sentry plugin sourcemap upload error); the plugin has been removed from `app.json` and the runtime Sentry SDK remains in `src/lib/sentry.ts` as a lazy import. EAS auto-submit to App Store Connect is scheduled. Once the binary is in App Store Connect, click "Resubmit to App Review" with Build 12 selected.
 
 App Store Connect metadata (screenshots, listing copy, privacy URL) was sufficient for all prior reviews — rejection was crash-only, not metadata. Screenshots and listing are not blockers.
 
@@ -713,16 +717,17 @@ Push notifications are already available for the morning reminder, but a separat
 
 ---
 
-## 6. Next Steps (Build 10 Rejected — Ship Build 11)
+## 6. Next Steps (Build 12 in EAS Queue — Auto-submitting to App Store Connect)
 
-**Build 10 is rejected. Build 11 is ready locally and must be built/submitted next.**
+**Build 12 contains the crash containment layer and is queued in EAS.** Build 11 was consumed by a failed Sentry-plugin attempt (now reverted). Once Build 12 finishes (~10-15 min wall time) EAS will auto-submit to App Store Connect.
 
-**0. Build & submit Build 11 — top priority**
-```
-eas build -p ios --profile production
-eas submit -p ios --latest
-```
-EAS `autoIncrement: true` assigns build number 11. Build 11 contains the JS crash containment layer (Section 4g) so any unhandled exception is logged but does not abort. Do not reply to the existing rejection — submit a new build.
+**0. After Build 12 finishes uploading to App Store Connect — top priority**
+1. Open https://appstoreconnect.apple.com/apps/6766145777/distribution/reviewsubmissions
+2. Click into the "Unresolved Issues" submission
+3. Edit the existing item → swap the binary from Build 10 → Build 12
+4. Click **Resubmit to App Review**
+
+Do not reply to the original rejection message; submitting a fresh build is the standard response.
 
 **1. Submit subscription metadata for review — likely launch blocker**
 Both subscriptions are stuck in "Missing Metadata / Prepare for Submission". For each (Premium Monthly, Premium Annual):
