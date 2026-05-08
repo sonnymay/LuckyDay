@@ -54,8 +54,7 @@
         {
           "savePhotosPermission": "LuckyDay saves your daily luck card to your photos so you can share it."
         }
-      ],
-      "@sentry/react-native/expo"
+      ]
     ],
     "extra": {
       "router": {},
