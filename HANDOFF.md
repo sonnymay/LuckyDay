@@ -558,6 +558,32 @@ Full detail-screen audit and polish. No feature changes; all immutable design ru
 
 ---
 
+### 4e. RevenueCat Setup + Price Alignment (2026-05-07)
+
+**RevenueCat dashboard fully configured:**
+- Project: LuckyDay
+- iOS API key: `appl_NGvyaLeLFXBfpaNUVjaKDGvgSo` ✅
+- Bundle ID: `com.santipap.luckyday` ✅
+- Products added under iOS app: `com.luckyday.premium.monthly`, `com.luckyday.premium.annual` ✅
+- Entitlement `premium` linked to both iOS app products ✅
+- Offering `default` set as Current with `$rc_monthly` and `$rc_annual` packages ✅
+
+**Price alignment:**
+- Resolved discrepancy between docs ($2.99/$14.99) and code ($4.99/$29.99)
+- Final pricing: **$4.99/month · $19.99/year**
+- Updated: `docs/APP_STORE_LISTING.md` and comment in `src/lib/purchases.ts`
+- **Action required:** Update `com.luckyday.premium.annual` price in App Store Connect from $29.99 → $19.99
+
+**Screenshots captured (web preview, all 5):**
+- Today screen (score 61, Soft Steady Luck, 15-day streak, Mali profile)
+- Lucky metrics (Best Time, Good/Avoid, Lucky Color/Number/Direction)
+- Insights (Watch For, Love, Money)
+- History (15-day streak, 79 avg energy, May 2026 calendar)
+- Paywall ("Make every morning feel chosen", features list)
+- Note: Web screenshots are preview only. Final App Store screenshots need iPhone device or Xcode Simulator (portrait, 1290×2796 or 1320×2868).
+
+---
+
 ## 5. Known Issues / Remaining Gaps
 
 ### Pool content ceiling (~20 days)

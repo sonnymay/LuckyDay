@@ -8,7 +8,7 @@
  * 2. Create account at revenuecat.com
  * 3. Create product in App Store Connect:
  *    - Monthly: com.luckyday.premium.monthly  → $4.99/month  ✅ created
- *    - Annual:  com.luckyday.premium.annual   → $29.99/year ✅ created
+ *    - Annual:  com.luckyday.premium.annual   → $19.99/year ✅ created
  * 4. Add entitlement "premium" in RevenueCat dashboard       ✅ done
  * 5. Production iOS SDK key configured                       ✅ done
  *

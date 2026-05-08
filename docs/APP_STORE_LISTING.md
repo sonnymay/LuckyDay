@@ -129,8 +129,8 @@ Required questionnaire answers:
 ## Pricing
 
 - **Free** (with in-app purchase)
-- In-App Purchase 1: LuckyDay Premium Monthly — $2.99/month
-- In-App Purchase 2: LuckyDay Premium Annual — $14.99/year (includes 3-day free trial)
+- In-App Purchase 1: LuckyDay Premium Monthly — $4.99/month
+- In-App Purchase 2: LuckyDay Premium Annual — $19.99/year (includes 3-day free trial)
 
 ---
 
