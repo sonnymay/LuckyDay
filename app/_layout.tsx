@@ -1,9 +1,17 @@
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from '../src/styles/theme';
+import { track } from '../src/lib/analytics';
 
 export default function RootLayout() {
+  useEffect(() => {
+    // Fire after first paint — track() lazy-loads PostHog so this stays
+    // off the iOS 26 launch crash path.
+    track('app_opened');
+  }, []);
+
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" backgroundColor={colors.background} />
