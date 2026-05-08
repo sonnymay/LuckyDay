@@ -373,10 +373,10 @@ function getInsightRows(reading: DailyReading, focuses: MainFocus[]): InsightRow
     if (focus === 'Love') addRow('💗 Love', reading.love);
     if (focus === 'Work') addRow('📌 Work', reading.work);
     if (focus === 'Health') addRow('🌿 Health', reading.health);
-    if (focus === 'Luck') addRow(`🐲 ${reading.chineseZodiac}`, reading.zodiacInsight);
+    if (focus === 'Luck') addRow(`${getZodiacEmoji(reading.chineseZodiac)} ${reading.chineseZodiac}`, reading.zodiacInsight);
   }
 
-  addRow(`🐲 ${reading.chineseZodiac}`, reading.zodiacInsight);
+  addRow(`${getZodiacEmoji(reading.chineseZodiac)} ${reading.chineseZodiac}`, reading.zodiacInsight);
   addRow(`⭐ ${reading.westernZodiac}`, reading.westernZodiacInsight);
   addRow(`🌙 ${reading.moonPhase}`, reading.moonMessage);
   addRow('💰 Money', reading.money);

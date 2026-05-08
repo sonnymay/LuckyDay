@@ -39,7 +39,7 @@ export default function OnboardingScreen() {
   const [birthday, setBirthday] = useState('');
   const [birthTime, setBirthTime] = useState('');
   const [birthplace, setBirthplace] = useState('');
-  const [mainFocus, setMainFocus] = useState<MainFocus[]>(['Luck']);
+  const [mainFocus, setMainFocus] = useState<MainFocus[]>([]);
   const [notificationTime, setNotificationTime] = useState('');
   const [faceUri, setFaceUri] = useState('');
   const [leftPalmUri, setLeftPalmUri] = useState('');
