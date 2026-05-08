@@ -536,6 +536,9 @@ Full detail-screen audit and polish. No feature changes; all immutable design ru
 #### `app/home.tsx`
 - Updated `EnergyScoreCard` call to remove the now-deleted `label` prop.
 
+#### Fourth pass fixes (2026-05-07, post third browser review)
+- Lucky Color card: switched from `flexDirection: row` (left-anchored swatch+text) to `flexDirection: column` with `alignItems: center` + `justifyContent: center`. Swatch on top, label/name/meaning centered below. All 4 browser review crops now pass.
+
 #### Third pass fixes (2026-05-07, post second browser review)
 - `quickCopy`: `flex: 1` → `flexShrink: 1` — `flex: 1` absorbed all space, making `justifyContent: center` on the color card a no-op. Now the [swatch + text] group actually centers.
 - `streakRow`: switched from `flexDirection: row + flexWrap` to column with `alignItems: center` — pill and milestone hint now reliably center-stack.
