@@ -4,11 +4,13 @@
 **Stack:** Expo SDK 54, React Native, expo-router ~6.0.23, TypeScript, RevenueCat IAP, PostHog analytics
 **Target:** iOS App Store (primary). Android and Web secondary.
 
+> **2026-05-08 02:30 — Build 10 REJECTED.** Apple rejected on iPad Air 11-inch / iPadOS 26.4.2 with the same Guideline 2.1(a) crash-on-launch. Crash signature: JS-thrown unhandled exception → `RCTExceptionsManager` → `objc_exception_rethrow` → `abort()`. **Not** a native module init crash anymore — Build 10's lazy-load mitigation worked at the native layer; the new failure is a JS-level exception escalating to fatal. Build 11 (Section 4g) installs a global JS error handler + React ErrorBoundary so unhandled exceptions are contained instead of aborting.
+
 ---
 
 ## 1. Current App Status
 
-**Build `1.0.0 (10)` submitted and in Apple review (2026-05-07).** Build 9 was rejected (Guideline 2.1a — App Completeness) due to a launch crash on iPhone 17 Pro Max running iOS 26.4.2. Build 10 includes crash mitigation (see Section 4c). Do not resubmit build 9.
+**Build `1.0.0 (10)` REJECTED (2026-05-08, 12:07 AM).** Same Guideline 2.1(a) crash-on-launch, this time on **iPad Air 11-inch (M3) / iPadOS 26.4.2**. Three identical crash logs all show JS-thrown unhandled exception escalating to native abort. **Build 11 ready to ship** — adds global JS error handler + React ErrorBoundary (Section 4g). Build & submit Build 11 via EAS.
 
 App Store Connect metadata (screenshots, listing copy, privacy URL) was sufficient for all prior reviews — rejection was crash-only, not metadata. Screenshots and listing are not blockers.
 
@@ -590,6 +592,40 @@ Full detail-screen audit and polish. No feature changes; all immutable design ru
 
 ---
 
+### 4g. Build 11 — JS Crash Containment (2026-05-08, post-rejection)
+
+Build 10 was rejected at 12:07 AM on 2026-05-08 (iPad Air 11-inch M3 / iPadOS 26.4.2, Guideline 2.1(a)). All three crash logs are identical: triggered thread queue is `com.facebook.react.ExceptionsManagerQueue`, exception type `EXC_CRASH/SIGABRT`, terminator `abort()`. The `hades` (Hermes GC) thread is alive — JS bundle parsed and executed before throwing.
+
+**Conclusion:** Build 10's native-side lazy-load mitigation worked. The new crash is a **JS-level unhandled exception** that React Native's fatal handler converts to native abort. iPad-only (iPad15,3 in every log).
+
+Without the dSYM + sourcemap, the exact JS line cannot be extracted from the crash log. Build 11 ships a containment layer instead of guessing the root cause.
+
+#### `src/lib/errorHandler.ts` — new
+Installs a global JS error handler via `ErrorUtils.setGlobalHandler`. Persists the most recent error to `AsyncStorage` under `luckyday.lastError.v1` (message, stack, isFatal, timestamp), then forwards to the previous handler in **non-fatal mode** so the process does not abort. Also catches unhandled promise rejections defensively. Idempotent — safe across hot reload. Exports `getLastError()` and `clearLastError()` for a future debug screen.
+
+#### `src/components/ErrorBoundary.tsx` — new
+Class component that catches **render-time** errors in its subtree (something the global handler cannot catch). Renders a fallback view ("Something interrupted your reading") with a Reload button that resets state. Persists the caught error to the same AsyncStorage key.
+
+#### `app/_layout.tsx` — wire-up
+- Calls `installGlobalErrorHandler()` at module load (top-level, before `RootLayout` is defined) so the very first child render is already covered
+- Wraps the entire `<Stack>` tree in `<ErrorBoundary>`
+
+#### Why this approach
+Render errors and async errors are two distinct failure modes — we cover both. The global handler keeps the app alive when a useEffect throws or a Promise rejects unhandled; the ErrorBoundary keeps it alive when render itself throws.
+
+**Trade-off:** containment hides the underlying bug. Pair with Sentry/Bugsnag in v1.1 to get the actual JS line that fires the error in production. The persisted `luckyday.lastError.v1` is a stop-gap, not a substitute for cloud crash reporting.
+
+#### Build & submit
+- EAS `autoIncrement: true` will assign build number 11 automatically.
+- Run `eas build -p ios --profile production`, then `eas submit -p ios --latest`.
+- After Apple approves, do **not** reply to the old rejection — submit fresh.
+
+#### Verification (2026-05-08)
+- `npx tsc --noEmit` — zero errors
+- `npm test` — 43/43 passed (3 test files)
+
+---
+
 ### 4f. Analytics + Test Coverage + Config Hardening (2026-05-08)
 
 Build 10 is still in Apple review. This session added non-binary infrastructure (no new EAS build needed).
@@ -655,9 +691,16 @@ Push notifications are already available for the morning reminder, but a separat
 
 ---
 
-## 6. Next Steps (Post-Submission — Build 10 in Review)
+## 6. Next Steps (Build 10 Rejected — Ship Build 11)
 
-**Do not create a new EAS build unless Apple rejects Build 10.**
+**Build 10 is rejected. Build 11 is ready locally and must be built/submitted next.**
+
+**0. Build & submit Build 11 — top priority**
+```
+eas build -p ios --profile production
+eas submit -p ios --latest
+```
+EAS `autoIncrement: true` assigns build number 11. Build 11 contains the JS crash containment layer (Section 4g) so any unhandled exception is logged but does not abort. Do not reply to the existing rejection — submit a new build.
 
 **1. Submit subscription metadata for review — likely launch blocker**
 Both subscriptions are stuck in "Missing Metadata / Prepare for Submission". For each (Premium Monthly, Premium Annual):
