@@ -1,7 +1,7 @@
 # LuckyDay — Codex Handoff Document
 
-**Last updated:** 2026-05-07
-**Stack:** Expo SDK 54, React Native, expo-router ~6.0.23, TypeScript, RevenueCat IAP
+**Last updated:** 2026-05-08
+**Stack:** Expo SDK 54, React Native, expo-router ~6.0.23, TypeScript, RevenueCat IAP, PostHog analytics
 **Target:** iOS App Store (primary). Android and Web secondary.
 
 ---
@@ -21,8 +21,13 @@ Submission checklist:
 - [x] App Store screenshots uploaded (sufficient for Apple review)
 - [x] App Store Connect listing metadata complete
 - [x] RevenueCat dashboard fully configured — key, bundle ID, products, entitlement, offering (see Section 4e)
+- [x] Analytics scaffold — PostHog SDK wired with env-gated lazy init, purchase funnel events live (see Section 4f)
+- [x] Test coverage expanded — 17 → 43 tests (almanac, streak, luck), all green (see Section 4f)
+- [x] RevenueCat API key now reads `EXPO_PUBLIC_REVENUECAT_IOS_KEY` env var with prod fallback
 - [ ] **StoreKit sandbox pass on real device** — paywall untested on hardware; verify before app goes live
-- [ ] **Update annual price in App Store Connect** — change `com.luckyday.premium.annual` from $29.99 → $19.99 before Build 10 is approved
+- [ ] **Update annual price in App Store Connect** — change `com.luckyday.premium.annual` from $29.99 → $19.99 (UI disabled while Build 10 is in review; unlocks on approval)
+- [ ] **Submit subscription metadata for review** — both subscriptions still in "Missing Metadata / Prepare for Submission" state in App Store Connect (see Section 5)
+- [ ] **Set `EXPO_PUBLIC_POSTHOG_API_KEY`** — sign up at us.posthog.com and add to `.env` to activate analytics (no-op until set)
 
 ---
 
@@ -585,6 +590,46 @@ Full detail-screen audit and polish. No feature changes; all immutable design ru
 
 ---
 
+### 4f. Analytics + Test Coverage + Config Hardening (2026-05-08)
+
+Build 10 is still in Apple review. This session added non-binary infrastructure (no new EAS build needed).
+
+#### `src/lib/analytics.ts` — new file
+Typed-event analytics wrapper backed by PostHog. Module is inert until `EXPO_PUBLIC_POSTHOG_API_KEY` is set, so call sites can be wired throughout the app without risk.
+
+- **Event taxonomy:** 16 typed events covering lifecycle (`app_opened`, `onboarding_*`), reading flow (`reading_viewed`, `reading_shared`, `history_viewed`), monetization (`paywall_*`, `purchase_*`), and ritual (`streak_milestone_hit`, `reminder_*`).
+- **API:** `initAnalytics()`, `track(event, properties)`, `identify(userId, traits)`, `setUserProperties(traits)`.
+- **Lazy init:** dynamic `import('posthog-react-native')` only fires after the first `track()` call, keeping the native module off the iOS launch path. Same pattern as `purchases.ts`.
+- **Privacy:** events are anonymous by default. `identify` should only be called with the device-local profile ID (no PII).
+
+#### `src/lib/purchases.ts` — env-overridable key + funnel events
+- `REVENUE_CAT_API_KEY` now reads `process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY` with the production key as fallback. Lets staging builds swap keys without code changes; production binary still works without env vars.
+- `purchasePackage()` now emits `purchase_started`, `purchase_succeeded`, `purchase_cancelled`, `purchase_failed` (with `reason` properties) at every branch.
+- `restorePurchases()` emits `purchase_restored` only when an entitlement is actually restored.
+
+#### `app/_layout.tsx` — root-level `app_opened` event
+Fires `track('app_opened')` from a `useEffect` in `RootLayout`. Runs after first paint, never blocks startup. Lazy-load pattern means the PostHog native module does not load until the user has cleared the launch path.
+
+#### Test coverage: 17 → 43 tests
+- **`src/lib/almanac.test.ts`** (new, 10 tests): lunarDate format, goodFor/avoid arrays + 3-item cap, determinism, known solar term on 2026-05-05 (立夏), ordinary day with no solar term, bilingual label format, invalid date fallback, cross-call consistency.
+- **`src/lib/streak.test.ts`** (4 → 18 tests): streak break on gap, single-day streak, same-day duplicate dedupe, empty history, 10-day unbroken streak, all `getStreakMilestone` milestone values, non-milestone returns null, beyond-last-milestone returns null, `shouldRequestRating`, `getNextMilestoneTarget` boundary cases.
+- **`src/lib/luck.test.ts`** (13 → 15 tests): cross-date score clamping (50–96, 28-day sample), determinism across multiple `generateDailyReading` calls on the same date+profile.
+
+Intentionally untested: `getAlmanacDay` zero-translation fallback path (brittle to translation table updates) and `getMonthActivity` timezone edge cases (uses local time consistently; testing requires forced TZ).
+
+#### Dependencies added
+- `posthog-react-native ^4.44.4`
+
+#### Verification (2026-05-08)
+- `npx tsc --noEmit` — zero errors
+- `npm test` — 43/43 passed (3 test files)
+
+#### Commits (branch `codex-luckyday-product-polish`)
+- `4add7b1 feat: add analytics scaffold, env-overridable RC key, expand test coverage`
+- `1a2c8f4 feat: wire PostHog analytics with lazy init + app_opened event`
+
+---
+
 ## 5. Known Issues / Remaining Gaps
 
 ### Pool content ceiling (~20 days)
@@ -599,6 +644,12 @@ Dashboard fully verified: iOS key, bundle ID, both products under iOS app, `prem
 ### App Store introductory offer not configured in code
 The paywall does not claim a free trial. If you want "Try free for 7 days," configure the introductory offer in App Store Connect and RevenueCat first, then update paywall copy to reflect the real offer returned by the store package.
 
+### Subscription metadata still in "Missing Metadata" state
+Both `com.luckyday.premium.monthly` and `com.luckyday.premium.annual` show "Missing Metadata / Prepare for Submission" in App Store Connect. Display Name and Description appear filled, but the **review screenshot (1024×1024 PNG)** and **review notes** are likely missing — that is the typical blocker. If Apple validates IAP during Build 10 review (they sometimes do), this could trigger another rejection. Submit the subscription metadata for review independently of the binary; standalone subscription review is 24–48 hr and does not require a new build.
+
+### Analytics dormant until API key is set
+`src/lib/analytics.ts` is fully wired but a no-op until `EXPO_PUBLIC_POSTHOG_API_KEY` is added to `.env` (or EAS secrets for production builds). Sign up at us.posthog.com (free tier: 1M events/month). Set the env var, restart the dev server, and events flow with zero further code changes.
+
 ### Evening reflection reminder not yet implemented
 Push notifications are already available for the morning reminder, but a separate 8 PM "How was your luck today?" reflection reminder should be added deliberately with its own storage key, cancellation behavior, settings copy, and opt-in/permission handling.
 
@@ -608,10 +659,27 @@ Push notifications are already available for the morning reminder, but a separat
 
 **Do not create a new EAS build unless Apple rejects Build 10.**
 
-**1. Update annual price in App Store Connect — do before approval**
-Change `com.luckyday.premium.annual` from $29.99 → $19.99. Subscription prices can be changed at any time without a new build. Do it now so users who install at launch see the correct price.
+**1. Submit subscription metadata for review — likely launch blocker**
+Both subscriptions are stuck in "Missing Metadata / Prepare for Submission". For each (Premium Monthly, Premium Annual):
+- Reference Name (`LuckyDay Premium Monthly`, `LuckyDay Premium Annual`)
+- Subscription Group: `LuckyDay Premium` (group ID 22066284)
+- Verify Display Name (`LuckyDay Premium`) and Description (`Full readings, lucky metrics & history.`) persisted
+- **Review screenshot (1024×1024 PNG)** of the paywall — most likely missing field
+- Review notes describing how to access the paywall in-app
+- Annual: add introductory offer (3 days free, all territories, new subscribers)
+- Hit "Submit for Review" — independent of binary; reviewed in 24–48 hr.
 
-**2. StoreKit sandbox test — do before app goes live**
+**2. Update annual price in App Store Connect — do as soon as possible**
+Change `com.luckyday.premium.annual` from $29.99 → $19.99. The edit dropdowns are disabled while Build 10 is in review and unlock on approval. Do not pull Build 10 from review just to change the price (loses queue position).
+
+**3. Set `EXPO_PUBLIC_POSTHOG_API_KEY` to activate analytics**
+Sign up at us.posthog.com (free tier: 1M events/month). Add to `.env`:
+```
+EXPO_PUBLIC_POSTHOG_API_KEY=phc_your_key_here
+```
+For EAS production builds: `eas secret:create --name EXPO_PUBLIC_POSTHOG_API_KEY --value phc_…`. The first install with the key set will populate the dashboard with `app_opened`, `purchase_*`, and any other events wired in. No code change required.
+
+**4. StoreKit sandbox test — do before app goes live**
 Test the full purchase flow on a real iPhone using a sandbox Apple ID. Verify:
 - Paywall loads pricing (not "We couldn't load App Store pricing")
 - Monthly and annual packages appear
@@ -620,12 +688,13 @@ Test the full purchase flow on a real iPhone using a sandbox Apple ID. Verify:
 - Restore purchases works
 If any step fails, diagnose in RevenueCat dashboard logs before the app is live.
 
-**3. If Apple rejects Build 10 again**
+**5. If Apple rejects Build 10 again**
 Read the rejection reason carefully. If it is another crash: pull the new crash log, identify the specific call site, remove or guard it, create Build 11. Do not guess — use the actual symbolicated crash log.
 
-**4. Post-launch v1.1 priorities**
+**6. Post-launch v1.1 priorities**
 - Introductory free trial (configure in App Store Connect + RevenueCat, update paywall copy)
 - Evening reflection reminder (8 PM push, separate storage key, opt-in UI)
+- Wire remaining analytics events (`onboarding_*`, `paywall_*`, `reading_*`, `streak_milestone_hit`, `reminder_*`) — taxonomy is already declared in `src/lib/analytics.ts`
 - AI-generated per-reading content (Supabase edge function + Claude API, cache by dateKey)
 - Improved screenshot set (portrait device screenshots for next App Store update)
 
