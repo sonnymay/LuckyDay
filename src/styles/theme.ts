@@ -7,7 +7,7 @@ export const colors = {
   // Text
   ink: '#2D1635',           // Deep plum
   muted: '#8A5A76',         // Richer dusty rose (was #9B6B88)
-  faint: '#CDA0BB',         // Richer faint (was #D4A8C0)
+  faint: '#A87B97',         // Bumped for WCAG ≥3:1 on petal blush bg (was #CDA0BB)
   // Lines
   line: '#E2C5D6',          // More readable (was #EDD8E8)
   // Semantic

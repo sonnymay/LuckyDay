@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.panelStrong,
     borderColor: colors.roseGold,
-    borderRadius: 20,
+    borderRadius: radii.lg,
     borderWidth: 1.5,
     flexDirection: 'row',
     gap: spacing.sm,
