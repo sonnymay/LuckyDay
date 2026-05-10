@@ -14,7 +14,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.santipap.luckyday",
-      "supportsTablet": true,
+      "supportsTablet": false,
       "infoPlist": {
         "NSPhotoLibraryAddUsageDescription": "LuckyDay saves your daily luck card to your photos so you can share it.",
         "ITSAppUsesNonExemptEncryption": false
