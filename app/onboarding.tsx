@@ -239,7 +239,7 @@ export default function OnboardingScreen() {
           <View style={styles.photoIntroCopy}>
             <Text style={styles.photoTitle}>Choose your charm photos</Text>
             <Text style={styles.photoCopy}>
-              Add any photo that feels easy today. Skipping is completely fine — your daily luck still works.
+              Add any photo that feels easy today. Skipping is completely fine — your daily almanac still works.
             </Text>
             <View style={styles.photoReadingList}>
               <Text style={styles.photoReadingText}>Face: energy field and presence</Text>
@@ -273,7 +273,7 @@ export default function OnboardingScreen() {
         />
         <ProfilePhotoCapture
           label="Handwriting"
-          hint="Write: Today I choose steady luck. Then take a photo."
+          hint="Write: Today I choose to be present. Then take a photo."
           value={handwritingUri}
           onChange={(uri) => updatePhoto(uri, setHandwritingUri, setHandwritingUpdatedAt)}
           updatedAt={handwritingUpdatedAt}
@@ -285,7 +285,7 @@ export default function OnboardingScreen() {
         {step < totalSteps ? (
           <AppButton label="Continue" onPress={goNext} />
         ) : (
-          <AppButton label="Show today's luck" onPress={saveProfile} />
+          <AppButton label="Show today's almanac" onPress={saveProfile} />
         )}
       </View>
     </Screen>

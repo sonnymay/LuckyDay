@@ -6,21 +6,21 @@ import { colors, radii, spacing } from '../styles/theme';
 type Props = PropsWithChildren<{
   /** Whether the user has an active premium subscription. */
   isPremium: boolean;
-  /** Short label shown on the lock overlay (e.g. "Lucky metrics"). */
+  /** Short label shown on the lock overlay (e.g. "Daily metrics"). */
   featureLabel?: string;
 }>;
 
 const featureBodyMap: Record<string, string> = {
-  'your lucky metrics': 'Lucky number, color, time, and direction — personalized to your seed.',
+  'your daily metrics': 'Daily number, color, time, and direction — personalized to your seed.',
   'the Chinese Almanac': 'Real almanac guidance: what to do and avoid for this calendar day.',
-  'the Chinese Almanac & daily action': 'Real almanac guidance for today plus a small ritual action to call in better luck.',
-  'your daily action': 'A small ritual action to call in better luck right now.',
+  'the Chinese Almanac & daily action': 'Real almanac guidance for today plus a small ritual action to ground your day.',
+  'your daily action': 'A small ritual action to ground your day right now.',
   'full reading history': 'See every reading you have ever opened, with streak stats.',
 };
 
 function getLockBody(featureLabel?: string): string {
   if (featureLabel && featureBodyMap[featureLabel]) return featureBodyMap[featureLabel];
-  return 'Deeper readings · Chinese Almanac · Lucky metrics · Full history';
+  return 'Deeper readings · Chinese Almanac · Daily metrics · Full history';
 }
 
 /**

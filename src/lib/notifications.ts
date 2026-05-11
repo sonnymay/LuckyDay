@@ -61,19 +61,19 @@ export async function syncLocalDailyReminder(time?: string, reading?: ReminderRe
   const personalizedBodies: string[] = reading
     ? [
         `Your lucky color today is ${reading.luckyColor}. Open to see what it means for you.`,
-        `Lucky number ${reading.luckyNumber} is yours today. Open LuckyDay to see the full picture.`,
+        `Number ${reading.luckyNumber} is yours today. Open LuckyDay to see the full picture.`,
         `Today's energy score is ${reading.score}. Open to see your ${reading.luckyColor.toLowerCase()} luck.`,
         `${reading.luckyColor} is your color today, and ${reading.luckyNumber} is your number. Your reading is ready.`,
-        `Luck energy: ${reading.score} ✨ Lucky color: ${reading.luckyColor}. See what the almanac says today.`,
+        `Daily energy: ${reading.score} ✨ Color: ${reading.luckyColor}. See what the almanac says today.`,
       ]
     : [];
 
   const genericBodies = [
-    "What's your lucky color today? One tap to find out.",
+    "What.s your color today? One tap to find out.",
     "Today's score is calculated. Is it higher than yesterday?",
     "The Chinese almanac has something specific for you this morning.",
     "Your lucky number is set. So is your best time to act.",
-    "A new direction — literally. Open to see your lucky compass point.",
+    "A new direction — literally. Open to see your direction today.",
     "Today's moon phase shifts your energy. See exactly how.",
     "Your zodiac animal has a specific message for today.",
     "The right moment to act is noted. Open before the day slips by.",
@@ -92,7 +92,7 @@ export async function syncLocalDailyReminder(time?: string, reading?: ReminderRe
     'The almanac chose a color for you 🎨',
     'Your lucky number is waiting 🔢',
     "Today's fortune is sealed ✦",
-    'Rise and reveal your luck 🌅',
+    'Open today.s almanac 🌅',
     'Something lucky is ready 🍀',
     'Your morning ritual is ready 🌸',
     'The stars aligned something for you ✨',

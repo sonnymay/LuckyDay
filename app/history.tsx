@@ -214,7 +214,7 @@ export default function HistoryScreen() {
             <Text style={styles.emptyIllustrationStar2}>⭐</Text>
             <Text style={styles.emptyIllustrationStar3}>✨</Text>
           </View>
-          <Text style={styles.emptyTitle}>Your luck history starts tonight.</Text>
+          <Text style={styles.emptyTitle}>Your reading history starts tonight.</Text>
           <Text style={styles.emptyBody}>
             Check in after your day to compare prediction vs reality. Reflect on a reading to start tracking your patterns.
           </Text>
@@ -231,7 +231,7 @@ export default function HistoryScreen() {
         <>
           {/* ── Stats summary ── */}
           <Card style={styles.statsCard}>
-            <Text style={styles.statsHeading}>Your luck at a glance</Text>
+            <Text style={styles.statsHeading}>Your readings at a glance</Text>
             <View style={styles.statsRow}>
               <View style={styles.statBlock}>
                 <Text style={styles.statValue}>{stats.total}</Text>
@@ -278,7 +278,7 @@ function MonthActivityCard({ history }: { history: DailyReading[] }) {
   return (
     <Card style={styles.monthCard}>
       <Text style={styles.monthTitle}>{formatMonthTitle()}</Text>
-      <Text style={styles.monthCopy}>Gold marks the days you opened your luck ritual.</Text>
+      <Text style={styles.monthCopy}>Gold marks the days you opened your almanac.</Text>
       <View style={styles.weekdayRow}>
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
           <Text key={`${day}-${index}`} style={styles.weekday}>{day}</Text>

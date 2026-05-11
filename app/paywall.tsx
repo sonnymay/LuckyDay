@@ -31,10 +31,10 @@ import {
 import { colors, radii, spacing } from '../src/styles/theme';
 
 const FEATURES = [
-  { emoji: '🎨', label: 'Lucky color, number, best time, and direction for today' },
+  { emoji: '🎨', label: 'Color, number, best time, and direction for today' },
   { emoji: '💰', label: 'Money, love, work, and health guidance in plain language' },
   { emoji: '🌙', label: 'Lunar almanac, moon phase, and solar term context' },
-  { emoji: '📖', label: 'Reading history to spot your personal luck patterns' },
+  { emoji: '📖', label: 'Reading history to spot your personal patterns' },
   { emoji: '✨', label: 'Share cards made for IG Stories and LINE' },
 ];
 
@@ -208,7 +208,7 @@ export default function PaywallScreen() {
             </View>
             <View style={styles.lockedMetric}>
               <Ionicons name="color-palette-outline" size={16} color={colors.mauve} />
-              <Text style={styles.lockedMetricLabel}>Lucky color</Text>
+              <Text style={styles.lockedMetricLabel}>Color</Text>
             </View>
             <View style={styles.lockedMetric}>
               <Ionicons name="compass-outline" size={16} color={colors.mauve} />
@@ -229,7 +229,7 @@ export default function PaywallScreen() {
           </View>
         ) : null}
         <Text style={styles.subhead}>
-          Unlock deeper readings, prettier share cards, and a luck history that helps you spot your patterns.
+          Unlock deeper readings, prettier share cards, and a reading history that helps you spot your patterns.
         </Text>
         <View style={styles.socialProof}>
           <Text style={styles.socialProofText}>Private by design · restore purchases anytime</Text>

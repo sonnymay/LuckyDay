@@ -262,7 +262,7 @@ const zodiacDetails: Record<string, { emoji: string; tone: string; dailyInsights
       'Gentleness is not weakness — it is precision applied thoughtfully.',
       'The creative or artistic path today leads somewhere real.',
       'Nurture the relationship that needs your soft attention today.',
-      'Beauty and calm around you directly improves your luck today.',
+      'Beauty and calm around you directly improves your day today.',
       'Your kindness creates ripples further than you will ever see.',
       'A creative detour today leads to the destination you actually wanted.',
       'Abundance grows in the soil of gratitude. Tend to it.',

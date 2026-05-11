@@ -315,20 +315,20 @@ export default function HomeScreen() {
       ) : null}
 
       <View style={styles.sectionLabel}>
-        <Text style={styles.sectionLabelText}>Today's lucky metrics</Text>
+        <Text style={styles.sectionLabelText}>Today's almanac</Text>
         <View style={styles.sectionLabelLine} />
       </View>
 
-      <PremiumGate isPremium={isPremium} featureLabel="your lucky metrics">
+      <PremiumGate isPremium={isPremium} featureLabel="your daily almanac">
         <View style={styles.grid}>
-          <LuckyMetricCard label="🔢 Lucky number" value={String(reading.luckyNumber)} variant="number" />
+          <LuckyMetricCard label="🔢 Number" value={String(reading.luckyNumber)} variant="number" />
           <LuckyMetricCard
-            label="🎨 Lucky color"
+            label="🎨 Color"
             note={getLuckyColorMeaning(reading.luckyColor)}
             value={reading.luckyColor}
             swatchColor={getLuckyColorHex(reading.luckyColor)}
           />
-          <LuckyMetricCard label="⏰ Lucky time" value={reading.luckyTime} />
+          <LuckyMetricCard label="⏰ Best time" value={reading.luckyTime} />
           <LuckyMetricCard label="🧭 Direction" value={reading.luckyDirection} variant="direction" />
         </View>
       </PremiumGate>
@@ -398,7 +398,7 @@ export default function HomeScreen() {
             </View>
           </View>
           <View style={styles.sharePromptCopy}>
-            <Text style={styles.sharePromptTitle}>Send a little luck</Text>
+            <Text style={styles.sharePromptTitle}>Share your day</Text>
             <Text style={styles.sharePromptText}>
               {getShareNudge(reading)} No birthday, photos, or private details.
             </Text>
@@ -412,13 +412,13 @@ export default function HomeScreen() {
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Save and share my luck"
+        accessibilityLabel="Save and share my reading"
         disabled={savingShareCard}
         onPress={() => saveShareCard(reading, shareCardRef, setSavingShareCard)}
         style={({ pressed }) => [styles.shareButton, pressed && styles.shareButtonPressed, savingShareCard && styles.shareButtonDisabled]}
       >
         <Ionicons name="share-social-outline" size={20} color={colors.white} />
-        <Text style={styles.shareButtonText}>{savingShareCard ? 'Saving your luck...' : 'Save & share my luck'}</Text>
+        <Text style={styles.shareButtonText}>{savingShareCard ? 'Saving your reading...' : 'Save & share my reading'}</Text>
       </Pressable>
 
       {/* Premium teaser removed — PremiumGate locks + header Upgrade button handle conversion */}
@@ -477,7 +477,7 @@ export default function HomeScreen() {
         <View style={styles.tomorrowBody}>
           <Text style={styles.tomorrowTitle}>Your energy shifts tomorrow</Text>
           <Text style={styles.tomorrowCopy}>
-            Come back in the morning to see if your luck rises. Every day is a new reading.
+            Come back tomorrow for the next almanac.
           </Text>
         </View>
       </Card>
@@ -499,7 +499,7 @@ async function saveShareCard(
 ) {
   if (savingFallbackNeeded()) {
     await Share.share({
-      message: `A little luck for today ✨ My LuckyDay energy is ${reading.score}. ${reading.mainMessage} Lucky color: ${reading.luckyColor}. Lucky number: ${reading.luckyNumber}.`,
+      message: `Today's almanac ✨ My daily energy is ${reading.score}. ${reading.mainMessage} Color: ${reading.luckyColor}. Number: ${reading.luckyNumber}.`,
     });
     return;
   }
@@ -532,7 +532,7 @@ async function saveShareCard(
     Alert.alert('Saved to your photos ✨', 'Your LuckyDay card is ready. Want to share it now?', [
       { text: 'Not now', style: 'cancel' },
       {
-        text: 'Send luck',
+        text: 'Share',
         onPress: () => {
           Sharing.shareAsync(uri, {
             dialogTitle: "Share today's LuckyDay",

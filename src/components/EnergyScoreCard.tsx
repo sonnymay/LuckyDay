@@ -97,7 +97,7 @@ function energyMood(score: number) {
   if (score >= 90) return 'Peak energy today';
   if (score >= 82) return 'Golden flow';
   if (score >= 70) return 'Bright momentum';
-  if (score >= 60) return 'Soft steady luck';
+  if (score >= 60) return 'Soft steady day';
   if (score >= 55) return 'Protect & prepare';
   return 'Rest to rise';
 }

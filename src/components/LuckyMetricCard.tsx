@@ -39,7 +39,7 @@ export function LuckyMetricCard({ label, note, value, swatchColor, variant = 'de
           {value}
         </Text>
       </View>
-      {isNumber ? <Text style={styles.numberNote}>Lucky number</Text> : null}
+      {isNumber ? <Text style={styles.numberNote}>Number</Text> : null}
       {isDirection ? <Text style={styles.miniNote}>Move with this direction today</Text> : null}
       {isTime ? <Text style={[styles.miniNote, styles.timeMiniNote]}>Best window for lucky little moves</Text> : null}
       {note ? <Text style={styles.note}>{note}</Text> : null}

@@ -382,7 +382,7 @@ export default function SettingsScreen() {
 
       {/* ── Optional photos ── */}
       <View style={styles.photoStack}>
-        <Text style={styles.photoTitle}>Optional luck photos 🍀</Text>
+        <Text style={styles.photoTitle}>Optional photos 🍀</Text>
         <Text style={styles.photoCopy}>Photos are optional. LuckyDay works without them, and you can add, retake, or remove them anytime from this device.</Text>
         <ProfilePhotoCapture
           label="Face"
@@ -411,7 +411,7 @@ export default function SettingsScreen() {
         />
         <ProfilePhotoCapture
           label="Handwriting"
-          hint="Write: Today I choose steady luck. Then take a photo."
+          hint="Write: Today I choose to be present. Then take a photo."
           value={handwritingUri}
           onChange={(uri) => updatePhoto(uri, setHandwritingUri, setHandwritingUpdatedAt)}
           onRemove={() => removePhoto(setHandwritingUri, setHandwritingUpdatedAt)}
@@ -434,8 +434,8 @@ export default function SettingsScreen() {
             style={({ pressed }) => [styles.quickActionButton, pressed && styles.quickActionPressed]}
             onPress={() =>
               Share.share({
-                message: "I've been using LuckyDay for my daily luck ritual ✨ Check it out!",
-                title: 'LuckyDay — your daily luck ritual',
+                message: "I've been using LuckyDay for my daily almanac ritual ✨ Check it out!",
+                title: 'LuckyDay — your daily almanac ritual',
               })
             }
           >

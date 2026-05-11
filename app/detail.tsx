@@ -124,7 +124,7 @@ export default function DetailScreen() {
         <Text style={styles.brandMark}>LuckyDay</Text>
         <Text style={styles.brandSub}>{formatReadingDate(reading)}</Text>
       </View>
-      <Text style={styles.pageTitle}>{nickname ? `${nickname}'s luck today ✨` : "Today's Reading ✨"}</Text>
+      <Text style={styles.pageTitle}>{nickname ? `${nickname}'s almanac today ✨` : "Today's Almanac ✨"}</Text>
 
       {/* ── Energy score orb — the headline number ── */}
       <EnergyScoreCard score={reading.score} message={reading.mainMessage} />
@@ -235,13 +235,13 @@ export default function DetailScreen() {
       <View style={styles.quickRow}>
         <View style={[styles.quickCard, styles.colorQuickCard, { flex: 3 }]}>
           <View style={[styles.colorSwatch, { backgroundColor: getLuckyColorHex(reading.luckyColor) }]} />
-          <Text style={styles.quickLabel}>Lucky color</Text>
+          <Text style={styles.quickLabel}>Color</Text>
           <Text style={styles.quickValue}>{reading.luckyColor}</Text>
           <Text style={styles.colorMeaning}>{getLuckyColorMeaning(reading.luckyColor)}</Text>
         </View>
         <View style={{ flex: 2, gap: spacing.md }}>
           <View style={[styles.quickCard, styles.numberQuickCard, { flex: 1 }]}>
-            <Text style={styles.quickLabel}>Lucky no.</Text>
+            <Text style={styles.quickLabel}>Number</Text>
             <Text style={styles.numberValue}>{reading.luckyNumber}</Text>
           </View>
           <View style={[styles.quickCard, styles.directionQuickCard, { flex: 1 }]}>
@@ -390,7 +390,7 @@ function getInsightRows(reading: DailyReading, focuses: MainFocus[]): InsightRow
 function shareReading(reading: DailyReading) {
   Share.share({
     message: [
-      `My LuckyDay reading for ${reading.date} ✨`,
+      `My almanac reading for ${reading.date} ✨`,
       `\n"${reading.mainMessage}"`,
       `\n🎨 ${reading.luckyColor}  ·  🔢 ${reading.luckyNumber}  ·  ⏰ ${reading.luckyTime}  ·  🧭 ${reading.luckyDirection}`,
       reading.moonPhase ? `🌙 ${reading.moonPhase}` : '',
@@ -398,7 +398,7 @@ function shareReading(reading: DailyReading) {
     ]
       .filter(Boolean)
       .join('\n'),
-    title: "Today's LuckyDay reading",
+    title: "Today.s almanac reading",
   });
 }
 
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
     lineHeight: 34,
     textAlign: 'center',
   },
-  // Lucky color + number quick row
+  // Color + number quick row
   quickRow: {
     flexDirection: 'row',
     gap: spacing.md,

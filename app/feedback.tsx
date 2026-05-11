@@ -12,7 +12,7 @@ import { colors, radii, spacing } from '../src/styles/theme';
 import { DailyReading, FeedbackRating, PredictionMatch } from '../src/types';
 
 const dayRatings = [1, 2, 3, 4, 5];
-const tagOptions = ['Money', 'Love', 'Work', 'Health', 'Stress', 'Good luck', 'Bad luck', 'Surprise'];
+const tagOptions = ['Money', 'Love', 'Work', 'Health', 'Stress', 'Smooth day', 'Hard day', 'Surprise'];
 
 async function triggerSelectionHaptic() {
   if (Platform.OS === 'web') return;

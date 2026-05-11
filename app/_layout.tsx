@@ -46,7 +46,7 @@ export default function RootLayout() {
           <Stack.Screen name="settings"   options={{ headerShown: false }} />
           {/* Detail is now the primary Today screen — no header, tab bar handles nav */}
           <Stack.Screen name="detail"     options={{ headerShown: false }} />
-          <Stack.Screen name="feedback"   options={{ title: 'How was your luck today? 🍀' }} />
+          <Stack.Screen name="feedback"   options={{ title: 'How was your day? 🍀' }} />
           <Stack.Screen name="paywall"    options={{ headerShown: false }} />
           <Stack.Screen name="privacy"    options={{ title: 'Privacy & data 🧿' }} />
           <Stack.Screen name="terms"      options={{ title: 'Terms of Service' }} />
