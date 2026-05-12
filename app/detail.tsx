@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     borderWidth: 1.5,
     paddingHorizontal: spacing.md,
-    paddingVertical: 7,
+    paddingVertical: spacing.xs,
   },
   streakText: {
     color: colors.goldDeep,
