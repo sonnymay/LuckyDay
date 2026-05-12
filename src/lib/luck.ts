@@ -55,7 +55,7 @@ const mainMessages = [
   'Your lucky color is working quietly in the background.',
   // Abundance & attraction
   'Today you are the energy you want to attract. Show up as it.',
-  'Abundance finds people who notice what they already have.',
+  'Before lunch, name three things already feeding you. Gratitude is Earth luck with its sleeves rolled up.',
   'The door you have been waiting to open will respond to a gentler knock.',
   'Your best luck today is not luck at all — it is your own readiness.',
   'Something is aligning behind the scenes. Trust the quiet.',
@@ -968,7 +968,7 @@ const moneyByElement: Partial<Record<ZodiacElement, string[]>> = {
     'Act on the financial opportunity before you analyze it to death. Your instinct is correct.',
     'Your energy attracts financial openings today — the move is to follow momentum.',
     'A quick decision about money today proves better than a slow one. Trust the first calculation.',
-    'The bold financial step scares you because it matters. That is usually the right step.',
+    'Price the bold move before 2pm. Fire favors courage, but only when the numbers are visible.',
     'Speed and confidence together — that is how the Fire element wins financially.',
     'The investment of energy today returns as income sooner than you expect.',
     'Your financial intuition today is outrunning your caution. Let it lead.',
@@ -1037,7 +1037,7 @@ const workByElement: Partial<Record<ZodiacElement, string[]>> = {
   Earth: [
     'Finish before you start anything new. Completion is your professional superpower today.',
     'Your reliability is your brand. One thing done completely and correctly today reinforces it.',
-    'The methodical approach beats the brilliant shortcut every time in your context.',
+    'Lay out the work like stones across water. One steady step before noon beats three clever detours.',
     'Protect your standards even when speed is pressuring you to lower them.',
     'Follow through on the thing you said you would do. That consistency builds reputation.',
     'The practical, thorough version of the work is also the version that lasts. Choose it.',
