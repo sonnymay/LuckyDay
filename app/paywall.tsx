@@ -385,10 +385,10 @@ const styles = StyleSheet.create({
     borderColor: colors.roseGold,
     borderRadius: 999,
     borderWidth: 1.5,
-    height: 40,
+    height: 44,
     justifyContent: 'center',
     marginBottom: -spacing.sm,
-    width: 40,
+    width: 44,
   },
   hero: {
     alignItems: 'center',
