@@ -15,11 +15,11 @@ import Lunar from 'lunar-javascript';
 
 /** 宜 (Yi) — activities the almanac considers auspicious today */
 const YI_EN: Record<string, string> = {
-  '祭祀': 'Ritual & prayer',
+  '祭祀': 'Light a candle, give thanks',
   '祈福': 'Setting intentions',
   '出行': 'Travel & new places',
   '嫁娶': 'Love & relationships',
-  '纳采': 'New connections',
+  '纳采': 'Offer a warm first hello',
   '问名': 'Making introductions',
   '进人口': 'Welcoming new people',
   '开市': 'Business & money',
@@ -62,7 +62,7 @@ const YI_EN: Record<string, string> = {
 const JI_EN: Record<string, string> = {
   '嫁娶': 'Love commitments',
   '动土': 'Starting big projects',
-  '开市': 'Large financial decisions',
+  '开市': 'Pause big money moves',
   '出行': 'Long-distance travel',
   '安葬': 'Difficult closures',
   '修造': 'Major renovations',

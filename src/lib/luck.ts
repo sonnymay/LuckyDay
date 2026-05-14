@@ -427,7 +427,7 @@ const warningByAlmanacAvoid: Record<string, string[]> = {
   'Starting big projects': [
     'The almanac advises care with major starts today. Sketch the plan before you launch it.',
   ],
-  'Large financial decisions': [
+  'Pause big money moves': [
     'Large money moves need extra patience today. Sleep on the choice if you can.',
   ],
   'Long-distance travel': [
