@@ -2,12 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { getAlmanacDay } from './almanac';
 
 describe('getAlmanacDay', () => {
-  it('returns a lunarDate string in Chinese month+day format', () => {
+  it('returns a lunarDate string in English "Lunar M/D" format', () => {
     const result = getAlmanacDay(new Date('2026-04-28T12:00:00'));
-    // Format: "<month>月<day>" where both parts are Chinese characters
     expect(typeof result.lunarDate).toBe('string');
-    expect(result.lunarDate).toMatch(/月/);
-    expect(result.lunarDate.length).toBeGreaterThan(2);
+    expect(result.lunarDate).toMatch(/^Lunar \d+\/\d+$/);
   });
 
   it('returns arrays for goodFor and avoid that are non-empty English strings', () => {
@@ -29,22 +27,24 @@ describe('getAlmanacDay', () => {
     expect(getAlmanacDay(date)).toEqual(getAlmanacDay(date));
   });
 
-  it('returns a solar term on a known 节气 date (立夏 — Start of Summer 2026-05-05)', () => {
+  it('returns a solar term on a known solar-term date (Start of Summer 2026-05-05)', () => {
     const result = getAlmanacDay(new Date('2026-05-05T12:00:00'));
-    expect(result.solarTerm).toBeDefined();
-    expect(result.solarTerm).toContain('立夏');
-    expect(result.solarTerm).toContain('Start of Summer');
+    expect(result.solarTerm).toBe('Start of Summer');
   });
 
   it('returns undefined solarTerm on an ordinary day between solar terms', () => {
-    // 2026-04-28 is between 谷雨 (Apr 20) and 立夏 (May 5)
+    // 2026-04-28 is between Grain Rain (Apr 20) and Start of Summer (May 5)
     const result = getAlmanacDay(new Date('2026-04-28T12:00:00'));
     expect(result.solarTerm).toBeUndefined();
   });
 
-  it('solar term label includes both Chinese and English separated by " · "', () => {
+  it('solar term label is the English name only (no Chinese characters)', () => {
     const result = getAlmanacDay(new Date('2026-05-05T12:00:00'));
-    expect(result.solarTerm).toMatch(/^.+ · .+$/);
+    expect(result.solarTerm).toBeDefined();
+    if (result.solarTerm) {
+      // ASCII-only: alphanumeric, spaces, apostrophes, hyphens, periods
+      expect(result.solarTerm).toMatch(/^[\x20-\x7E]+$/);
+    }
   });
 
   it('produces different lunarDate values for different Gregorian dates', () => {

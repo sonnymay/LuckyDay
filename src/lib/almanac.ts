@@ -156,14 +156,16 @@ export function getAlmanacDay(date: Date): AlmanacDay {
       .filter((item): item is string => item !== undefined)
       .slice(0, 3);
 
-    // Lunar calendar date string, e.g. "三月初三"
-    const lunarDate = `${lunar.getMonthInChinese() as string}月${lunar.getDayInChinese() as string}`;
+    // Lunar calendar date in English form, e.g. "Lunar 3/19" — the numeric
+    // month and day from the traditional Chinese lunar calendar without the
+    // Chinese characters.
+    const lunarMonth = lunar.getMonth() as number;
+    const lunarDay = lunar.getDay() as number;
+    const lunarDate = `Lunar ${lunarMonth}/${lunarDay}`;
 
-    // Solar term (节气) if today is one
+    // Solar term (节气) if today is one — display English name only.
     const rawJieQi = lunar.getJieQi() as string;
-    const solarTerm = rawJieQi
-      ? `${rawJieQi} · ${SOLAR_TERM_EN[rawJieQi] ?? rawJieQi}`
-      : undefined;
+    const solarTerm = rawJieQi ? SOLAR_TERM_EN[rawJieQi] ?? rawJieQi : undefined;
 
     return {
       lunarDate,
@@ -206,11 +208,11 @@ export function getNextSolarTerm(date: Date): NextSolarTerm | null {
     );
     const lunar = solar.getLunar();
 
-    // If today IS a solar term, surface it as `daysAway: 0`.
+    // If today IS a solar term, surface it as `daysAway: 0`. English label.
     const today = lunar.getJieQi() as string;
     if (today) {
       return {
-        label: `${today} · ${SOLAR_TERM_EN[today] ?? today}`,
+        label: SOLAR_TERM_EN[today] ?? today,
         daysAway: 0,
       };
     }
@@ -236,7 +238,7 @@ export function getNextSolarTerm(date: Date): NextSolarTerm | null {
     const daysAway = Math.max(0, Math.round((termMs - todayMs) / 86_400_000));
 
     return {
-      label: `${name} · ${SOLAR_TERM_EN[name] ?? name}`,
+      label: SOLAR_TERM_EN[name] ?? name,
       daysAway,
     };
   } catch {

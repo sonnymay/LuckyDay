@@ -528,31 +528,34 @@ const actions = [
   'Send an encouraging message to someone working hard right now.',
 ];
 
+// Solar-term-specific action overrides. Keys match the English solar term
+// names produced by getAlmanacDay (which are the values of SOLAR_TERM_EN in
+// src/lib/almanac.ts).
 const actionsBySolarTerm: Record<string, string[]> = {
-  '小寒': ['Warm your hands around tea or soup and write down one thing you are conserving for later.'],
-  '大寒': ['Do one winter reset: clear your bedside table, drink something warm, and go to bed earlier.'],
-  '立春': ['Start one small spring habit today: open a window, water a plant, or write the first line of a plan.'],
-  '雨水': ['Put water into the day on purpose: hydrate, rinse a surface clean, and let one old worry drain away.'],
-  '惊蛰': ['Wake one dormant thing gently: send the message, move your body, or restart a paused task for ten minutes.'],
-  '春分': ['Balance the day with one equal exchange: give help where it is easy and receive help without deflecting.'],
-  '清明': ['Clear one visible space and honor one root: a memory, a family tie, or a promise you still carry.'],
-  '谷雨': ['Plant something practical today: save a note, start a draft, water a plant, or prepare tomorrow\'s first step.'],
-  '立夏': ['Mark Start of Summer with light and movement: step into sunlight, drink water, and choose one lively errand.'],
-  '小满': ['Notice what is almost full: finish one nearly done task and leave room for it to mature.'],
-  '芒种': ['Choose the seed worth tending: block fifteen minutes for the task that can grow if you keep returning to it.'],
-  '夏至': ['Use the long light well: do your brightest task before noon and cool the evening down intentionally.'],
-  '小暑': ['Keep heat from becoming haste: hydrate, simplify your schedule, and finish one thing calmly.'],
-  '大暑': ['Protect your energy in the strongest heat: shade, water, and one honest no to unnecessary pressure.'],
-  '立秋': ['Begin the autumn shift: tidy one surface and choose what you are ready to stop carrying.'],
-  '处暑': ['Let the heat settle: complete one lingering errand and make your evening lighter than your morning.'],
-  '白露': ['Notice the subtle change: lay out tomorrow\'s clothes, clean your water glass, and move slowly for five minutes.'],
-  '秋分': ['Restore balance today: pair one duty with one pleasure and keep both small enough to finish.'],
-  '寒露': ['Prepare for cooler energy: check your calendar, warm your body, and protect one quiet hour.'],
-  '霜降': ['Make a gentle ending: remove one stale item from your space and close one old tab, task, or thread.'],
-  '立冬': ['Start winter mode with intention: stock one comfort, simplify one plan, and rest before you are depleted.'],
-  '小雪': ['Do one small sheltering act: warm your room, prep a simple meal, or send care to someone who feels far away.'],
-  '大雪': ['Make the day quieter on purpose: cancel one nonessential thing and give your attention to what remains.'],
-  '冬至': ['Honor the longest night with one small light: candle, lamp, or message, then name what you want to return.'],
+  'Minor Cold': ['Warm your hands around tea or soup and write down one thing you are conserving for later.'],
+  'Major Cold': ['Do one winter reset: clear your bedside table, drink something warm, and go to bed earlier.'],
+  'Start of Spring': ['Start one small spring habit today: open a window, water a plant, or write the first line of a plan.'],
+  'Rain Water': ['Put water into the day on purpose: hydrate, rinse a surface clean, and let one old worry drain away.'],
+  'Awakening of Insects': ['Wake one dormant thing gently: send the message, move your body, or restart a paused task for ten minutes.'],
+  'Spring Equinox': ['Balance the day with one equal exchange: give help where it is easy and receive help without deflecting.'],
+  'Clear & Bright': ['Clear one visible space and honor one root: a memory, a family tie, or a promise you still carry.'],
+  'Grain Rain': ['Plant something practical today: save a note, start a draft, water a plant, or prepare tomorrow\'s first step.'],
+  'Start of Summer': ['Mark Start of Summer with light and movement: step into sunlight, drink water, and choose one lively errand.'],
+  'Grain Buds': ['Notice what is almost full: finish one nearly done task and leave room for it to mature.'],
+  'Grain in Ear': ['Choose the seed worth tending: block fifteen minutes for the task that can grow if you keep returning to it.'],
+  'Summer Solstice': ['Use the long light well: do your brightest task before noon and cool the evening down intentionally.'],
+  'Minor Heat': ['Keep heat from becoming haste: hydrate, simplify your schedule, and finish one thing calmly.'],
+  'Major Heat': ['Protect your energy in the strongest heat: shade, water, and one honest no to unnecessary pressure.'],
+  'Start of Autumn': ['Begin the autumn shift: tidy one surface and choose what you are ready to stop carrying.'],
+  'End of Heat': ['Let the heat settle: complete one lingering errand and make your evening lighter than your morning.'],
+  'White Dew': ['Notice the subtle change: lay out tomorrow\'s clothes, clean your water glass, and move slowly for five minutes.'],
+  'Autumnal Equinox': ['Restore balance today: pair one duty with one pleasure and keep both small enough to finish.'],
+  'Cold Dew': ['Prepare for cooler energy: check your calendar, warm your body, and protect one quiet hour.'],
+  "Frost's Descent": ['Make a gentle ending: remove one stale item from your space and close one old tab, task, or thread.'],
+  'Start of Winter': ['Start winter mode with intention: stock one comfort, simplify one plan, and rest before you are depleted.'],
+  'Minor Snow': ['Do one small sheltering act: warm your room, prep a simple meal, or send care to someone who feels far away.'],
+  'Major Snow': ['Make the day quieter on purpose: cancel one nonessential thing and give your attention to what remains.'],
+  'Winter Solstice': ['Honor the longest night with one small light: candle, lamp, or message, then name what you want to return.'],
 };
 
 const actionsByAlmanacGoodFor: Record<string, string[]> = {
@@ -863,12 +866,8 @@ function pickContextWarning(
   return warning;
 }
 
-function getSolarTermKey(solarTerm: string | undefined): string | undefined {
-  return solarTerm?.split(' · ')[0];
-}
-
 function pickContextAction(almanac: { goodFor: string[]; solarTerm: string | undefined }, seed: number, date: Date): string {
-  const solarTermKey = getSolarTermKey(almanac.solarTerm);
+  const solarTermKey = almanac.solarTerm;
   const solarTermActions = solarTermKey ? actionsBySolarTerm[solarTermKey] : undefined;
   const almanacActions = almanac.goodFor.flatMap((item) => actionsByAlmanacGoodFor[item] ?? []);
   const pool = solarTermActions?.length ? solarTermActions : [...almanacActions, ...actions];

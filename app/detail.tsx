@@ -182,7 +182,7 @@ export default function DetailScreen() {
         <Text style={styles.brandSub}>{formatReadingDate(reading)}</Text>
         <Text
           accessibilityRole="text"
-          accessibilityLabel={`Current Chinese double-hour: ${getCurrentDoubleHour(now).pinyin}, ${getCurrentDoubleHour(now).animal} hour`}
+          accessibilityLabel={`Current double-hour: ${getCurrentDoubleHour(now).animal} hour, ${getCurrentDoubleHour(now).range}`}
           style={styles.doubleHourChip}
         >
           {formatDoubleHourChip(getCurrentDoubleHour(now))}
@@ -533,9 +533,9 @@ function formatReadingDate(reading: DailyReading): string {
   const displayDate = Number.isNaN(date.getTime())
     ? reading.date
     : date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-  const solarTermName = reading.solarTerm?.split(' · ')[0];
 
-  return [displayDate, reading.lunarDate, solarTermName].filter(Boolean).join(' · ');
+  // reading.solarTerm is now English-only (e.g. "Start of Summer").
+  return [displayDate, reading.lunarDate, reading.solarTerm].filter(Boolean).join(' · ');
 }
 
 /**

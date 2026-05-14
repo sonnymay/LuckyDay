@@ -34,8 +34,8 @@ describe('getCurrentDoubleHour', () => {
 });
 
 describe('formatDoubleHourChip', () => {
-  it('formats the chip label', () => {
+  it('formats the chip label in English only', () => {
     const dh = { name: '申时', pinyin: 'Shēn shí', animal: 'Monkey', range: '3-5pm' };
-    expect(formatDoubleHourChip(dh)).toBe('申时 · Monkey hour · 3-5pm');
+    expect(formatDoubleHourChip(dh)).toBe('Monkey hour · 3-5pm');
   });
 });

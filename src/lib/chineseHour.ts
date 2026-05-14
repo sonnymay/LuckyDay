@@ -68,7 +68,7 @@ function stripIndex(entry: DoubleHour & { startHour: number }): DoubleHour {
   };
 }
 
-/** Compact label for the chip. */
+/** Compact label for the chip — English only for in-app display. */
 export function formatDoubleHourChip(dh: DoubleHour): string {
-  return `${dh.name} · ${dh.animal} hour · ${dh.range}`;
+  return `${dh.animal} hour · ${dh.range}`;
 }

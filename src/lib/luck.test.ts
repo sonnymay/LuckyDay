@@ -166,7 +166,7 @@ describe('luck helpers', () => {
   it('uses solar-term context for seasonal actions', () => {
     const reading = generateDailyReading(baseProfile, new Date('2026-05-05T12:00:00.000Z'));
 
-    expect(reading.solarTerm).toContain('立夏');
+    expect(reading.solarTerm).toBe('Start of Summer');
     expect(reading.action).toMatch(/Start of Summer|sunlight|water|lively/);
   });
 

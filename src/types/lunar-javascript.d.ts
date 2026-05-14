@@ -8,6 +8,10 @@ declare module 'lunar-javascript' {
     getMonthInChinese(): string;
     /** Chinese lunar day name, e.g. "初三" */
     getDayInChinese(): string;
+    /** Numeric lunar month, 1-12 */
+    getMonth(): number;
+    /** Numeric lunar day, 1-30 */
+    getDay(): number;
     /** Solar term (节气) name if today is one, otherwise empty string */
     getJieQi(): string;
   }
