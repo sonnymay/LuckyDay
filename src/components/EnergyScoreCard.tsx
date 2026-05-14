@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 import { Card } from './Card';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { colors, fonts, radii, spacing } from '../styles/theme';
 
 type Props = {
@@ -18,8 +19,21 @@ export function EnergyScoreCard({ score, message }: Props) {
   const sparkleAnim = useRef(new Animated.Value(0.3)).current;
   const [displayScore, setDisplayScore] = useState(0);
   const [filledSegments, setFilledSegments] = useState(0);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
+    if (reduceMotion) {
+      // Snap to final state without animating. Sparkles held at a steady
+      // mid-opacity so they remain visible but do not pulse.
+      progress.setValue(score);
+      sparkleAnim.setValue(0.7);
+      setDisplayScore(score);
+      setFilledSegments(
+        Math.round((Math.max(0, Math.min(score, 100)) / 100) * haloSegments),
+      );
+      return;
+    }
+
     progress.setValue(0);
     setDisplayScore(0);
     setFilledSegments(0);
@@ -47,7 +61,7 @@ export function EnergyScoreCard({ score, message }: Props) {
     return () => {
       progress.removeListener(listener);
     };
-  }, [score]);
+  }, [score, reduceMotion, progress, sparkleAnim]);
 
   return (
     <Card style={styles.card}>
@@ -59,7 +73,12 @@ export function EnergyScoreCard({ score, message }: Props) {
       <Animated.Text style={[styles.sparkleThree, { opacity: sparkleAnim }]}>✦</Animated.Text>
       <Animated.Text style={[styles.flower, { opacity: sparkleAnim }]}>❀</Animated.Text>
       <Animated.Text style={[styles.flowerTwo, { opacity: sparkleAnim }]}>✿</Animated.Text>
-      <View style={styles.orb}>
+      <View
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel={`Daily energy score: ${score} out of 100. ${energyMood(score)}.`}
+        style={styles.orb}
+      >
         <View style={styles.orbGlow} pointerEvents="none" />
         {Array.from({ length: haloSegments }).map((_, index) => {
           const angle = (index / haloSegments) * Math.PI * 2 - Math.PI / 2;

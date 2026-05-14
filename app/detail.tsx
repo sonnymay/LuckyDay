@@ -27,6 +27,7 @@ import {
 import { Milestone, selectMilestoneToShow } from '../src/lib/milestones';
 import { MilestoneModal } from '../src/components/MilestoneModal';
 import { formatNextSolarTermHint, getNextSolarTerm } from '../src/lib/almanac';
+import { formatDoubleHourChip, getCurrentDoubleHour } from '../src/lib/chineseHour';
 import { todayKey } from '../src/lib/date';
 import { formatWindowHint, getWindowState, parseTimeWindow } from '../src/lib/timeWindow';
 import { colors, fonts, radii, spacing } from '../src/styles/theme';
@@ -179,9 +180,20 @@ export default function DetailScreen() {
       <View style={styles.brandRow}>
         <Text style={styles.brandMark}>LuckyDay</Text>
         <Text style={styles.brandSub}>{formatReadingDate(reading)}</Text>
+        <Text
+          accessibilityRole="text"
+          accessibilityLabel={`Current Chinese double-hour: ${getCurrentDoubleHour(now).pinyin}, ${getCurrentDoubleHour(now).animal} hour`}
+          style={styles.doubleHourChip}
+        >
+          {formatDoubleHourChip(getCurrentDoubleHour(now))}
+        </Text>
         {(() => {
           const hint = formatNextSolarTermHint(getNextSolarTerm(new Date(`${reading.date}T00:00:00`)));
-          return hint ? <Text style={styles.solarTermChip}>{hint}</Text> : null;
+          return hint ? (
+            <Text accessibilityRole="text" accessibilityLabel={hint} style={styles.solarTermChip}>
+              {hint}
+            </Text>
+          ) : null;
         })()}
       </View>
       <Text style={styles.pageTitle}>{getGreeting(nickname, now)}</Text>
@@ -207,15 +219,27 @@ export default function DetailScreen() {
       </Card>
 
       {/* ── Best time — live progress through the window ── */}
-      <Card style={styles.bestTimeCard}>
-        <Text style={styles.bestTimeLabel}>⏰ Best time</Text>
-        <Text style={styles.bestTimeValue}>{reading.luckyTime}</Text>
-        {(() => {
-          const parsed = parseTimeWindow(reading.luckyTime);
-          if (!parsed) return null;
-          const state = getWindowState(parsed, now);
-          if (state.state === 'active') {
-            return (
+      {(() => {
+        const parsed = parseTimeWindow(reading.luckyTime);
+        const state = parsed ? getWindowState(parsed, now) : null;
+        const a11yState =
+          state?.state === 'active'
+            ? `currently active, ${Math.round(state.progress * 100)} percent through the window`
+            : state?.state === 'before'
+              ? `not yet started, begins in ${state.minutesUntilStart} minutes`
+              : state?.state === 'after'
+                ? `ended ${state.minutesSinceEnd} minutes ago`
+                : 'today';
+        return (
+          <Card
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`Best time today: ${reading.luckyTime}. ${a11yState}.`}
+            style={styles.bestTimeCard}
+          >
+            <Text style={styles.bestTimeLabel}>⏰ Best time</Text>
+            <Text style={styles.bestTimeValue}>{reading.luckyTime}</Text>
+            {state?.state === 'active' ? (
               <View style={styles.bestTimeProgressTrack}>
                 <View
                   style={[
@@ -224,19 +248,27 @@ export default function DetailScreen() {
                   ]}
                 />
               </View>
-            );
-          }
-          const hint = formatWindowHint(state);
-          return hint ? <Text style={styles.bestTimeHint}>{hint}</Text> : null;
-        })()}
-      </Card>
+            ) : state ? (
+              (() => {
+                const hint = formatWindowHint(state);
+                return hint ? <Text style={styles.bestTimeHint}>{hint}</Text> : null;
+              })()
+            ) : null}
+          </Card>
+        );
+      })()}
 
       {/* ── Good for / Avoid — immediate dashboard guidance ── */}
       {(reading.goodFor?.length > 0 || reading.avoid?.length > 0) ? (
         <View style={styles.almanacBlock}>
           <View style={styles.pillsRow}>
             {reading.goodFor?.length > 0 ? (
-              <View style={[styles.pillsGroup, styles.goodGroup]}>
+              <View
+                accessible
+                accessibilityRole="text"
+                accessibilityLabel={`Almanac suggests today is good for: ${reading.goodFor.join(', ')}`}
+                style={[styles.pillsGroup, styles.goodGroup]}
+              >
                 <Text style={styles.pillsLabel}>✅ Good for</Text>
                 <View style={styles.pillsWrap}>
                   {reading.goodFor.map((item) => (
@@ -246,7 +278,12 @@ export default function DetailScreen() {
               </View>
             ) : null}
             {reading.avoid?.length > 0 ? (
-              <View style={[styles.pillsGroup, styles.avoidGroup]}>
+              <View
+                accessible
+                accessibilityRole="text"
+                accessibilityLabel={`Almanac suggests being cautious of: ${reading.avoid.join(', ')}`}
+                style={[styles.pillsGroup, styles.avoidGroup]}
+              >
                 <Text style={styles.pillsLabel}>⚠️ Avoid</Text>
                 <View style={styles.pillsWrap}>
                   {reading.avoid.map((item) => (
@@ -556,6 +593,14 @@ const styles = StyleSheet.create({
   },
   solarTermChip: {
     color: colors.goldDeep,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    marginTop: 2,
+    textTransform: 'uppercase',
+  },
+  doubleHourChip: {
+    color: colors.mauve,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.4,

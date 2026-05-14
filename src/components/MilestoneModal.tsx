@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { colors, fonts, radii, spacing } from '../styles/theme';
 import { Milestone } from '../lib/milestones';
 
@@ -19,9 +20,17 @@ interface Props {
 export function MilestoneModal({ milestone, onDismiss }: Props) {
   const sparkleAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!milestone) return;
+    if (reduceMotion) {
+      // Skip entrance animation when Reduce Motion is on — show full sparkles
+      // and the card at final size immediately.
+      sparkleAnim.setValue(1);
+      scaleAnim.setValue(1);
+      return;
+    }
     sparkleAnim.setValue(0);
     scaleAnim.setValue(0.9);
     Animated.parallel([
@@ -38,7 +47,7 @@ export function MilestoneModal({ milestone, onDismiss }: Props) {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [milestone, sparkleAnim, scaleAnim]);
+  }, [milestone, sparkleAnim, scaleAnim, reduceMotion]);
 
   if (!milestone) return null;
 

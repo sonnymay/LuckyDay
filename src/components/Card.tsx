@@ -1,14 +1,22 @@
 import { PropsWithChildren } from 'react';
-import { Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { AccessibilityRole, Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { colors, radii, spacing } from '../styles/theme';
 
 type Props = PropsWithChildren<{
   style?: StyleProp<ViewStyle>;
+  accessible?: boolean;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityLabel?: string;
 }>;
 
-export function Card({ children, style }: Props) {
+export function Card({ children, style, accessible, accessibilityRole, accessibilityLabel }: Props) {
   return (
-    <View style={[styles.card, style]}>
+    <View
+      accessible={accessible}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel}
+      style={[styles.card, style]}
+    >
       {/* Subtle top-edge highlight for depth */}
       <View style={styles.topHighlight} pointerEvents="none" />
       {children}
