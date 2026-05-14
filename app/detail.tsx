@@ -17,7 +17,16 @@ import { SectionRow } from '../src/components/SectionRow';
 import { generateDailyReading } from '../src/lib/luck';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
 import { getNextMilestoneTarget, getReadingStreak } from '../src/lib/streak';
-import { getStoredProfile, getStoredReadingHistory, saveReadingHistoryItem } from '../src/lib/storage';
+import {
+  getSeenMilestones,
+  getStoredProfile,
+  getStoredReadingHistory,
+  markMilestoneSeen,
+  saveReadingHistoryItem,
+} from '../src/lib/storage';
+import { Milestone, selectMilestoneToShow } from '../src/lib/milestones';
+import { MilestoneModal } from '../src/components/MilestoneModal';
+import { formatWindowHint, getWindowState, parseTimeWindow } from '../src/lib/timeWindow';
 import { colors, fonts, radii, spacing } from '../src/styles/theme';
 import { DailyReading, MainFocus } from '../src/types';
 
@@ -67,7 +76,15 @@ export default function DetailScreen() {
   const [nextMilestoneTarget, setNextMilestoneTarget] = useState<number | null>(null);
   const [showAllInsights, setShowAllInsights] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [milestoneToShow, setMilestoneToShow] = useState<Milestone | null>(null);
+  const [now, setNow] = useState<Date>(() => new Date());
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Refresh `now` every minute so the Best-time progress bar ticks live.
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -91,6 +108,15 @@ export default function DetailScreen() {
         setStreak(currentStreak);
         setNextMilestoneTarget(getNextMilestoneTarget(currentStreak));
         saveReadingHistoryItem(todayReading).catch(() => undefined);
+
+        // Pick the largest unseen streak milestone the user just earned.
+        getSeenMilestones()
+          .then((seen) => {
+            if (!active) return;
+            const next = selectMilestoneToShow(currentStreak, seen);
+            if (next) setMilestoneToShow(next);
+          })
+          .catch(() => undefined);
 
         // Find the most recent reading that isn't today
         const past = history.filter((h) => h.date !== todayReading.date);
@@ -124,7 +150,7 @@ export default function DetailScreen() {
         <Text style={styles.brandMark}>LuckyDay</Text>
         <Text style={styles.brandSub}>{formatReadingDate(reading)}</Text>
       </View>
-      <Text style={styles.pageTitle}>{nickname ? `${nickname}'s almanac today ✨` : "Today's Almanac ✨"}</Text>
+      <Text style={styles.pageTitle}>{getGreeting(nickname, now)}</Text>
 
       {/* ── Energy score orb — the headline number ── */}
       <EnergyScoreCard score={reading.score} message={reading.mainMessage} />
@@ -146,10 +172,29 @@ export default function DetailScreen() {
         <Text style={styles.actionText}>{actionSentence}</Text>
       </Card>
 
-      {/* ── Best time — strong daily hook ── */}
+      {/* ── Best time — live progress through the window ── */}
       <Card style={styles.bestTimeCard}>
         <Text style={styles.bestTimeLabel}>⏰ Best time</Text>
         <Text style={styles.bestTimeValue}>{reading.luckyTime}</Text>
+        {(() => {
+          const parsed = parseTimeWindow(reading.luckyTime);
+          if (!parsed) return null;
+          const state = getWindowState(parsed, now);
+          if (state.state === 'active') {
+            return (
+              <View style={styles.bestTimeProgressTrack}>
+                <View
+                  style={[
+                    styles.bestTimeProgressFill,
+                    { width: `${Math.round(state.progress * 100)}%` },
+                  ]}
+                />
+              </View>
+            );
+          }
+          const hint = formatWindowHint(state);
+          return hint ? <Text style={styles.bestTimeHint}>{hint}</Text> : null;
+        })()}
       </Card>
 
       {/* ── Good for / Avoid — immediate dashboard guidance ── */}
@@ -285,6 +330,16 @@ export default function DetailScreen() {
         <Text style={styles.shareButtonText}>Share today's reading</Text>
       </Pressable>
     </Animated.View>
+
+    <MilestoneModal
+      milestone={milestoneToShow}
+      onDismiss={() => {
+        if (milestoneToShow) {
+          markMilestoneSeen(milestoneToShow.days).catch(() => undefined);
+        }
+        setMilestoneToShow(null);
+      }}
+    />
     </Screen>
   );
 }
@@ -410,6 +465,28 @@ function formatReadingDate(reading: DailyReading): string {
   const solarTermName = reading.solarTerm?.split(' · ')[0];
 
   return [displayDate, reading.lunarDate, solarTermName].filter(Boolean).join(' · ');
+}
+
+/**
+ * Returns the page-title greeting based on local hour of day so the screen
+ * feels personal across morning / afternoon / evening / late-night opens.
+ */
+function getGreeting(nickname: string, now: Date): string {
+  const hour = now.getHours();
+  const name = nickname ? nickname : null;
+  if (hour >= 5 && hour < 11) {
+    return name ? `Good morning, ${name} ✨` : 'Good morning ✨';
+  }
+  if (hour >= 11 && hour < 17) {
+    return name ? `${name}'s almanac today ✨` : "Today's Almanac ✨";
+  }
+  if (hour >= 17 && hour < 22) {
+    return name ? `Welcome back, ${name} ✨` : 'Welcome back ✨';
+  }
+  // 22:00 - 04:59 — late night / early hours
+  return name
+    ? `Late night, ${name}. Tomorrow's almanac is ready.`
+    : "Late night. Tomorrow's almanac is ready.";
 }
 
 const styles = StyleSheet.create({
@@ -669,6 +746,27 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     lineHeight: 34,
     textAlign: 'center',
+  },
+  bestTimeProgressTrack: {
+    backgroundColor: 'rgba(154, 100, 16, 0.18)',
+    borderRadius: radii.pill,
+    height: 6,
+    marginTop: spacing.xs,
+    overflow: 'hidden',
+    width: '70%',
+  },
+  bestTimeProgressFill: {
+    backgroundColor: colors.goldDeep,
+    borderRadius: radii.pill,
+    height: '100%',
+  },
+  bestTimeHint: {
+    color: colors.goldDeep,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginTop: 2,
+    textTransform: 'uppercase',
   },
   // Color + number quick row
   quickRow: {

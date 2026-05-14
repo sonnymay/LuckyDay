@@ -6,6 +6,7 @@ const FEEDBACK_KEY = 'luckyday.feedback.v1';
 const READING_HISTORY_KEY = 'luckyday.readingHistory.v1';
 const HAS_SEEN_PAYWALL_KEY = 'luckyday.hasSeenPaywall.v1';
 const LAST_NOTIFICATION_DATE_KEY = 'luckyday.lastNotificationDate.v1';
+const MILESTONES_SEEN_KEY = 'luckyday.milestonesSeen.v1';
 const MAX_READING_HISTORY_ITEMS = 30;
 
 export async function getStoredProfile() {
@@ -77,4 +78,26 @@ export async function shouldScheduleNotificationToday(todayKey: string): Promise
 
 export async function setNotificationScheduledToday(todayKey: string): Promise<void> {
   await AsyncStorage.setItem(LAST_NOTIFICATION_DATE_KEY, todayKey);
+}
+
+/**
+ * Returns the list of streak milestones the user has already been celebrated for.
+ * Used so each milestone modal appears exactly once across all sessions.
+ */
+export async function getSeenMilestones(): Promise<number[]> {
+  const value = await AsyncStorage.getItem(MILESTONES_SEEN_KEY);
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.filter((n): n is number => typeof n === 'number') : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function markMilestoneSeen(milestone: number): Promise<void> {
+  const seen = await getSeenMilestones();
+  if (seen.includes(milestone)) return;
+  const next = [...seen, milestone];
+  await AsyncStorage.setItem(MILESTONES_SEEN_KEY, JSON.stringify(next));
 }
