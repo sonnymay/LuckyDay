@@ -14,6 +14,12 @@ declare module 'lunar-javascript' {
     getDay(): number;
     /** Solar term (节气) name if today is one, otherwise empty string */
     getJieQi(): string;
+    /**
+     * The day-god (天神) name in Chinese for today, one of 12 possible:
+     * 青龙 明堂 金匮 天德 玉堂 司命 (auspicious / 黄道) or
+     * 天刑 朱雀 白虎 天牢 玄武 勾陈 (inauspicious / 黑道).
+     */
+    getDayTianShen(): string;
   }
 
   interface SolarDate {

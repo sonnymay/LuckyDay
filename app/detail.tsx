@@ -27,6 +27,7 @@ import {
 import { Milestone, selectMilestoneToShow } from '../src/lib/milestones';
 import { MilestoneModal } from '../src/components/MilestoneModal';
 import { formatNextSolarTermHint, getNextSolarTerm } from '../src/lib/almanac';
+import { formatAuspiciousBadgeLabel, getAuspiciousDay } from '../src/lib/auspiciousDay';
 import { formatDoubleHourChip, getCurrentDoubleHour } from '../src/lib/chineseHour';
 import { todayKey } from '../src/lib/date';
 import { formatWindowHint, getWindowState, parseTimeWindow } from '../src/lib/timeWindow';
@@ -194,6 +195,22 @@ export default function DetailScreen() {
               {hint}
             </Text>
           ) : null;
+        })()}
+        {(() => {
+          const auspicious = getAuspiciousDay(new Date(`${reading.date}T00:00:00`));
+          const label = formatAuspiciousBadgeLabel(auspicious);
+          if (!label || !auspicious) return null;
+          return (
+            <View
+              accessible
+              accessibilityRole="text"
+              accessibilityLabel={`${label}. ${auspicious.meaning}`}
+              style={styles.auspiciousBadge}
+            >
+              <Text style={styles.auspiciousBadgeText}>{label}</Text>
+              <Text style={styles.auspiciousBadgeMeaning}>{auspicious.meaning}</Text>
+            </View>
+          );
         })()}
       </View>
       <Text style={styles.pageTitle}>{getGreeting(nickname, now)}</Text>
@@ -606,6 +623,29 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     marginTop: 2,
     textTransform: 'uppercase',
+  },
+  auspiciousBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.sunrise,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.pill,
+    borderWidth: 1.5,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs,
+  },
+  auspiciousBadgeText: {
+    color: colors.goldDeep,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  auspiciousBadgeMeaning: {
+    color: colors.ink,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 1,
   },
   streakRow: {
     alignItems: 'center',
