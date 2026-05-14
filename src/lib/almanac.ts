@@ -181,3 +181,73 @@ export function getAlmanacDay(date: Date): AlmanacDay {
     };
   }
 }
+
+/** Next upcoming 节气 (one of the 24 solar terms) relative to `date`. */
+export type NextSolarTerm = {
+  /** Bilingual label like "小满 · Grain Buds" */
+  label: string;
+  /** Whole days from `date` to the term's start date (>=0). 0 means today. */
+  daysAway: number;
+};
+
+/**
+ * Looks ahead from `date` to find the next of the 24 solar terms.
+ * Returns the term name (bilingual) and days remaining.
+ *
+ * If today itself is a solar term, returns `daysAway: 0` for that term —
+ * the UI uses this so the chip can read "today" rather than skipping ahead.
+ */
+export function getNextSolarTerm(date: Date): NextSolarTerm | null {
+  try {
+    const solar = Lunar.Solar.fromYmd(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      date.getDate(),
+    );
+    const lunar = solar.getLunar();
+
+    // If today IS a solar term, surface it as `daysAway: 0`.
+    const today = lunar.getJieQi() as string;
+    if (today) {
+      return {
+        label: `${today} · ${SOLAR_TERM_EN[today] ?? today}`,
+        daysAway: 0,
+      };
+    }
+
+    // Otherwise find the next one going forward, using whole-day comparison.
+    // `getNextJieQi` exists at runtime in lunar-javascript but isn't in the
+    // typings; cast narrowly so the rest of the function stays typed.
+    const next = (lunar as unknown as {
+      getNextJieQi: (wholeDay: boolean) => { getName(): string; getSolar(): { getYear(): number; getMonth(): number; getDay(): number } } | null;
+    }).getNextJieQi(true);
+    if (!next) return null;
+    const name = next.getName();
+    const nextSolar = next.getSolar();
+
+    // Build a UTC-safe day diff. Both dates are clamped to local midnight to
+    // avoid DST drift surprises.
+    const startOfDay = (d: Date) =>
+      new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const todayMs = startOfDay(date);
+    const termMs = startOfDay(
+      new Date(nextSolar.getYear(), nextSolar.getMonth() - 1, nextSolar.getDay()),
+    );
+    const daysAway = Math.max(0, Math.round((termMs - todayMs) / 86_400_000));
+
+    return {
+      label: `${name} · ${SOLAR_TERM_EN[name] ?? name}`,
+      daysAway,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Short human label for the chip under the brand date. */
+export function formatNextSolarTermHint(next: NextSolarTerm | null): string | null {
+  if (!next) return null;
+  if (next.daysAway === 0) return `${next.label} begins today`;
+  if (next.daysAway === 1) return `1 day until ${next.label}`;
+  return `${next.daysAway} days until ${next.label}`;
+}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Animated, AppState, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 async function triggerShareHaptic() {
@@ -26,6 +26,8 @@ import {
 } from '../src/lib/storage';
 import { Milestone, selectMilestoneToShow } from '../src/lib/milestones';
 import { MilestoneModal } from '../src/components/MilestoneModal';
+import { formatNextSolarTermHint, getNextSolarTerm } from '../src/lib/almanac';
+import { todayKey } from '../src/lib/date';
 import { formatWindowHint, getWindowState, parseTimeWindow } from '../src/lib/timeWindow';
 import { colors, fonts, radii, spacing } from '../src/styles/theme';
 import { DailyReading, MainFocus } from '../src/types';
@@ -86,53 +88,81 @@ export default function DetailScreen() {
     return () => clearInterval(id);
   }, []);
 
+  // When the app returns from background and the date has rolled past
+  // midnight, force a hard reload so the user sees today's almanac rather
+  // than yesterday's stale reading.
+  // Single source of truth for loading the reading + streak + milestone state.
+  // Called by useFocusEffect on screen focus, and by the AppState listener
+  // when the app returns to active after midnight rollover.
+  const loadReading = useCallback(() => {
+    let active = true;
+    setLoading(true);
+    fadeAnim.setValue(0);
+
+    Promise.all([getStoredProfile(), getStoredReadingHistory()]).then(([profile, history]) => {
+      if (!active) return;
+      if (!profile) {
+        router.replace('/');
+        return;
+      }
+      setNickname(profile.nickname ?? '');
+      setMainFocuses(profile.mainFocus?.length ? profile.mainFocus : ['Luck']);
+      setShowAllInsights(false);
+      const todayReading = generateDailyReading(profile);
+      setReading(todayReading);
+      const nextHistory = [todayReading, ...history.filter((item) => item.date !== todayReading.date)];
+      const currentStreak = getReadingStreak(nextHistory);
+      setStreak(currentStreak);
+      setNextMilestoneTarget(getNextMilestoneTarget(currentStreak));
+      saveReadingHistoryItem(todayReading).catch(() => undefined);
+
+      // Pick the largest unseen streak milestone the user just earned.
+      getSeenMilestones()
+        .then((seen) => {
+          if (!active) return;
+          const next = selectMilestoneToShow(currentStreak, seen);
+          if (next) setMilestoneToShow(next);
+        })
+        .catch(() => undefined);
+
+      // Find the most recent reading that isn't today
+      const past = history.filter((h) => h.date !== todayReading.date);
+      if (past.length > 0) {
+        setYesterdayScore(past[0].score);
+      } else {
+        setYesterdayScore(null);
+      }
+
+      setLoading(false);
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [fadeAnim]);
+
   useFocusEffect(
     useCallback(() => {
-      let active = true;
-      setLoading(true);
-      fadeAnim.setValue(0);
-
-      Promise.all([getStoredProfile(), getStoredReadingHistory()]).then(([profile, history]) => {
-        if (!active) return;
-        if (!profile) {
-          router.replace('/');
-          return;
-        }
-        setNickname(profile.nickname ?? '');
-        setMainFocuses(profile.mainFocus?.length ? profile.mainFocus : ['Luck']);
-        setShowAllInsights(false);
-        const todayReading = generateDailyReading(profile);
-        setReading(todayReading);
-        const nextHistory = [todayReading, ...history.filter((item) => item.date !== todayReading.date)];
-        const currentStreak = getReadingStreak(nextHistory);
-        setStreak(currentStreak);
-        setNextMilestoneTarget(getNextMilestoneTarget(currentStreak));
-        saveReadingHistoryItem(todayReading).catch(() => undefined);
-
-        // Pick the largest unseen streak milestone the user just earned.
-        getSeenMilestones()
-          .then((seen) => {
-            if (!active) return;
-            const next = selectMilestoneToShow(currentStreak, seen);
-            if (next) setMilestoneToShow(next);
-          })
-          .catch(() => undefined);
-
-        // Find the most recent reading that isn't today
-        const past = history.filter((h) => h.date !== todayReading.date);
-        if (past.length > 0) {
-          setYesterdayScore(past[0].score);
-        } else {
-          setYesterdayScore(null);
-        }
-
-        setLoading(false);
-        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-      });
-
-      return () => { active = false; };
-    }, []),
+      const cleanup = loadReading();
+      return cleanup;
+    }, [loadReading]),
   );
+
+  // When the app returns from background and the date has rolled past
+  // midnight, force a hard reload so the user sees today's almanac rather
+  // than yesterday's stale reading.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState) => {
+      if (nextState !== 'active') return;
+      if (!reading) return;
+      const currentDayKey = todayKey();
+      if (currentDayKey !== reading.date) {
+        loadReading();
+      }
+    });
+    return () => sub.remove();
+  }, [reading, loadReading]);
 
   if (loading || !reading) {
     return <DetailSkeleton />;
@@ -149,6 +179,10 @@ export default function DetailScreen() {
       <View style={styles.brandRow}>
         <Text style={styles.brandMark}>LuckyDay</Text>
         <Text style={styles.brandSub}>{formatReadingDate(reading)}</Text>
+        {(() => {
+          const hint = formatNextSolarTermHint(getNextSolarTerm(new Date(`${reading.date}T00:00:00`)));
+          return hint ? <Text style={styles.solarTermChip}>{hint}</Text> : null;
+        })()}
       </View>
       <Text style={styles.pageTitle}>{getGreeting(nickname, now)}</Text>
 
@@ -519,6 +553,14 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 12,
     fontWeight: '600',
+  },
+  solarTermChip: {
+    color: colors.goldDeep,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    marginTop: 2,
+    textTransform: 'uppercase',
   },
   streakRow: {
     alignItems: 'center',

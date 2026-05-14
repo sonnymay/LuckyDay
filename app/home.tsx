@@ -227,6 +227,12 @@ export default function HomeScreen() {
                   luckyColor: dailyReading.luckyColor,
                   luckyNumber: dailyReading.luckyNumber,
                   score: dailyReading.score,
+                  mainMessage: dailyReading.mainMessage,
+                  action: dailyReading.action,
+                  luckyTime: dailyReading.luckyTime,
+                  luckyDirection: dailyReading.luckyDirection,
+                  chineseZodiac: dailyReading.chineseZodiac,
+                  zodiacInsight: dailyReading.zodiacInsight,
                 }).then(() => setNotificationScheduledToday(dailyReading.date));
               })
               .catch(() => undefined);

@@ -9,7 +9,25 @@ export type ReminderReading = {
   luckyColor: string;
   luckyNumber: number;
   score: number;
+  mainMessage: string;
+  action: string;
+  luckyTime: string;
+  luckyDirection: string;
+  chineseZodiac: string;
+  zodiacInsight: string;
 };
+
+/**
+ * Returns the first sentence (or first ~N chars) of a multi-sentence string,
+ * used to fit reading content inside an iOS notification body's single visible
+ * line on the lock screen.
+ */
+function firstLineOf(text: string, maxLen: number): string {
+  if (!text) return '';
+  const sentenceEnd = text.search(/[.!?](\s|$)/);
+  const slice = sentenceEnd > 0 ? text.slice(0, sentenceEnd + 1) : text;
+  return slice.length > maxLen ? `${slice.slice(0, maxLen - 1).trimEnd()}…` : slice;
+}
 
 export function isValidReminderTime(time?: string) {
   if (!time) {
@@ -57,43 +75,45 @@ export async function syncLocalDailyReminder(time?: string, reading?: ReminderRe
 
   const [hour, minute] = reminderTime.split(':').map(Number);
 
-  // If we have today's reading, use personalized bodies; otherwise use generic ones
+  // Personalized bodies use today's actual reading content so the lock-screen
+  // preview gives a real glimpse of the almanac, not a generic teaser. The
+  // mainMessage is trimmed to fit a single line of iOS lock-screen text.
   const personalizedBodies: string[] = reading
     ? [
-        `Your lucky color today is ${reading.luckyColor}. Open to see what it means for you.`,
-        `Number ${reading.luckyNumber} is yours today. Open LuckyDay to see the full picture.`,
-        `Today's energy score is ${reading.score}. Open to see your ${reading.luckyColor.toLowerCase()} luck.`,
-        `${reading.luckyColor} is your color today, and ${reading.luckyNumber} is your number. Your reading is ready.`,
-        `Daily energy: ${reading.score} ✨ Color: ${reading.luckyColor}. See what the almanac says today.`,
+        firstLineOf(reading.mainMessage, 110),
+        `${reading.luckyColor} today · best time ${reading.luckyTime}.`,
+        `Today's almanac suggests: ${reading.action}`.slice(0, 130),
+        `${reading.chineseZodiac} energy today. ${firstLineOf(reading.zodiacInsight, 80)}`,
+        `Number ${reading.luckyNumber} · ${reading.luckyColor} · ${reading.luckyDirection}.`,
       ]
     : [];
 
   const genericBodies = [
-    "What.s your color today? One tap to find out.",
+    "Your color today is set. One tap to find out which.",
     "Today's score is calculated. Is it higher than yesterday?",
     "The Chinese almanac has something specific for you this morning.",
-    "Your lucky number is set. So is your best time to act.",
+    "Your number is set. So is your best time to act.",
     "A new direction — literally. Open to see your direction today.",
     "Today's moon phase shifts your energy. See exactly how.",
     "Your zodiac animal has a specific message for today.",
     "The right moment to act is noted. Open before the day slips by.",
     "Good day or careful day? The almanac already knows. Open to see.",
     "One sentence describes your energy right now. Tap to read it.",
-    "Your lucky color can change how today feels. Open to find out.",
-    "Today has a lucky window. Open to see when it is.",
-    "Your morning read is fresh: lucky color, number, and one key action.",
+    "Your color today can change how the morning feels. Open to find out.",
+    "Today has a best-time window. Open to see when it is.",
+    "Your morning read is fresh: color, number, and one key action.",
     "Something in today's chart is worth knowing before you start.",
-    "Today's luck energy is different from yesterday. Rise and reveal. ✨",
+    "Today's energy is different from yesterday. Open today's almanac. ✨",
   ];
 
   const titles = [
     'What does today hold for you? ✨',
     'Your energy score is in 🌙',
     'The almanac chose a color for you 🎨',
-    'Your lucky number is waiting 🔢',
-    "Today's fortune is sealed ✦",
-    'Open today.s almanac 🌅',
-    'Something lucky is ready 🍀',
+    'Your number is waiting 🔢',
+    "Today's almanac is sealed ✦",
+    "Open today's almanac 🌅",
+    'Today is ready 🍀',
     'Your morning ritual is ready 🌸',
     'The stars aligned something for you ✨',
     'One tap to set your day right 🌸',
