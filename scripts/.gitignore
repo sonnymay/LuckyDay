@@ -1,0 +1,4 @@
+# Runtime logs from local automation scripts.
+.daily-log.last-run.log
+.daily-log.stdout.log
+.daily-log.stderr.log
