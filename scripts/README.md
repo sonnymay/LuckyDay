@@ -58,15 +58,45 @@ reboots regardless of whether Codex (or anything else) is running. It is a
 belt-and-suspenders complement to the existing Codex routines, not a
 replacement.
 
+## sync-main.sh
+
+Weekly companion to `daily-log.sh`. Fast-forwards `main` to the tip of the
+active feature branch and pushes, so every commit on `codex-luckyday-product-polish`
+is reflected on the default branch — which is what GitHub's contribution
+graph actually counts.
+
+Strictly fast-forward. Bails (without modifying anything) on:
+- uncommitted local changes
+- any divergence between `origin/main` and the feature branch
+- any git error
+
+### Schedule
+
+`~/Library/LaunchAgents/com.luckyday.sync-main.plist` fires weekly on
+**Sunday at 22:00 local time** (one hour after the Sunday `daily-log.sh`
+run, so the week's last entry is included in the sync).
+
+### Run manually
+
+```sh
+bash scripts/sync-main.sh
+```
+
+Idempotent: if `main` is already at the feature branch tip, exits no-op.
+
+### Disable
+
+```sh
+launchctl unload ~/Library/LaunchAgents/com.luckyday.sync-main.plist
+rm ~/Library/LaunchAgents/com.luckyday.sync-main.plist
+```
+
 ## Notes on the contribution-graph problem
 
-If commits still appear gray on GitHub after this script lands, the cause is
-**branch**, not frequency: GitHub only counts contributions on the default
-branch. Either:
+GitHub only counts contributions on the **default branch**. As long as
+`sync-main.sh` runs successfully each week, every commit on
+`codex-luckyday-product-polish` shows up on `main` → counts toward green
+squares. No need to change the GitHub default-branch setting.
 
-1. Change the GitHub default branch to `codex-luckyday-product-polish`
-   (Settings → Branches → switch default), or
-2. Regularly merge `codex-luckyday-product-polish` into `main`.
-
-This script writes to whatever branch is currently checked out, so it works
-under either strategy.
+If you instead prefer to change the default branch directly, you can — the
+two scripts work under either strategy.
