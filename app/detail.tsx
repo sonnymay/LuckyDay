@@ -18,6 +18,7 @@ import { generateDailyReading } from '../src/lib/luck';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
 import { getNextMilestoneTarget, getReadingStreak } from '../src/lib/streak';
 import {
+  getFeedbackForDate,
   getSeenMilestones,
   getStoredProfile,
   getStoredReadingHistory,
@@ -85,6 +86,7 @@ export default function DetailScreen() {
   // True only when today's reading was NOT yet in history when this screen
   // loaded — used to fire the late-night "streak saved" celebration pill.
   const [savedAtTheWire, setSavedAtTheWire] = useState(false);
+  const [yesterdayPrompt, setYesterdayPrompt] = useState<{ date: string; tier: string } | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Refresh `now` every minute so the Best-time progress bar ticks live.
@@ -145,6 +147,29 @@ export default function DetailScreen() {
         setYesterdayScore(past[0].score);
       } else {
         setYesterdayScore(null);
+      }
+
+      // Yesterday-reflection prompt: only show if there's a prior reading,
+      // no feedback recorded for it, and it's past 8am local (don't ambush
+      // sleepy users mid-morning ritual). Drives the accuracy celebration
+      // loop in History — without reflections that block never fires.
+      const yesterdayReading = past[0];
+      if (yesterdayReading && new Date().getHours() >= 8) {
+        getFeedbackForDate(yesterdayReading.date)
+          .then((existing) => {
+            if (!active) return;
+            if (!existing) {
+              setYesterdayPrompt({
+                date: yesterdayReading.date,
+                tier: getReadingTierLabel(yesterdayReading.score),
+              });
+            } else {
+              setYesterdayPrompt(null);
+            }
+          })
+          .catch(() => undefined);
+      } else {
+        setYesterdayPrompt(null);
       }
 
       setLoading(false);
@@ -252,6 +277,30 @@ export default function DetailScreen() {
           </View>
         ) : null}
       </View>
+
+      {/* ── Yesterday reflection prompt — feeds the accuracy loop ── */}
+      {yesterdayPrompt ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Reflect on yesterday, a ${yesterdayPrompt.tier} day`}
+          onPress={() => {
+            setYesterdayPrompt(null);
+            router.push({ pathname: '/feedback', params: { date: yesterdayPrompt.date } });
+          }}
+          style={({ pressed }) => [styles.reflectPrompt, pressed && styles.reflectPromptPressed]}
+        >
+          <View style={styles.reflectPromptCopy}>
+            <Text style={styles.reflectPromptTitle}>
+              Yesterday was a {yesterdayPrompt.tier} day
+            </Text>
+            <Text style={styles.reflectPromptSub}>How did it actually feel? · 30 seconds</Text>
+          </View>
+          <View style={styles.reflectPromptCta}>
+            <Text style={styles.reflectPromptCtaText}>Reflect</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.white} />
+          </View>
+        </Pressable>
+      ) : null}
 
       {/* ── Action hero — the #1 thing to do today ── */}
       <Card style={styles.actionCard}>
@@ -466,6 +515,14 @@ const SCORE_BANDS = [
   { label: 'Strong', min: 75, max: 85,  color: colors.blush },
   { label: 'Peak',   min: 85, max: 101, color: colors.blush },
 ];
+
+function getReadingTierLabel(score: number): string {
+  if (score >= 85) return 'Peak';
+  if (score >= 75) return 'Strong';
+  if (score >= 65) return 'Good';
+  if (score >= 56) return 'Steady';
+  return 'Rest';
+}
 
 function getScoreContext(score: number): string {
   if (score >= 90) return 'Peak energy today — a day to act boldly and initiate.';
@@ -883,6 +940,52 @@ const styles = StyleSheet.create({
   },
   breakdownNeutral: {
     color: colors.faint,
+  },
+  // Yesterday-reflection prompt — feeds the accuracy loop in History
+  reflectPrompt: {
+    alignItems: 'center',
+    backgroundColor: colors.panel,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: spacing.md,
+    padding: spacing.md,
+  },
+  reflectPromptPressed: {
+    opacity: 0.85,
+  },
+  reflectPromptCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  reflectPromptTitle: {
+    color: colors.ink,
+    fontFamily: fonts.bold,
+    fontSize: 16,
+    fontWeight: '900',
+    lineHeight: 21,
+  },
+  reflectPromptSub: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  reflectPromptCta: {
+    alignItems: 'center',
+    backgroundColor: colors.mauve,
+    borderRadius: radii.pill,
+    flexDirection: 'row',
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  reflectPromptCtaText: {
+    color: colors.white,
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   // Action hero card
   actionCard: {

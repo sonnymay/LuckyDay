@@ -636,6 +636,9 @@ Apple rejected Build 13 under Guideline 4.3(b) (saturated category / fortune-tel
 - **TabBar "You" → "Settings"** (`src/components/TabBar.tsx`) — silent day-1 navigation confusion eliminated.
 - **Cuts** — duplicate `moonStrip` removed from `app/home.tsx` (moon phase already shown in detail insights + almanac card); `sharePromptCard` removed (defensive copy "No private details" undermined premium feel; one share button below now owns the surface). Net diff: less competing visual noise on home screen.
 
+#### Yesterday-reflection prompt — feeds the accuracy loop
+- **One-tap reflection card on `app/detail.tsx`** (current commit) — when the most-recent past reading has no feedback recorded AND local hour ≥ 8, a champagne-bordered prompt renders directly above the action card: `"Yesterday was a [Tier] day"` + `"How did it actually feel? · 30 seconds"` with a mauve "Reflect" CTA. Tap → `router.push({ pathname: '/feedback', params: { date: yesterdayDate } })`. New helper `getReadingTierLabel()` maps score → Peak/Strong/Good/Steady/Rest. Imports `getFeedbackForDate` from storage; `setYesterdayPrompt(null)` on tap dismisses immediately for snappy navigation. **Why this matters:** the new accuracy celebration block in `history.tsx` only fires when ≥2 reflected days exist with ≥60% match rate. Without surfacing reflection in the daily flow, that hero state stays dark for most users. This card is the missing input pipe.
+
 #### Reading-soul audits (Routine 7)
 - `52961c1 copy: reading soul audit Wk1 — luck.ts — 3 strings refined` — first audit pool: main daily messages, action sentences, score-band copy. 3 lowest-scoring strings rewritten with concrete imagery + time-of-day anchors.
 - `592fead copy: reading soul audit Wk2 - almanac.ts - 3 strings refined` — second audit pool: yi/ji guidance. Tracker at `docs/reading-soul-rotation.md`; per-week audit files under `docs/reading-audits/`.
