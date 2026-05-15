@@ -8,6 +8,7 @@ const HAS_SEEN_PAYWALL_KEY = 'luckyday.hasSeenPaywall.v1';
 const LAST_NOTIFICATION_DATE_KEY = 'luckyday.lastNotificationDate.v1';
 const MILESTONES_SEEN_KEY = 'luckyday.milestonesSeen.v1';
 const JOURNAL_KEY = 'luckyday.journal.v1';
+const RITUAL_DONE_KEY = 'luckyday.ritualDone.v1';
 const MAX_READING_HISTORY_ITEMS = 30;
 
 export async function getStoredProfile() {
@@ -140,4 +141,41 @@ export async function setJournalEntry(date: string, text: string): Promise<void>
 
 export async function getAllJournalEntries(): Promise<JournalMap> {
   return getJournalMap();
+}
+
+/**
+ * Ritual completion — closes the loop the app otherwise dangles open
+ * (we tell users to do something each day; we should ask if they did).
+ * Stored as a date→bool map so a user revisiting the past sees the state.
+ */
+type RitualDoneMap = Record<string, boolean>;
+
+async function getRitualDoneMap(): Promise<RitualDoneMap> {
+  const value = await AsyncStorage.getItem(RITUAL_DONE_KEY);
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as RitualDoneMap) : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function getRitualDone(date: string): Promise<boolean> {
+  const map = await getRitualDoneMap();
+  return map[date] === true;
+}
+
+export async function setRitualDone(date: string, done: boolean): Promise<void> {
+  const map = await getRitualDoneMap();
+  if (done) {
+    map[date] = true;
+  } else {
+    delete map[date];
+  }
+  await AsyncStorage.setItem(RITUAL_DONE_KEY, JSON.stringify(map));
+}
+
+export async function getAllRitualDone(): Promise<RitualDoneMap> {
+  return getRitualDoneMap();
 }

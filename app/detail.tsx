@@ -20,12 +20,14 @@ import { getNextMilestoneTarget, getReadingStreak } from '../src/lib/streak';
 import {
   getFeedbackForDate,
   getJournalEntry,
+  getRitualDone,
   getSeenMilestones,
   getStoredProfile,
   getStoredReadingHistory,
   markMilestoneSeen,
   saveReadingHistoryItem,
   setJournalEntry,
+  setRitualDone,
 } from '../src/lib/storage';
 import { Milestone, selectMilestoneToShow } from '../src/lib/milestones';
 import { MilestoneModal } from '../src/components/MilestoneModal';
@@ -81,6 +83,9 @@ export default function DetailScreen() {
   const [isSharing, setIsSharing] = useState(false);
   const [weekPattern, setWeekPattern] = useState<WeekPattern | null>(null);
   const [journalText, setJournalText] = useState('');
+  const [ritualDone, setRitualDoneState] = useState(false);
+  const journalInputRef = useRef<TextInput>(null);
+  const ritualSparkleAnim = useRef(new Animated.Value(0)).current;
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
   const [streak, setStreak] = useState(0);
@@ -128,10 +133,16 @@ export default function DetailScreen() {
       const tomorrowDate = new Date();
       tomorrowDate.setDate(tomorrowDate.getDate() + 1);
       setTomorrowReading(generateDailyReading(profile, tomorrowDate));
-      // Load any prior journal entry for today so the field re-hydrates.
+      // Load any prior journal entry + ritual completion for today so the
+      // UI re-hydrates after a session restart or tab change.
       getJournalEntry(todayReading.date)
         .then((existing) => {
           if (active) setJournalText(existing);
+        })
+        .catch(() => undefined);
+      getRitualDone(todayReading.date)
+        .then((done) => {
+          if (active) setRitualDoneState(done);
         })
         .catch(() => undefined);
       const nextHistory = [todayReading, ...history.filter((item) => item.date !== todayReading.date)];
@@ -235,6 +246,19 @@ export default function DetailScreen() {
   const visibleInsights = showAllInsights ? insightRows : insightRows.slice(0, 3);
   const hiddenInsightCount = Math.max(0, insightRows.length - 3);
   const actionSentence = getActionSentence(reading.action);
+
+  const handleRitualTap = () => {
+    if (ritualDone || !reading) return;
+    setRitualDoneState(true);
+    setRitualDone(reading.date, true).catch(() => undefined);
+    Animated.sequence([
+      Animated.timing(ritualSparkleAnim, { toValue: 1, duration: 280, useNativeDriver: true }),
+      Animated.timing(ritualSparkleAnim, { toValue: 0, duration: 520, useNativeDriver: true }),
+    ]).start();
+    // Pull the user straight into the journal field — closes the loop:
+    // "did it" → "how did it go?" without making them hunt for the input.
+    setTimeout(() => journalInputRef.current?.focus(), 280);
+  };
 
   return (
     <Screen showTabBar tintColor={getLuckyColorHex(reading.luckyColor)}>
@@ -346,7 +370,37 @@ export default function DetailScreen() {
       {/* ── Action hero — the #1 thing to do today ── */}
       <Card style={styles.actionCard}>
         <Text style={styles.actionLabel}>🍀 Your ritual for today</Text>
-        <Text style={styles.actionText}>{actionSentence}</Text>
+        <Text style={[styles.actionText, ritualDone && styles.actionTextDone]}>{actionSentence}</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={ritualDone ? 'Ritual complete for today' : 'Mark ritual done'}
+          accessibilityState={{ disabled: ritualDone }}
+          disabled={ritualDone}
+          onPress={handleRitualTap}
+          style={({ pressed }) => [
+            styles.ritualTap,
+            ritualDone && styles.ritualTapDone,
+            pressed && !ritualDone && styles.ritualTapPressed,
+          ]}
+        >
+          <Text style={styles.ritualTapText}>{ritualDone ? '✓ Done — well done' : 'I did this today ✓'}</Text>
+        </Pressable>
+        <Animated.Text
+          pointerEvents="none"
+          style={[
+            styles.ritualSparkle,
+            {
+              opacity: ritualSparkleAnim,
+              transform: [
+                {
+                  scale: ritualSparkleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.4] }),
+                },
+              ],
+            },
+          ]}
+        >
+          ✦ ✧ ✦
+        </Animated.Text>
       </Card>
 
       {/* ── Daily journal — personal artifact, the strongest churn defense ── */}
@@ -354,13 +408,14 @@ export default function DetailScreen() {
         <Text style={styles.journalLabel}>What's on your mind today?</Text>
         <View style={styles.journalCard}>
           <TextInput
+            ref={journalInputRef}
             accessibilityLabel="Daily journal entry"
             multiline
             onBlur={() => {
               if (reading) setJournalEntry(reading.date, journalText).catch(() => undefined);
             }}
             onChangeText={setJournalText}
-            placeholder="A line for your future self…"
+            placeholder={ritualDone ? 'How did it go?' : 'A line for your future self…'}
             placeholderTextColor={colors.faint}
             style={styles.journalInput}
             value={journalText}
@@ -1238,6 +1293,47 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     lineHeight: 28,
+  },
+  actionTextDone: {
+    opacity: 0.6,
+    textDecorationLine: 'line-through',
+    textDecorationStyle: 'solid',
+  },
+  // "I did this today ✓" — closes the ritual loop the app otherwise dangles
+  ritualTap: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    borderColor: 'rgba(255, 240, 199, 0.5)',
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+  },
+  ritualTapPressed: {
+    opacity: 0.78,
+  },
+  ritualTapDone: {
+    backgroundColor: 'rgba(237, 186, 64, 0.22)',
+    borderColor: colors.luckyGold,
+  },
+  ritualTapText: {
+    color: colors.champagne,
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 0.4,
+  },
+  ritualSparkle: {
+    color: colors.luckyGold,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 4,
+    pointerEvents: 'none',
+    position: 'absolute',
+    right: spacing.md,
+    textAlign: 'center',
+    top: spacing.md,
   },
   bestTimeCard: {
     alignItems: 'center',
