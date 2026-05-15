@@ -838,6 +838,15 @@ function getInsightRows(reading: DailyReading, focuses: MainFocus[]): InsightRow
 }
 
 function shareReading(reading: DailyReading): Promise<unknown> {
+  // Web has no real share sheet on most browsers — rather than failing
+  // silently and looking broken, surface a one-line explanation. iOS
+  // and Android use the native Share.share path.
+  if (Platform.OS === 'web' && typeof navigator !== 'undefined' && !('share' in navigator)) {
+    if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+      window.alert('Sharing works on iOS — open this in the LuckyDay app.');
+    }
+    return Promise.resolve();
+  }
   // Wrap in try/catch — web's navigator.share throws synchronously when
   // called concurrently (e.g. double-tap) which would propagate as an
   // uncaught error and trip the ErrorBoundary.
