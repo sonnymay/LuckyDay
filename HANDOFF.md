@@ -602,6 +602,55 @@ Full detail-screen audit and polish. No feature changes; all immutable design ru
 
 ---
 
+### 4h. Build 14 Cycle — Repositioning + Premium-Feel Features (2026-05-09 → 2026-05-14)
+
+Apple rejected Build 13 under Guideline 4.3(b) (saturated category / fortune-telling clone signal). Response strategy: reposition LuckyDay as a *Chinese Almanac daily ritual* rather than a "luck reading" app, and ship premium-feel cultural depth that an off-brand clone could not produce.
+
+#### Repositioning commits
+- `8736ad9 fix: strip 'luck'/'fortune' user-facing copy for 4.3(b) repositioning` — replaced visible "luck"/"fortune" framing with almanac language across detail/onboarding/paywall/settings/share copy.
+- `f13d08c fix: strip Chinese characters from all displayed UI` — full English-only sweep for App Review accessibility; Chinese remains in translation table keys only (`src/lib/almanac.ts`).
+- `8736ad9` (paired) — paywall + share copy realigned to "almanac ritual" positioning.
+
+#### Cultural depth features
+- `a6fea7c feat: auspicious-day badge — surface the 6 黄道日 in English` — gold sunrise pill below the date chip on the 6 lucky day-gods/cycle (Green Dragon, Bright Hall, Golden Vault, Heavenly Virtue, Jade Hall, Master of Destiny). One-line English meaning + VoiceOver label. **No badge** on inauspicious days — never tells the user "today is bad". Powered by `lunar-javascript` `getDayTianShen()`; new `src/lib/auspiciousDay.ts` module + Vitest suite.
+- `bc13f00 feat: solar term countdown, real reading in notifications, midnight rollover` — countdown to next solar term, push notification body now includes today's actual reading first sentence, midnight rollover refreshes detail screen automatically.
+- `af8f367 feat: Chinese double-hour chip, Reduce Motion respect, VoiceOver labels` — 子/丑/寅 etc. double-hour chip, Reduce Motion accessibility setting honored across animations, VoiceOver labels added across detail screen.
+
+#### Retention / ritual loop
+- `a29b154 feat: live best-time progress, streak milestones, time-aware greeting` — live progress bar showing how close best-time window is, streak milestone celebration modals, time-aware greeting on detail screen.
+- `772b35f feat: streak save warning — late-night push + at-the-wire celebration` — daily 21:30 push when streak ≥ 1 ("Your N-day streak holds until midnight"), and an in-app "✦ Streak saved with Xh Ym to spare" pill when user opens during the danger window. Auto-cancels when streak drops to 0; reuses morning-reminder permission (no re-prompt). New `STREAK_SAVE_NOTIFICATION_KEY`.
+- `c8bb151 feat: settings toggle for streak-save push reminder` — per-channel Switch under Morning reminder so users can disable just the 21:30 push without losing the morning one. New flag `luckyday.streakSavePushEnabled.v1` (default on); `syncStreakSaveReminder` honors it. Defends against any App Review concern about multi-notification apps lacking per-channel control.
+
+#### Reading-soul audits (Routine 7)
+- `52961c1 copy: reading soul audit Wk1 — luck.ts — 3 strings refined` — first audit pool: main daily messages, action sentences, score-band copy. 3 lowest-scoring strings rewritten with concrete imagery + time-of-day anchors.
+- `592fead copy: reading soul audit Wk2 - almanac.ts - 3 strings refined` — second audit pool: yi/ji guidance. Tracker at `docs/reading-soul-rotation.md`; per-week audit files under `docs/reading-audits/`.
+
+#### Polish + a11y
+- `c211a4e style: align streak pill spacing` — visual rhythm fix.
+- `87cd29c [a11y]: expand paywall close target` — reach-target compliance.
+- `acc5d86 fix: bump faint contrast to WCAG AA, align quickCard radius to scale` — `colors.faint` darkened to meet WCAG AA on petal-blush background.
+- `baea011 fix: zodiac emoji uses lookup map, remove default focus selection` — bug fix for emoji rendering + onboarding bias.
+
+#### Automation / infrastructure
+- `1404ab7 chore: add sync-main weekly routine + README updates` — weekly routine to keep `main` current with the polish branch.
+- `9ec979a chore: add daily-log script + launchd setup notes` — `scripts/daily-log.sh` writes daily commit summary to `docs/daily-log.md` so the GitHub contribution graph mirrors actual work.
+- `c788112 docs: daily-log entry 2026-05-14` — log artifact.
+- 9-routine automation system live (see Section 8 below).
+
+#### Test coverage
+Tests grew **43 → 94** (3 → 9 test files):
+- New: `auspiciousDay.test.ts`, plus expanded coverage across notifications/streak/luck pools.
+
+#### Build status
+- Build 14 submitted with the repositioning + the features above. Awaiting Apple verdict (as of 2026-05-14 23:00 CDT).
+- Branch: `codex-luckyday-product-polish`. Working tree clean. Pushed to GitHub.
+
+#### Verification (2026-05-14)
+- `npx tsc --noEmit` — zero errors
+- `npm test` — 94/94 passed (8 test files)
+
+---
+
 ### 4g. Build 11 — JS Crash Containment (2026-05-08, post-rejection)
 
 Build 10 was rejected at 12:07 AM on 2026-05-08 (iPad Air 11-inch M3 / iPadOS 26.4.2, Guideline 2.1(a)). All three crash logs are identical: triggered thread queue is `com.facebook.react.ExceptionsManagerQueue`, exception type `EXC_CRASH/SIGABRT`, terminator `abort()`. The `hades` (Hermes GC) thread is alive — JS bundle parsed and executed before throwing.
@@ -723,7 +772,73 @@ Push notifications are already available for the morning reminder, but a separat
 
 ---
 
-## 6. Next Steps (Build 12 in EAS Queue — Auto-submitting to App Store Connect)
+## 6. Next Steps — Build 14 Awaiting Verdict (Roadmap)
+
+Build 14 is in Apple review under the new Chinese Almanac repositioning. While we wait, the polish queue below is ranked by impact-per-hour. Pick top-down unless verdict lands first.
+
+### Roadmap (in priority order)
+
+| # | Idea | Effort | Why now |
+|---|---|---|---|
+| 1 | **Bedtime reflection push** — daily 9 PM push "How did today's reading land?" → opens feedback screen | half day | Closes daily loop; doubles touchpoints without spam; builds prediction-vs-reality dataset |
+| 2 | **Dynamic Type scaling** — fonts respect iOS text-size accessibility setting | half day | Pairs naturally with the Reduce Motion + VoiceOver work in Build 14 |
+| 3 | **Onboarding "consulting the almanac" reveal** — 1.5s animated sequence (stars, elements, fade-in orb) before first reading | 1 day | Day-1 wow moment, perceived premium |
+| 4 | **Share-card vertical Story redesign** — gold border, today's auspicious badge + solar term, almanac framing throughout | 2 days | Every shared card is the app's only viral surface |
+| 5 | **App icon variant per element** — Wood/Fire/Earth/Metal/Water alternate iOS icons picked from user's Chinese element on first launch | 1 day | Identity hook; "this is mine" moment |
+| 6 | **Reading-soul audits Wk3–Wk5** — chineseZodiac.ts, westernZodiac.ts, notifications.ts | 1h/week | Compounding content soul; on the Thursday rotation |
+
+Each shipped item must update this HANDOFF.md (Section 4 entry + ticking off the roadmap row) and push to GitHub on the same branch as the change.
+
+### Apple-verdict-dependent next steps
+
+**A. If Build 14 approved**
+1. Update `com.luckyday.premium.annual` price in App Store Connect from $29.99 → $19.99 (the dropdown unlocks on approval).
+2. Configure App Store + RevenueCat introductory offer (3-day free trial, annual only, new subscribers), then update paywall copy to reflect the real offer.
+3. Submit subscription metadata for review (both Premium Monthly + Annual still in "Missing Metadata"). Subscription review is independent of binary, ~24–48 hr.
+4. Run StoreKit sandbox pass on a real iPhone before announcing the launch.
+5. Disable the `luckyday-review-watch` routine (verdict reached).
+
+**B. If Build 14 rejected**
+1. Read the rejection notice carefully — capture the guideline number + Apple's verbatim message in HANDOFF.
+2. If 4.3(b) again: the repositioning was insufficient — escalate to a screen-by-screen Chinese Almanac re-skin (lunar phases, solar terms, yi/ji prominence over score).
+3. If a fresh crash: pull the symbolicated crash log via Sentry (now wired) before guessing.
+4. Do **not** reply to the rejection — submit a new build.
+
+### Carry-over (pre-Build-14, still open)
+
+**1. Submit subscription metadata for review — likely launch blocker**
+Both subscriptions are stuck in "Missing Metadata / Prepare for Submission". For each (Premium Monthly, Premium Annual):
+- Reference Name (`LuckyDay Premium Monthly`, `LuckyDay Premium Annual`)
+- Subscription Group: `LuckyDay Premium` (group ID 22066284)
+- Verify Display Name (`LuckyDay Premium`) and Description (`Full readings, lucky metrics & history.`) persisted
+- **Review screenshot (1024×1024 PNG)** of the paywall — most likely missing field
+- Review notes describing how to access the paywall in-app
+- Annual: add introductory offer (3 days free, all territories, new subscribers)
+- Hit "Submit for Review" — independent of binary; reviewed in 24–48 hr.
+
+**2. Set `EXPO_PUBLIC_POSTHOG_API_KEY` to activate analytics**
+Sign up at us.posthog.com (free tier: 1M events/month). Add to `.env`:
+```
+EXPO_PUBLIC_POSTHOG_API_KEY=phc_your_key_here
+```
+For EAS production builds: `eas secret:create --name EXPO_PUBLIC_POSTHOG_API_KEY --value phc_…`. The first install with the key set will populate the dashboard with `app_opened`, `purchase_*`, and any other events wired in. No code change required.
+
+**3. StoreKit sandbox test — do before app goes live**
+Test the full purchase flow on a real iPhone using a sandbox Apple ID. Verify:
+- Paywall loads pricing (not "We couldn't load App Store pricing")
+- Monthly and annual packages appear
+- Tapping a package triggers the StoreKit sheet
+- Purchase completes and `isPremium()` returns true
+- Restore purchases works
+If any step fails, diagnose in RevenueCat dashboard logs before the app is live.
+
+---
+
+## 6.x. Build 12 / 13 archive (kept for continuity)
+
+The original Build 12 next-steps block is preserved below for historical context. It was superseded by the Build 14 cycle in Section 4h.
+
+### Original Build 12 Steps (Build 12 in EAS Queue — Auto-submitting to App Store Connect)
 
 **Build 12 contains the crash containment layer and is queued in EAS.** Build 11 was consumed by a failed Sentry-plugin attempt (now reverted). Once Build 12 finishes (~10-15 min wall time) EAS will auto-submit to App Store Connect.
 
@@ -788,3 +903,26 @@ Read the rejection reason carefully. If it is another crash: pull the new crash 
 | Day-of-week variation uses prime multiplier 97 | Prevents offset collisions across categories |
 | Element-aware pools replace, not blend with, general pool | Blending dilutes the element signal |
 | `scoreReason` exists in data but is hidden | Display-only field for potential future use; never render it as text |
+
+---
+
+## 8. Automated Routine System (Live)
+
+Nine scheduled routines run against this repo. Every routine reads `HANDOFF.md` first — keeping this doc current is the single highest-leverage maintenance task.
+
+| # | Name | Cadence | Purpose | Output |
+|---|---|---|---|---|
+| 1 | luckyday-morning | Daily 8am | Health gate (test + typecheck) + 6-route screenshot baseline | `docs/screenshots/YYYY-MM-DD/` |
+| 2 | luckyday-polish-lens | Daily 8:30am | Rotating visual lens (Mon Typography → Sun Personality; Fri = almanac voice) | One focused commit |
+| 3 | luckyday-review-watch | Every 6h until verdict | Apple App Store status check on Build 14 | `docs/watcher-log.md` + alert |
+| 4 | luckyday-accessibility-lens | Weekly Tue 9:15am | Tap targets, contrast, labels, overflow, disabled states | `docs/a11y-log.md` |
+| 5 | luckyday-small-screen-sweep | Weekly Wed 9:15am | 375×667 / 390×844 / 430×932 layout check | `docs/screenshots/.../viewports/` |
+| 6 | luckyday-competitor-mining | Weekly Wed 9:30am | App Store / Reddit harvest of competitor love/hate themes | `docs/competitor-insights/` |
+| 7 | luckyday-reading-soul | Weekly Thu 9:15am | One content pool audited; 3 lowest-scoring strings rewritten | `docs/reading-audits/` |
+| 8 | luckyday-apply-insight | Weekly Sat 9:15am | One filtered competitor insight applied to LuckyDay | `docs/applied-insights/` |
+| 9 | luckyday-delight-audit | Weekly Sun 9am | Cold-open first-impression walkthrough; one flat thing fixed | `docs/delight-audit/` |
+
+**Pause rule:** routines that affect the binary pause when Apple review is "Ready for Review" / "In Review" AND <48h since submission.
+
+**Maintenance note:** if any routine produces a "Sandbox read-only" or "EPERM" log, the scheduler is missing write permissions for this folder. Grant project-folder write access before relying on automation output.
+
