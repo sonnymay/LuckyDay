@@ -32,6 +32,7 @@ import {
 import { Milestone, selectMilestoneToShow } from '../src/lib/milestones';
 import { MilestoneModal } from '../src/components/MilestoneModal';
 import { formatNextSolarTermHint, getNextSolarTerm } from '../src/lib/almanac';
+import { playRitualChime } from '../src/lib/chime';
 import { formatAuspiciousBadgeLabel, getAuspiciousDay } from '../src/lib/auspiciousDay';
 import { formatDoubleHourChip, getCurrentDoubleHour } from '../src/lib/chineseHour';
 import { todayKey } from '../src/lib/date';
@@ -251,9 +252,13 @@ export default function DetailScreen() {
     if (ritualDone || !reading) return;
     setRitualDoneState(true);
     setRitualDone(reading.date, true).catch(() => undefined);
+    playRitualChime();
+    // Longer ramp + 600ms dwell at peak so the celebration actually registers
+    // before fading — the previous 280ms ramp was invisible on web.
     Animated.sequence([
-      Animated.timing(ritualSparkleAnim, { toValue: 1, duration: 280, useNativeDriver: true }),
-      Animated.timing(ritualSparkleAnim, { toValue: 0, duration: 520, useNativeDriver: true }),
+      Animated.timing(ritualSparkleAnim, { toValue: 1, duration: 320, useNativeDriver: true }),
+      Animated.delay(600),
+      Animated.timing(ritualSparkleAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
     ]).start();
     // Pull the user straight into the journal field — closes the loop:
     // "did it" → "how did it go?" without making them hunt for the input.
@@ -398,7 +403,7 @@ export default function DetailScreen() {
             pressed && !ritualDone && styles.ritualTapPressed,
           ]}
         >
-          <Text style={styles.ritualTapText}>{ritualDone ? '✓ Done — well done' : 'I did this today ✓'}</Text>
+          <Text style={[styles.ritualTapText, ritualDone && styles.ritualTapTextDone]}>{ritualDone ? '✓ Done — well done' : 'I did this today ✓'}</Text>
         </Pressable>
         <Animated.Text
           pointerEvents="none"
@@ -408,7 +413,7 @@ export default function DetailScreen() {
               opacity: ritualSparkleAnim,
               transform: [
                 {
-                  scale: ritualSparkleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.4] }),
+                  scale: ritualSparkleAnim.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1.6] }),
                 },
               ],
             },
@@ -430,7 +435,7 @@ export default function DetailScreen() {
               if (reading) setJournalEntry(reading.date, journalText).catch(() => undefined);
             }}
             onChangeText={setJournalText}
-            placeholder={ritualDone ? 'How did it go?' : 'A line for your future self…'}
+            placeholder={ritualDone ? 'How did it go?' : 'A line for today…'}
             placeholderTextColor={colors.faint}
             style={styles.journalInput}
             value={journalText}
@@ -614,12 +619,14 @@ export default function DetailScreen() {
       {/* ── Tomorrow preview — closes the return-loop with a real tier + delta ── */}
       {tomorrowReading ? (
         <Card style={styles.tomorrowCard}>
-          <View
-            style={[
-              styles.tomorrowSwatch,
-              { backgroundColor: getLuckyColorHex(tomorrowReading.luckyColor) },
-            ]}
-          />
+          <View style={styles.tomorrowSwatchOuter}>
+            <View
+              style={[
+                styles.tomorrowSwatch,
+                { backgroundColor: getLuckyColorHex(tomorrowReading.luckyColor) },
+              ]}
+            />
+          </View>
           <View style={styles.tomorrowBody}>
             <Text style={styles.tomorrowLabel}>Tomorrow's almanac</Text>
             <Text style={styles.tomorrowTitle}>
@@ -838,18 +845,21 @@ function getInsightRows(reading: DailyReading, focuses: MainFocus[]): InsightRow
 }
 
 function shareReading(reading: DailyReading): Promise<unknown> {
-  // Web has no real share sheet on most browsers — rather than failing
-  // silently and looking broken, surface a one-line explanation. iOS
-  // and Android use the native Share.share path.
-  if (Platform.OS === 'web' && typeof navigator !== 'undefined' && !('share' in navigator)) {
+  const showWebFallback = () => {
     if (typeof window !== 'undefined' && typeof window.alert === 'function') {
       window.alert('Sharing works on iOS — open this in the LuckyDay app.');
     }
+  };
+  // Web has no real share sheet on most desktop browsers — surface a
+  // one-line explanation rather than failing silently. iOS + Android use
+  // the native Share.share path.
+  if (Platform.OS === 'web' && typeof navigator !== 'undefined' && !('share' in navigator)) {
+    showWebFallback();
     return Promise.resolve();
   }
-  // Wrap in try/catch — web's navigator.share throws synchronously when
-  // called concurrently (e.g. double-tap) which would propagate as an
-  // uncaught error and trip the ErrorBoundary.
+  // Wrap in try/catch — web's navigator.share can throw synchronously
+  // (concurrent invocation, missing user gesture). Catch both the sync
+  // throw and the async NotAllowedError so the ErrorBoundary never sees it.
   try {
     return Promise.resolve(
       Share.share({
@@ -864,8 +874,15 @@ function shareReading(reading: DailyReading): Promise<unknown> {
           .join('\n'),
         title: "Today's almanac reading",
       }),
-    ).catch(() => undefined);
+    ).catch((err: unknown) => {
+      // NotAllowedError = browser rejected for missing user gesture or
+      // permissions. AbortError = user closed the share sheet. Surface the
+      // fallback only for the former.
+      const name = err && typeof err === 'object' && 'name' in err ? String((err as { name: unknown }).name) : '';
+      if (Platform.OS === 'web' && name === 'NotAllowedError') showWebFallback();
+    });
   } catch {
+    if (Platform.OS === 'web') showWebFallback();
     return Promise.resolve();
   }
 }
@@ -1367,40 +1384,50 @@ const styles = StyleSheet.create({
     textDecorationStyle: 'solid',
   },
   // "I did this today ✓" — closes the ritual loop the app otherwise dangles
+  // Warm gold fill at rest so the button reads as "tap me," not "disabled."
+  // Done state collapses to a quieter ghost so the before/after contrast is
+  // obvious — completion should look meaningfully different from invitation.
   ritualTap: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
-    borderColor: 'rgba(255, 240, 199, 0.5)',
+    backgroundColor: colors.luckyGold,
+    borderColor: colors.champagne,
     borderRadius: radii.pill,
-    borderWidth: 1,
+    borderWidth: 1.5,
     marginTop: spacing.sm,
     paddingHorizontal: spacing.md,
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   ritualTapPressed: {
-    opacity: 0.78,
+    opacity: 0.82,
+    transform: [{ scale: 0.98 }],
   },
   ritualTapDone: {
-    backgroundColor: 'rgba(237, 186, 64, 0.22)',
-    borderColor: colors.luckyGold,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(255, 240, 199, 0.45)',
   },
   ritualTapText: {
-    color: colors.champagne,
-    fontFamily: fonts.bold,
-    fontSize: 14,
+    color: colors.goldDeep,
+    fontFamily: fonts.heavy,
+    fontSize: 15,
     fontWeight: '900',
-    letterSpacing: 0.4,
+    letterSpacing: 0.5,
+  },
+  ritualTapTextDone: {
+    color: 'rgba(255, 240, 199, 0.85)',
   },
   ritualSparkle: {
     color: colors.luckyGold,
-    fontSize: 22,
+    fontSize: 32,
     fontWeight: '900',
-    letterSpacing: 4,
+    letterSpacing: 6,
     pointerEvents: 'none',
     position: 'absolute',
     right: spacing.md,
     textAlign: 'center',
-    top: spacing.md,
+    textShadowColor: 'rgba(255, 240, 199, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+    top: spacing.sm,
   },
   bestTimeCard: {
     alignItems: 'center',
@@ -1616,10 +1643,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: spacing.md,
   },
+  // Two concentric rings (gold outer + rose inner) so white/cream lucky
+  // colors still read as a deliberate fill, not a missing image.
+  tomorrowSwatchOuter: {
+    alignItems: 'center',
+    backgroundColor: colors.luckyGold,
+    borderRadius: 26,
+    height: 52,
+    justifyContent: 'center',
+    width: 52,
+  },
   tomorrowSwatch: {
-    borderColor: colors.luckyGold,
+    borderColor: colors.roseGold,
     borderRadius: 22,
-    borderWidth: 2,
+    borderWidth: 1.5,
     height: 44,
     width: 44,
   },

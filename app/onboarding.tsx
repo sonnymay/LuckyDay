@@ -90,14 +90,26 @@ export default function OnboardingScreen() {
     setStep((current) => Math.max(1, current - 1));
   }
 
+  function notify(title: string, body: string) {
+    // RN's Alert.alert is a no-op on web in some Expo configs, which left
+    // the user stuck silently when Continue was tapped without a nickname.
+    // Fall back to window.alert on web so the validation feedback always
+    // reaches the user; native uses the proper Alert sheet.
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof window.alert === 'function') {
+      window.alert(`${title}\n\n${body}`);
+      return;
+    }
+    Alert.alert(title, body);
+  }
+
   function validateIdentity() {
     if (!nickname.trim()) {
-      Alert.alert('Nickname needed', 'Add the name you want LuckyDay to use.');
+      notify('Nickname needed', 'Add the name you want LuckyDay to use.');
       return false;
     }
 
     if (!isValidDateKey(birthday.trim())) {
-      Alert.alert('Birthday needed', 'Fill in a valid year, month, and day.');
+      notify('Birthday needed', 'Fill in a valid year, month, and day.');
       return false;
     }
 
@@ -106,12 +118,12 @@ export default function OnboardingScreen() {
 
   function validateFocus() {
     if (mainFocus.length === 0) {
-      Alert.alert('Main focus needed', 'Choose at least one focus for your daily reading.');
+      notify('Main focus needed', 'Choose at least one focus for your daily reading.');
       return false;
     }
 
     if (!isValidReminderTime(notificationTime.trim())) {
-      Alert.alert('Reminder time', 'Use a 24-hour time like 08:00.');
+      notify('Reminder time', 'Use a 24-hour time like 08:00.');
       return false;
     }
 

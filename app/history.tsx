@@ -202,7 +202,7 @@ export default function HistoryScreen() {
           </View>
           {nextMilestoneTarget && streak > 0 ? (
             <Text style={styles.milestoneHint}>
-              {nextMilestoneTarget - streak} days to {nextMilestoneTarget}-day milestone
+              {nextMilestoneTarget - streak === 1 ? 'Tomorrow opens a new chapter' : 'A few more mornings opens a new chapter'}
             </Text>
           ) : null}
         </View>
