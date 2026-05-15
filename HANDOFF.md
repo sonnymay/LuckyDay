@@ -645,6 +645,13 @@ Apple rejected Build 13 under Guideline 4.3(b) (saturated category / fortune-tel
 - **Streak copy reframed away from gamification** (`getStreakLabel` + milestone hint) — "Day 1 ritual streak" → "Your first day back"; "X days to your N-day milestone" → "X more days opens a new chapter". Closer to ritual register, away from Duolingo.
 - **Settings page title aligned** (`app/settings.tsx`) — "Profile ✨" → "Settings ✨" to match the tab bar label rename shipped earlier.
 
+#### Reading-soul Wk3 audit — chineseZodiac.ts (5 strings refined across 4 animals)
+- **Rat** — `'Adaptability is your superpower. Embrace the change coming your way.'` → `'A small change to your morning plan opens room for the better thing showing up by mid-afternoon. Stay loose.'` (added time anchor: morning → mid-afternoon).
+- **Tiger** — `'Your fire energy attracts the right attention today — use it well.'` → `'You walk into a room this morning and people pay attention before you speak. One direct question gets you what you came for.'` (replaced astrology-speak with concrete morning scene + actionable verb).
+- **Rabbit** — `'Your sensitivity is a strength, not a weakness. Trust it.'` → `'Notice the small mood shift in the room before lunch — you read it correctly. Adjust your approach and the rest of the day flows.'` (defensive affirmation → concrete observation + time anchor).
+- **Rabbit** — `'Good things come to those who move with grace and intention.'` → `'A slow start to the morning serves you better than rushing in. The first calm hour decides the next eight.'` (fortune-cookie → specific morning ritual).
+- **Dragon** — `'Fortune responds to the Dragon\'s belief in itself. Believe completely.'` → `'The "yes" you have been practicing in your head — say it out loud before noon. The opening you wait for is the one you create.'` (tautology → concrete inner-monologue moment + noon anchor).
+
 #### Daily journal — strongest churn defense
 - **One-line journal field on `app/detail.tsx`** (current commit) — new `Card` directly under the action card with copy `"What's on your mind today?"` + a multiline `TextInput` (placeholder: `"A line for your future self…"`). Auto-saves on blur via the new `setJournalEntry(date, text)` storage helper. Hydrates on focus via `getJournalEntry(reading.date)`.
 - **Storage** (`src/lib/storage.ts`) — new `JOURNAL_KEY = 'luckyday.journal.v1'` backing a `Record<date, string>` map. APIs: `getJournalEntry(date)`, `setJournalEntry(date, text)` (deletes when trimmed empty), `getAllJournalEntries()`. Empty trims clean up the key — no garbage entries.
