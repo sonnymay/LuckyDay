@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
+import { AlmanacReveal } from '../src/components/AlmanacReveal';
 import { AppButton } from '../src/components/AppButton';
 import { BirthdayPicker } from '../src/components/BirthdayPicker';
 import { Card } from '../src/components/Card';
@@ -50,6 +51,7 @@ export default function OnboardingScreen() {
   const [rightPalmUpdatedAt, setRightPalmUpdatedAt] = useState('');
   const [handwritingUpdatedAt, setHandwritingUpdatedAt] = useState('');
   const [acceptedMediaConsent, setAcceptedMediaConsent] = useState(false);
+  const [revealing, setRevealing] = useState(false);
 
   const progressAnim = useRef(new Animated.Value(1)).current;
 
@@ -145,9 +147,9 @@ export default function OnboardingScreen() {
     await saveStoredProfile(profile);
     await showReminderStatus(syncLocalDailyReminder(notificationTime));
 
-    // Go straight to home — let the user experience their first reading before seeing a paywall.
-    // The paywall surfaces naturally when they tap any locked feature (PremiumGate handles it).
-    router.replace('/detail');
+    // Trigger the 1.5s reveal overlay; it calls router.replace when done.
+    // The paywall surfaces naturally when they tap any locked feature.
+    setRevealing(true);
   }
 
   return (
@@ -288,6 +290,7 @@ export default function OnboardingScreen() {
           <AppButton label="Show today's almanac" onPress={saveProfile} />
         )}
       </View>
+      {revealing ? <AlmanacReveal onDone={() => router.replace('/detail')} /> : null}
     </Screen>
   );
 }

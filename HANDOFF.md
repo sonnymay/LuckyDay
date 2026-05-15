@@ -622,7 +622,10 @@ Apple rejected Build 13 under Guideline 4.3(b) (saturated category / fortune-tel
 - `c8bb151 feat: settings toggle for streak-save push reminder` — per-channel Switch under Morning reminder so users can disable just the 21:30 push without losing the morning one. New flag `luckyday.streakSavePushEnabled.v1` (default on); `syncStreakSaveReminder` honors it. Defends against any App Review concern about multi-notification apps lacking per-channel control.
 
 #### Accessibility — Dynamic Type
-- **Dynamic Type scaling** (current commit) — body text now honors iOS text-size accessibility setting up to a 1.6× ceiling, set globally via `Text.defaultProps.maxFontSizeMultiplier` and `TextInput.defaultProps.maxFontSizeMultiplier` in `app/_layout.tsx`. Score number + `/100` unit pinned to 1.0× (must stay inside the 132×132 orb); mood pill capped at 1.2×. Completes the a11y trifecta with Reduce Motion and VoiceOver shipped earlier in the cycle.
+- **Dynamic Type scaling** (922ac04) — body text now honors iOS text-size accessibility setting up to a 1.6× ceiling, set globally via `Text.defaultProps.maxFontSizeMultiplier` and `TextInput.defaultProps.maxFontSizeMultiplier` in `app/_layout.tsx`. Score number + `/100` unit pinned to 1.0× (must stay inside the 132×132 orb); mood pill capped at 1.2×. Completes the a11y trifecta with Reduce Motion and VoiceOver shipped earlier in the cycle.
+
+#### Onboarding — "Consulting the almanac" reveal
+- **First-reading reveal overlay** (current commit) — new `src/components/AlmanacReveal.tsx` plays a 1.5s sequenced animation after the user finishes onboarding and before the first reading loads: sparkles fade in (400ms) → 5 element dots (Wood/Fire/Earth/Metal/Water) ring fade-and-scale around a center point (500ms) → champagne-and-gold orb scales up with title "Consulting the almanac…" (500ms). Renders as a full-screen overlay over the onboarding Screen. Reduce Motion: skips the animation, holds the final frame for 250ms, then navigates. Wired in `app/onboarding.tsx` `saveProfile()` — sets `revealing` after `saveStoredProfile`/`syncLocalDailyReminder` resolve, then `router.replace('/detail')` fires from the reveal's `onDone`. Day-1 perceived-premium moment without blocking the data save path.
 
 #### Reading-soul audits (Routine 7)
 - `52961c1 copy: reading soul audit Wk1 — luck.ts — 3 strings refined` — first audit pool: main daily messages, action sentences, score-band copy. 3 lowest-scoring strings rewritten with concrete imagery + time-of-day anchors.
@@ -784,7 +787,7 @@ Build 14 is in Apple review under the new Chinese Almanac repositioning. While w
 | # | Idea | Effort | Why now |
 |---|---|---|---|
 | 1 | ~~**Dynamic Type scaling**~~ ✅ shipped — fonts respect iOS text-size accessibility setting | half day | Done; bundles into Build 15 |
-| 2 | **Onboarding "consulting the almanac" reveal** — 1.5s animated sequence (stars, elements, fade-in orb) before first reading | 1 day | Day-1 wow moment, perceived premium |
+| 2 | ~~**Onboarding "consulting the almanac" reveal**~~ ✅ shipped — 1.5s sparkles → 5-element ring → orb overlay before first reading | 1 day | Done; bundles into Build 15 |
 | 3 | **Share-card vertical Story redesign** — gold border, today's auspicious badge + solar term, almanac framing throughout | 2 days | Every shared card is the app's only viral surface |
 | 4 | **App icon variant per element** — Wood/Fire/Earth/Metal/Water alternate iOS icons picked from user's Chinese element on first launch | 1 day | Identity hook; "this is mine" moment |
 | 5 | **Reading-soul audits Wk3–Wk5** — chineseZodiac.ts, westernZodiac.ts, notifications.ts | 1h/week | Compounding content soul; on the Thursday rotation |
