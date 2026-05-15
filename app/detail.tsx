@@ -255,7 +255,7 @@ export default function DetailScreen() {
 
       {/* ── Action hero — the #1 thing to do today ── */}
       <Card style={styles.actionCard}>
-        <Text style={styles.actionLabel}>🍀 Try this today</Text>
+        <Text style={styles.actionLabel}>🍀 Your ritual for today</Text>
         <Text style={styles.actionText}>{actionSentence}</Text>
       </Card>
 
@@ -395,6 +395,7 @@ export default function DetailScreen() {
           <Text style={styles.quickLabel}>Color</Text>
           <Text style={styles.quickValue}>{reading.luckyColor}</Text>
           <Text style={styles.colorMeaning}>{getLuckyColorMeaning(reading.luckyColor)}</Text>
+          <Text style={styles.colorRitual}>Wear or carry {reading.luckyColor.toLowerCase()} today to align your energy.</Text>
         </View>
         <View style={{ flex: 2, gap: spacing.md }}>
           <View style={[styles.quickCard, styles.numberQuickCard, { flex: 1 }]}>
@@ -456,12 +457,14 @@ export default function DetailScreen() {
   );
 }
 
+// Bands rendered on-brand: inactive blush, active champagne — orb + halo
+// already carry the score weight, so the scale row is supportive, not loud.
 const SCORE_BANDS = [
-  { label: 'Rest', min: 0,  max: 56,  color: '#EDE9F8' },
-  { label: 'Steady', min: 56, max: 65, color: '#E8F2FF' },
-  { label: 'Good',   min: 65, max: 75, color: '#E8F8EE' },
-  { label: 'Strong', min: 75, max: 85, color: '#FFF8E0' },
-  { label: 'Peak',   min: 85, max: 101, color: '#FFF0E8' },
+  { label: 'Rest',   min: 0,  max: 56,  color: colors.blush },
+  { label: 'Steady', min: 56, max: 65,  color: colors.blush },
+  { label: 'Good',   min: 65, max: 75,  color: colors.blush },
+  { label: 'Strong', min: 75, max: 85,  color: colors.blush },
+  { label: 'Peak',   min: 85, max: 101, color: colors.blush },
 ];
 
 function getScoreContext(score: number): string {
@@ -810,12 +813,13 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   scoreBandActive: {
+    backgroundColor: colors.champagne,
     opacity: 1,
     ...Platform.select({
       default: {
-        shadowColor: colors.mauve,
+        shadowColor: colors.luckyGold,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.35,
         shadowRadius: 4,
         elevation: 2,
       },
@@ -899,10 +903,10 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: colors.white,
-    fontFamily: fonts.regular,
-    fontSize: 18,
-    fontWeight: '500',
-    lineHeight: 26,
+    fontFamily: fonts.bold,
+    fontSize: 20,
+    fontWeight: '700',
+    lineHeight: 28,
   },
   bestTimeCard: {
     alignItems: 'center',
@@ -1014,6 +1018,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 15,
     marginTop: 2,
+  },
+  colorRitual: {
+    color: colors.mauve,
+    fontSize: 11,
+    fontStyle: 'italic',
+    fontWeight: '700',
+    lineHeight: 15,
+    marginTop: 6,
   },
   numberQuickCard: {
     alignItems: 'center',

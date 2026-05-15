@@ -8,7 +8,7 @@ import { SectionRow } from '../src/components/SectionRow';
 import { getMonthActivity, getNextMilestoneTarget, getReadingStreak, getStreakMilestone, MonthActivityDay } from '../src/lib/streak';
 import { getPremiumStatus } from '../src/lib/purchases';
 import { getStoredFeedback, getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
-import { colors, radii, spacing } from '../src/styles/theme';
+import { colors, fonts, radii, spacing } from '../src/styles/theme';
 import { DailyReading, Feedback } from '../src/types';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -303,15 +303,33 @@ function MonthDay({ day }: { day: MonthActivityDay }) {
 }
 
 function AccuracySummaryCard({ summary }: { summary: ReturnType<typeof computeAccuracySummary> }) {
+  // Hero-state when the almanac actually tracked reality this week — the
+  // strongest proof-of-value moment in the app. Threshold 60% feels honest
+  // (not gamed) but high enough to feel earned.
+  const matchRatio = summary.predictionDays > 0 ? summary.predictionMatched / summary.predictionDays : 0;
+  const showCelebration = summary.predictionDays >= 2 && matchRatio >= 0.6;
+
   return (
     <Card style={styles.accuracyCard}>
+      {showCelebration ? (
+        <View style={styles.accuracyCelebration}>
+          <Text style={styles.accuracyCelebrationNumber}>
+            {summary.predictionMatched} of {summary.predictionDays} days matched
+          </Text>
+          <Text style={styles.accuracyCelebrationCopy}>
+            The almanac tracked your reality this week.
+          </Text>
+        </View>
+      ) : null}
       <View style={styles.accuracyHeader}>
         <View>
           <Text style={styles.accuracyTitle}>Prediction vs. reality</Text>
-          <Text style={styles.accuracyCopy}>
-            {summary.matchLine}
-          </Text>
-          {summary.reasonTag ? <Text style={styles.reasonTag}>{summary.reasonTag}</Text> : null}
+          {!showCelebration ? (
+            <Text style={styles.accuracyCopy}>
+              {summary.matchLine}
+            </Text>
+          ) : null}
+          {summary.reasonTag && !showCelebration ? <Text style={styles.reasonTag}>{summary.reasonTag}</Text> : null}
         </View>
         <Pressable
           accessibilityRole="button"
@@ -604,6 +622,32 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 18,
     marginTop: 2,
+  },
+  accuracyCelebration: {
+    alignItems: 'center',
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.lg,
+  },
+  accuracyCelebrationNumber: {
+    color: colors.mauve,
+    fontFamily: fonts.heavy,
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: 0.3,
+    textAlign: 'center',
+  },
+  accuracyCelebrationCopy: {
+    color: colors.goldDeep,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
   reasonTag: {
     alignSelf: 'flex-start',

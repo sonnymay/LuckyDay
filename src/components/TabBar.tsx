@@ -22,7 +22,7 @@ type TabDef = {
 const TABS: TabDef[] = [
   { path: '/detail',   label: 'Today',   icon: 'home-outline',          iconActive: 'home'          },
   { path: '/history',  label: 'History', icon: 'journal-outline',       iconActive: 'journal'       },
-  { path: '/settings', label: 'You', icon: 'person-circle-outline', iconActive: 'person-circle' },
+  { path: '/settings', label: 'Settings', icon: 'person-circle-outline', iconActive: 'person-circle' },
 ];
 
 export function TabBar() {

@@ -193,6 +193,7 @@ function CalculationScreen() {
 export default function HomeScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [reading, setReading] = useState<DailyReading | null>(null);
+  const [tomorrowScore, setTomorrowScore] = useState<number | null>(null);
   const [streak, setStreak] = useState(0);
   const [savingShareCard, setSavingShareCard] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -216,8 +217,15 @@ export default function HomeScreen() {
 
           setIsPremium(premiumStatus.isPremium);
           const dailyReading = generateDailyReading(storedProfile);
+          // Compute tomorrow's score so the return-tomorrow card can preview
+          // the trend ("better than today" / "rest day incoming") instead of
+          // dead "come back tomorrow" copy.
+          const tomorrowDate = new Date();
+          tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+          const tomorrowReading = generateDailyReading(storedProfile, tomorrowDate);
           setProfile(storedProfile);
           setReading(dailyReading);
+          setTomorrowScore(tomorrowReading.score);
           // Reschedule notification with today's personalized data — but only once per day
           if (storedProfile.notificationTime) {
             shouldScheduleNotificationToday(dailyReading.date)
@@ -356,17 +364,7 @@ export default function HomeScreen() {
         westernInsight={reading.westernZodiacInsight || undefined}
       />
 
-      {/* ── Moon phase — static display, content visible without navigation ── */}
-      <View style={styles.moonStrip}>
-        <Text style={styles.moonEmoji}>{getMoonEmoji(reading.moonPhase)}</Text>
-        <View style={styles.moonCopy}>
-          <View style={styles.moonPhaseLabelRow}>
-            <Text style={styles.moonPhaseLabel}>🌙 {reading.moonPhase}</Text>
-            {reading.lunarDate ? <Text style={styles.lunarDate}>{reading.lunarDate}</Text> : null}
-          </View>
-          <Text style={styles.moonPhaseMessage}>{reading.moonMessage}</Text>
-        </View>
-      </View>
+      {/* Moon phase removed — already shown in detail insights and almanac card. */}
 
       <View style={styles.sectionLabel}>
         <Text style={styles.sectionLabelText}>Almanac guidance</Text>
@@ -394,30 +392,8 @@ export default function HomeScreen() {
         </View>
       </PremiumGate>
 
-      <Card style={styles.sharePromptCard}>
-        <View style={styles.sharePromptHeader}>
-          <View style={styles.shareMiniCard} pointerEvents="none">
-            <Text style={styles.shareMiniStars}>✦ ✧</Text>
-            <View style={styles.shareMiniOrb}>
-              <Text style={styles.shareMiniScore}>{reading.score}</Text>
-            </View>
-            <View style={styles.shareMiniFooter}>
-              <View style={[styles.shareMiniSwatch, { backgroundColor: getLuckyColorHex(reading.luckyColor) }]} />
-              <Text style={styles.shareMiniNumber}>{reading.luckyNumber}</Text>
-            </View>
-          </View>
-          <View style={styles.sharePromptCopy}>
-            <Text style={styles.sharePromptTitle}>Share your day</Text>
-            <Text style={styles.sharePromptText}>
-              {getShareNudge(reading)} No birthday, photos, or private details.
-            </Text>
-          </View>
-        </View>
-        <View style={styles.sharePills}>
-          <Text style={styles.sharePill}>IG / LINE ready</Text>
-          <Text style={styles.sharePill}>No private details</Text>
-        </View>
-      </Card>
+      {/* sharePromptCard removed — defensive copy + duplicate share surface
+          undermined the premium feel. Single share button below now owns it. */}
 
       <Pressable
         accessibilityRole="button"
@@ -480,16 +456,16 @@ export default function HomeScreen() {
         <Ionicons name="chevron-forward" size={16} color={colors.mauve} style={{ opacity: 0.6 }} />
       </Pressable>
 
-      {/* ── Return-tomorrow hook ── */}
-      <Card style={styles.tomorrowCard}>
-        <Text style={styles.tomorrowEmoji}>🌙</Text>
-        <View style={styles.tomorrowBody}>
-          <Text style={styles.tomorrowTitle}>Your energy shifts tomorrow</Text>
-          <Text style={styles.tomorrowCopy}>
-            Come back tomorrow for the next almanac.
-          </Text>
-        </View>
-      </Card>
+      {/* ── Return-tomorrow hook — preview tomorrow's tier so the loop closes ── */}
+      {tomorrowScore !== null ? (
+        <Card style={styles.tomorrowCard}>
+          <Text style={styles.tomorrowEmoji}>{getTomorrowEmoji(tomorrowScore, reading.score)}</Text>
+          <View style={styles.tomorrowBody}>
+            <Text style={styles.tomorrowTitle}>Tomorrow: {getScoreTier(tomorrowScore)}</Text>
+            <Text style={styles.tomorrowCopy}>{getTomorrowCopy(tomorrowScore, reading.score)}</Text>
+          </View>
+        </Card>
+      ) : null}
 
       <View style={[styles.captureArea, styles.noPointerEvents]}>
         <ViewShot ref={shareCardRef} options={{ format: 'png', quality: 1, result: 'tmpfile' }}>
@@ -589,23 +565,27 @@ function getStreakProgressPercent(streak: number): number {
   return Math.min(100, Math.round(((streak - prev) / (next - prev)) * 100));
 }
 
-function getMoonEmoji(moonPhase: string): string {
-  const map: Record<string, string> = {
-    'New Moon': '🌑',
-    'Waxing Crescent': '🌒',
-    'First Quarter': '🌓',
-    'Waxing Gibbous': '🌔',
-    'Full Moon': '🌕',
-    'Waning Gibbous': '🌖',
-    'Last Quarter': '🌗',
-    'Waning Crescent': '🌘',
-  };
-  return map[moonPhase] ?? '🌙';
+function getScoreTier(score: number): string {
+  if (score >= 85) return 'Peak energy';
+  if (score >= 75) return 'Strong day';
+  if (score >= 65) return 'Good momentum';
+  if (score >= 56) return 'Steady day';
+  return 'Rest day';
 }
 
-function getShareNudge(reading: DailyReading) {
-  const colorMeaning = getLuckyColorMeaning(reading.luckyColor).toLowerCase();
-  return `Save a cute story card for someone who could use ${colorMeaning} today.`;
+function getTomorrowCopy(tomorrow: number, today: number): string {
+  const delta = tomorrow - today;
+  if (delta >= 8) return 'A clear lift incoming — save bold moves for tomorrow.';
+  if (delta >= 3) return 'Energy rises tomorrow — plan one important move.';
+  if (delta <= -8) return 'A softer day ahead — wrap loose ends today if you can.';
+  if (delta <= -3) return 'Quieter pace tomorrow — nothing wrong, just slower.';
+  return 'A similar tone tomorrow — your rhythm stays the same.';
+}
+
+function getTomorrowEmoji(tomorrow: number, today: number): string {
+  if (tomorrow - today >= 3) return '🌅';
+  if (tomorrow - today <= -3) return '🌙';
+  return '✨';
 }
 
 const styles = StyleSheet.create({
@@ -789,54 +769,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     opacity: 0.7,
   },
-  // Moon phase card — static, no navigation
-  moonStrip: {
-    alignItems: 'flex-start',
-    backgroundColor: colors.lavender,
-    borderColor: '#C8BFEE',
-    borderRadius: radii.lg,
-    borderWidth: 1.5,
-    flexDirection: 'row',
-    gap: spacing.md,
-    padding: spacing.md,
-  },
-  moonEmoji: {
-    fontSize: 32,
-    lineHeight: 38,
-  },
-  moonCopy: {
-    flex: 1,
-  },
-  moonPhaseLabelRow: {
-    alignItems: 'baseline',
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  moonPhaseLabel: {
-    color: '#3D2D80',
-    fontSize: 14,
-    fontWeight: '900',
-    letterSpacing: 0.3,
-  },
-  lunarDate: {
-    color: '#7B6CB8',
-    fontSize: 12,
-    fontWeight: '700',
-    opacity: 0.85,
-  },
-  moonPhaseMessage: {
-    color: '#5A4A90',
-    fontSize: 14,
-    fontWeight: '600',
-    lineHeight: 21,
-    marginTop: 4,
-  },
-  moonArrow: {
-    color: '#7B6CB8',
-    fontSize: 22,
-    fontWeight: '900',
-    opacity: 0.7,
-  },
   luckyCard: {
     backgroundColor: '#FBF5E8',
     borderColor: colors.roseGold,
@@ -867,97 +799,6 @@ const styles = StyleSheet.create({
   guidanceCard: {
     backgroundColor: colors.lavender,
     borderColor: '#C8BFEE',
-  },
-  sharePromptCard: {
-    backgroundColor: colors.panelStrong,
-    borderColor: colors.roseGold,
-    gap: spacing.md,
-  },
-  sharePromptHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  sharePromptCopy: {
-    flex: 1,
-  },
-  shareMiniCard: {
-    alignItems: 'center',
-    backgroundColor: colors.mauve,
-    borderColor: colors.roseGold,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    height: 102,
-    justifyContent: 'space-between',
-    overflow: 'hidden',
-    padding: spacing.xs,
-    width: 68,
-  },
-  shareMiniStars: {
-    color: colors.champagne,
-    fontSize: 11,
-    fontWeight: '900',
-  },
-  shareMiniOrb: {
-    alignItems: 'center',
-    backgroundColor: colors.champagne,
-    borderColor: colors.luckyGold,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  shareMiniScore: {
-    color: colors.goldDeep,
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  shareMiniFooter: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: spacing.xs,
-  },
-  shareMiniSwatch: {
-    borderColor: colors.luckyGold,
-    borderRadius: 7,
-    borderWidth: 1,
-    height: 14,
-    width: 14,
-  },
-  shareMiniNumber: {
-    color: colors.champagne,
-    fontSize: 14,
-    fontWeight: '900',
-  },
-  sharePromptTitle: {
-    color: colors.mauve,
-    fontSize: 20,
-    fontWeight: '900',
-  },
-  sharePromptText: {
-    color: colors.muted,
-    fontSize: 14,
-    fontWeight: '700',
-    lineHeight: 20,
-    marginTop: spacing.xs,
-  },
-  sharePills: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  sharePill: {
-    backgroundColor: colors.champagne,
-    borderColor: colors.luckyGold,
-    borderRadius: 999,
-    borderWidth: 1,
-    color: colors.goldDeep,
-    fontSize: 12,
-    fontWeight: '900',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    textTransform: 'uppercase',
   },
   shareButton: {
     alignItems: 'center',
