@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, AppState, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, AppState, Easing, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 async function triggerShareHaptic() {
@@ -87,6 +87,9 @@ export default function DetailScreen() {
   const [ritualDone, setRitualDoneState] = useState(false);
   const journalInputRef = useRef<TextInput>(null);
   const ritualSparkleAnim = useRef(new Animated.Value(0)).current;
+  // One shared progress driver for the confetti burst: 8 dots interpolate
+  // off the same 0→1 timing so all the math stays in render, not state.
+  const confettiAnim = useRef(new Animated.Value(0)).current;
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
   const [streak, setStreak] = useState(0);
@@ -260,6 +263,15 @@ export default function DetailScreen() {
       Animated.delay(600),
       Animated.timing(ritualSparkleAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
     ]).start();
+    // Confetti burst: 0→1 over 700ms with cubic ease, then reset to 0 so a
+    // future re-tap (after un-done, not currently possible) replays cleanly.
+    confettiAnim.setValue(0);
+    Animated.timing(confettiAnim, {
+      toValue: 1,
+      duration: 700,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
     // Pull the user straight into the journal field — closes the loop:
     // "did it" → "how did it go?" without making them hunt for the input.
     setTimeout(() => journalInputRef.current?.focus(), 280);
@@ -391,20 +403,25 @@ export default function DetailScreen() {
       <Card style={styles.actionCard}>
         <Text style={styles.actionLabel}>🍀 Your ritual for today</Text>
         <Text style={[styles.actionText, ritualDone && styles.actionTextDone]}>{actionSentence}</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ritualDone ? 'Ritual complete for today' : 'Mark ritual done'}
-          accessibilityState={{ disabled: ritualDone }}
-          disabled={ritualDone}
-          onPress={handleRitualTap}
-          style={({ pressed }) => [
-            styles.ritualTap,
-            ritualDone && styles.ritualTapDone,
-            pressed && !ritualDone && styles.ritualTapPressed,
-          ]}
-        >
-          <Text style={[styles.ritualTapText, ritualDone && styles.ritualTapTextDone]}>{ritualDone ? '✓ Done — well done' : 'I did this today ✓'}</Text>
-        </Pressable>
+        <View style={styles.ritualTapWrap}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={ritualDone ? 'Ritual complete for today' : 'Mark ritual done'}
+            accessibilityState={{ disabled: ritualDone }}
+            disabled={ritualDone}
+            onPress={handleRitualTap}
+            style={({ pressed }) => [
+              styles.ritualTap,
+              ritualDone && styles.ritualTapDone,
+              pressed && !ritualDone && styles.ritualTapPressed,
+            ]}
+          >
+            <Text style={[styles.ritualTapText, ritualDone && styles.ritualTapTextDone]}>{ritualDone ? '✓ Done — well done' : 'I did this today ✓'}</Text>
+          </Pressable>
+          {/* Micro-confetti burst — 8 dots fan out parabolically on tap.
+              Pointer-events disabled so they never block re-tapping. */}
+          <ConfettiBurst progress={confettiAnim} accentColor={getLuckyColorHex(reading.luckyColor)} />
+        </View>
         <Animated.Text
           pointerEvents="none"
           style={[
@@ -680,6 +697,69 @@ const SCORE_BANDS = [
   { label: 'Peak',   min: 85, max: 101, color: colors.blush },
 ];
 
+type ConfettiBurstProps = { progress: Animated.Value; accentColor: string };
+
+function ConfettiBurst({ progress, accentColor }: ConfettiBurstProps) {
+  // 8 dots at fixed angles around the button center. Each fans outward
+  // with a parabolic-ish vertical lift (-up then +down via translateY).
+  const dots = [
+    { angle:   0, color: colors.luckyGold },
+    { angle:  45, color: colors.roseGold },
+    { angle:  90, color: accentColor },
+    { angle: 135, color: colors.luckyGold },
+    { angle: 180, color: colors.roseGold },
+    { angle: 225, color: accentColor },
+    { angle: 270, color: colors.luckyGold },
+    { angle: 315, color: colors.roseGold },
+  ];
+  const radius = 64;
+  return (
+    <View style={styles.confettiLayer} pointerEvents="none">
+      {dots.map(({ angle, color }, index) => {
+        const rad = (angle * Math.PI) / 180;
+        const dx = Math.cos(rad) * radius;
+        const dy = Math.sin(rad) * radius;
+        return (
+          <Animated.View
+            key={index}
+            style={[
+              styles.confettiDot,
+              {
+                backgroundColor: color,
+                opacity: progress.interpolate({
+                  inputRange: [0, 0.15, 0.8, 1],
+                  outputRange: [0, 1, 1, 0],
+                }),
+                transform: [
+                  {
+                    translateX: progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, dx],
+                    }),
+                  },
+                  {
+                    translateY: progress.interpolate({
+                      // Parabolic-ish: lift past the target then settle.
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [0, dy - 10, dy],
+                    }),
+                  },
+                  {
+                    scale: progress.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [0.4, 1, 0.7],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
 function getNeutralDayCopy(moonPhase: string): { label: string; meaning: string } {
   // Map moon phases to a small neutral-day frame so the auspicious slot is
   // always filled. Pattern matches the auspicious tone: short title + one
@@ -850,16 +930,14 @@ function shareReading(reading: DailyReading): Promise<unknown> {
       window.alert('Sharing works on iOS — open this in the LuckyDay app.');
     }
   };
-  // Web has no real share sheet on most desktop browsers — surface a
-  // one-line explanation rather than failing silently. iOS + Android use
-  // the native Share.share path.
-  if (Platform.OS === 'web' && typeof navigator !== 'undefined' && !('share' in navigator)) {
+  // Eager web bypass — desktop Chrome has navigator.share but its share
+  // sheet is unreliable (user-gesture rejections, no IG/LINE targets), and
+  // mobile-web browsers vary. We only trust the native iOS/Android Share
+  // path. Anything else gets the explainer alert before we even try.
+  if (Platform.OS === 'web') {
     showWebFallback();
     return Promise.resolve();
   }
-  // Wrap in try/catch — web's navigator.share can throw synchronously
-  // (concurrent invocation, missing user gesture). Catch both the sync
-  // throw and the async NotAllowedError so the ErrorBoundary never sees it.
   try {
     return Promise.resolve(
       Share.share({
@@ -874,15 +952,8 @@ function shareReading(reading: DailyReading): Promise<unknown> {
           .join('\n'),
         title: "Today's almanac reading",
       }),
-    ).catch((err: unknown) => {
-      // NotAllowedError = browser rejected for missing user gesture or
-      // permissions. AbortError = user closed the share sheet. Surface the
-      // fallback only for the former.
-      const name = err && typeof err === 'object' && 'name' in err ? String((err as { name: unknown }).name) : '';
-      if (Platform.OS === 'web' && name === 'NotAllowedError') showWebFallback();
-    });
+    ).catch(() => undefined);
   } catch {
-    if (Platform.OS === 'web') showWebFallback();
     return Promise.resolve();
   }
 }
@@ -1383,6 +1454,29 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
     textDecorationStyle: 'solid',
   },
+  // Container — position:relative so confetti overlays the button area.
+  ritualTapWrap: {
+    marginTop: spacing.sm,
+    position: 'relative',
+  },
+  // Pointer-events:none so dots never block re-tap.
+  confettiLayer: {
+    alignItems: 'center',
+    height: 0,
+    justifyContent: 'center',
+    left: 0,
+    overflow: 'visible',
+    pointerEvents: 'none',
+    position: 'absolute',
+    right: 0,
+    top: '50%',
+  },
+  confettiDot: {
+    borderRadius: 6,
+    height: 8,
+    position: 'absolute',
+    width: 8,
+  },
   // "I did this today ✓" — closes the ritual loop the app otherwise dangles
   // Warm gold fill at rest so the button reads as "tap me," not "disabled."
   // Done state collapses to a quieter ghost so the before/after contrast is
@@ -1393,7 +1487,6 @@ const styles = StyleSheet.create({
     borderColor: colors.champagne,
     borderRadius: radii.pill,
     borderWidth: 1.5,
-    marginTop: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: 12,
   },
@@ -1406,8 +1499,11 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 240, 199, 0.45)',
   },
   ritualTapText: {
+    // Don't set fontFamily here — Nunito-Black isn't reliably loaded on web,
+    // and when the family is missing RN Web ignores explicit fontWeight and
+    // falls back to 400. Keeping only fontWeight ensures '900' actually
+    // takes effect on both iOS and web.
     color: colors.goldDeep,
-    fontFamily: fonts.heavy,
     fontSize: 15,
     fontWeight: '900',
     letterSpacing: 0.5,
