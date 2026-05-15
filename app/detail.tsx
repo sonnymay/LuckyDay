@@ -77,7 +77,7 @@ function DetailSkeleton() {
 export default function DetailScreen() {
   const [reading, setReading] = useState<DailyReading | null>(null);
   const [yesterdayScore, setYesterdayScore] = useState<number | null>(null);
-  const [tomorrowScore, setTomorrowScore] = useState<number | null>(null);
+  const [tomorrowReading, setTomorrowReading] = useState<DailyReading | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [weekPattern, setWeekPattern] = useState<WeekPattern | null>(null);
   const [journalText, setJournalText] = useState('');
@@ -127,7 +127,7 @@ export default function DetailScreen() {
       // user opening at 23:59 vs 00:01 sees the right "tomorrow."
       const tomorrowDate = new Date();
       tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-      setTomorrowScore(generateDailyReading(profile, tomorrowDate).score);
+      setTomorrowReading(generateDailyReading(profile, tomorrowDate));
       // Load any prior journal entry for today so the field re-hydrates.
       getJournalEntry(todayReading.date)
         .then((existing) => {
@@ -285,7 +285,7 @@ export default function DetailScreen() {
         </View>
         {nextMilestoneTarget && streak > 0 ? (
           <Text style={styles.streakHint}>
-            {nextMilestoneTarget - streak} more {nextMilestoneTarget - streak === 1 ? 'day' : 'days'} opens a new chapter
+            {nextMilestoneTarget - streak === 1 ? 'Tomorrow opens a new chapter' : 'A few more mornings opens a new chapter'}
           </Text>
         ) : null}
         {savedAtTheWire ? (
@@ -330,6 +330,7 @@ export default function DetailScreen() {
           style={({ pressed }) => [styles.reflectPrompt, pressed && styles.reflectPromptPressed]}
         >
           <View style={styles.reflectPromptCopy}>
+            <Text style={styles.reflectPromptKicker}>Before today</Text>
             <Text style={styles.reflectPromptTitle}>
               Yesterday was a {yesterdayPrompt.tier} day
             </Text>
@@ -349,21 +350,23 @@ export default function DetailScreen() {
       </Card>
 
       {/* ── Daily journal — personal artifact, the strongest churn defense ── */}
-      <Card style={styles.journalCard}>
+      <View style={styles.journalGroup}>
         <Text style={styles.journalLabel}>What's on your mind today?</Text>
-        <TextInput
-          accessibilityLabel="Daily journal entry"
-          multiline
-          onBlur={() => {
-            if (reading) setJournalEntry(reading.date, journalText).catch(() => undefined);
-          }}
-          onChangeText={setJournalText}
-          placeholder="A line for your future self…"
-          placeholderTextColor={colors.faint}
-          style={styles.journalInput}
-          value={journalText}
-        />
-      </Card>
+        <View style={styles.journalCard}>
+          <TextInput
+            accessibilityLabel="Daily journal entry"
+            multiline
+            onBlur={() => {
+              if (reading) setJournalEntry(reading.date, journalText).catch(() => undefined);
+            }}
+            onChangeText={setJournalText}
+            placeholder="A line for your future self…"
+            placeholderTextColor={colors.faint}
+            style={styles.journalInput}
+            value={journalText}
+          />
+        </View>
+      </View>
 
       {/* ── Best time — live progress through the window ── */}
       {(() => {
@@ -539,13 +542,22 @@ export default function DetailScreen() {
       </Card>
 
       {/* ── Tomorrow preview — closes the return-loop with a real tier + delta ── */}
-      {tomorrowScore !== null ? (
+      {tomorrowReading ? (
         <Card style={styles.tomorrowCard}>
-          <Text style={styles.tomorrowEmoji}>{getTomorrowEmoji(tomorrowScore, reading.score)}</Text>
+          <View
+            style={[
+              styles.tomorrowSwatch,
+              { backgroundColor: getLuckyColorHex(tomorrowReading.luckyColor) },
+            ]}
+          />
           <View style={styles.tomorrowBody}>
             <Text style={styles.tomorrowLabel}>Tomorrow's almanac</Text>
-            <Text style={styles.tomorrowTitle}>{getReadingTierLabel(tomorrowScore)} day {getTomorrowDeltaArrow(tomorrowScore, reading.score)}</Text>
-            <Text style={styles.tomorrowCopy}>{getTomorrowCopy(tomorrowScore, reading.score)}</Text>
+            <Text style={styles.tomorrowTitle}>
+              {getReadingTierLabel(tomorrowReading.score)} day {getTomorrowDeltaArrow(tomorrowReading.score, reading.score)}
+            </Text>
+            <Text style={styles.tomorrowCopy}>
+              {getTomorrowCopy(tomorrowReading.score, reading.score)}
+            </Text>
           </View>
         </Card>
       ) : null}
@@ -646,12 +658,6 @@ function getTomorrowCopy(tomorrow: number, today: number): string {
   if (delta <= -8) return 'A softer day ahead — wrap loose ends today if you can.';
   if (delta <= -3) return 'Quieter pace tomorrow — nothing wrong, just slower.';
   return 'A similar tone tomorrow — your rhythm stays the same.';
-}
-
-function getTomorrowEmoji(tomorrow: number, today: number): string {
-  if (tomorrow - today >= 3) return '🌅';
-  if (tomorrow - today <= -3) return '🌙';
-  return '✨';
 }
 
 function getScoreContext(score: number): string {
@@ -845,19 +851,17 @@ const styles = StyleSheet.create({
   },
   solarTermChip: {
     color: colors.goldDeep,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 0.4,
+    letterSpacing: 0.2,
     marginTop: 2,
-    textTransform: 'uppercase',
   },
   doubleHourChip: {
     color: colors.mauve,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 0.4,
+    letterSpacing: 0.2,
     marginTop: 2,
-    textTransform: 'uppercase',
   },
   auspiciousBadge: {
     alignSelf: 'flex-start',
@@ -1080,19 +1084,23 @@ const styles = StyleSheet.create({
     color: colors.faint,
   },
   // Daily journal — personal artifact for churn defense
-  journalCard: {
-    backgroundColor: colors.panel,
-    borderColor: colors.roseGold,
-    borderWidth: 1.5,
-    gap: spacing.sm,
-    padding: spacing.md,
+  journalGroup: {
+    gap: 6,
+    marginTop: -spacing.md + 8, // tighten coupling to action card above (~8px gap)
   },
   journalLabel: {
     color: colors.muted,
     fontSize: 12,
-    fontStyle: 'italic',
     fontWeight: '700',
     letterSpacing: 0.2,
+    paddingHorizontal: spacing.xs,
+  },
+  journalCard: {
+    backgroundColor: colors.panel,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    padding: spacing.md,
   },
   journalInput: {
     color: colors.ink,
@@ -1151,15 +1159,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   // Yesterday-reflection prompt — feeds the accuracy loop in History
+  // Subordinate to the action card — softer border + smaller padding so the
+  // user reads "before today" as a side glance, not today's main guidance.
   reflectPrompt: {
     alignItems: 'center',
-    backgroundColor: colors.panel,
-    borderColor: colors.luckyGold,
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
     borderRadius: radii.lg,
-    borderWidth: 1.5,
+    borderWidth: 1,
     flexDirection: 'row',
     gap: spacing.md,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   reflectPromptPressed: {
     opacity: 0.85,
@@ -1168,16 +1179,24 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  reflectPromptKicker: {
+    color: colors.muted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
   reflectPromptTitle: {
     color: colors.ink,
     fontFamily: fonts.bold,
-    fontSize: 16,
-    fontWeight: '900',
-    lineHeight: 21,
+    fontSize: 14,
+    fontWeight: '800',
+    lineHeight: 19,
+    marginTop: 1,
   },
   reflectPromptSub: {
     color: colors.muted,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
   },
   reflectPromptCta: {
@@ -1229,16 +1248,17 @@ const styles = StyleSheet.create({
   },
   bestTimeLabel: {
     color: colors.goldDeep,
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    opacity: 0.75,
   },
   bestTimeValue: {
     color: colors.ink,
-    fontSize: 28,
+    fontFamily: fonts.heavy,
+    fontSize: 32,
     fontWeight: '900',
-    lineHeight: 34,
+    lineHeight: 38,
     textAlign: 'center',
   },
   bestTimeProgressTrack: {
@@ -1256,11 +1276,10 @@ const styles = StyleSheet.create({
   },
   bestTimeHint: {
     color: colors.goldDeep,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontSize: 13,
+    fontWeight: '500',
     marginTop: 2,
-    textTransform: 'uppercase',
+    opacity: 0.85,
   },
   // Color + number quick row
   quickRow: {
@@ -1434,9 +1453,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: spacing.md,
   },
-  tomorrowEmoji: {
-    fontSize: 36,
-    lineHeight: 42,
+  tomorrowSwatch: {
+    borderColor: colors.luckyGold,
+    borderRadius: 22,
+    borderWidth: 2,
+    height: 44,
+    width: 44,
   },
   tomorrowBody: {
     flex: 1,

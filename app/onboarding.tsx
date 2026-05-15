@@ -10,7 +10,7 @@ import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
 import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
-import { elementEmoji, getZodiacElement } from '../src/lib/chineseZodiac';
+import { getChineseZodiacDetails, getZodiacElement } from '../src/lib/chineseZodiac';
 import { createProfile, getChineseZodiac } from '../src/lib/luck';
 import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
 import { saveStoredProfile } from '../src/lib/storage';
@@ -53,6 +53,11 @@ export default function OnboardingScreen() {
   const [handwritingUpdatedAt, setHandwritingUpdatedAt] = useState('');
   const [acceptedMediaConsent, setAcceptedMediaConsent] = useState(false);
   const [revealing, setRevealing] = useState(false);
+  // Track whether the user has actually touched the BirthdayPicker so the
+  // magic-trick preview only fires after a real interaction. The picker
+  // auto-emits 1990-01-01 on mount, which would otherwise trigger the
+  // reveal before the user did anything.
+  const [hasTouchedBirthday, setHasTouchedBirthday] = useState(false);
 
   const progressAnim = useRef(new Animated.Value(1)).current;
 
@@ -204,11 +209,22 @@ export default function OnboardingScreen() {
         <Field label="Nickname" value={nickname} onChangeText={setNickname} placeholder="Mali" />
         <View style={styles.group}>
           <Text style={styles.label}>Birthday</Text>
-          <BirthdayPicker value={birthday} onChange={setBirthday} />
+          <BirthdayPicker
+            value={birthday}
+            onChange={(next) => {
+              // Picker auto-emits 1990-01-01 on mount; only count as a real
+              // interaction when the value moves away from that default.
+              if (next && next !== '1990-01-01') setHasTouchedBirthday(true);
+              setBirthday(next);
+            }}
+          />
         </View>
-        {/* Magic-trick preview — fires the moment a valid birthday lands.
-            Day-1 "this knows me" moment before the user finishes onboarding. */}
-        {isValidDateKey(birthday.trim()) ? <BirthdayPreviewCard birthday={birthday.trim()} /> : null}
+        {/* Magic-trick preview — fires only after the user actually moves the
+            picker (the picker auto-emits 1990-01-01 on mount; we don't want
+            to spoil the reveal before they've done anything). */}
+        {hasTouchedBirthday && isValidDateKey(birthday.trim()) ? (
+          <BirthdayPreviewCard birthday={birthday.trim()} />
+        ) : null}
         <Field label="Birth time optional" value={birthTime} onChangeText={setBirthTime} placeholder="08:30" />
         <Field label="Birthplace optional" value={birthplace} onChangeText={setBirthplace} placeholder="Bangkok" />
       </View> : null}
@@ -351,15 +367,28 @@ type FieldProps = {
 function BirthdayPreviewCard({ birthday }: { birthday: string }) {
   const animal = getChineseZodiac(birthday);
   const element = getZodiacElement(animal, birthday);
-  const emoji = element ? elementEmoji[element] : '✨';
+  const details = getChineseZodiacDetails(animal);
+  const emoji = details?.emoji ?? '✨';
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateAnim = useRef(new Animated.Value(8)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 320, useNativeDriver: true }),
+      Animated.timing(translateAnim, { toValue: 0, duration: 320, useNativeDriver: true }),
+    ]).start();
+  }, [fadeAnim, translateAnim, animal]);
+
   return (
-    <View style={styles.previewCard}>
+    <Animated.View
+      style={[styles.previewCard, { opacity: fadeAnim, transform: [{ translateY: translateAnim }] }]}
+    >
       <Text style={styles.previewEmoji}>{emoji}</Text>
       <View style={styles.previewBody}>
         <Text style={styles.previewLabel}>The almanac already knows you</Text>
         <Text style={styles.previewTitle}>Year of the {animal} · {element} element</Text>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

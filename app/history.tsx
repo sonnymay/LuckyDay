@@ -578,9 +578,8 @@ const styles = StyleSheet.create({
     color: colors.mauve,
     fontSize: 16,
     fontWeight: '900',
-    letterSpacing: 1.2,
+    letterSpacing: 0.2,
     marginBottom: spacing.md,
-    textTransform: 'uppercase',
   },
   statsRow: {
     alignItems: 'center',
