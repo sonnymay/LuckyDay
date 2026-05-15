@@ -8,9 +8,15 @@ type Props = PropsWithChildren<{
   contentStyle?: ViewStyle;
   /** Show the persistent bottom tab bar (Today / History / Profile). */
   showTabBar?: boolean;
+  /**
+   * Optional hex tint applied as a low-opacity wash over the page bg.
+   * Used on /detail to subtly shift the screen toward today's lucky color
+   * so the app "becomes" today.
+   */
+  tintColor?: string;
 }>;
 
-export function Screen({ children, contentStyle, showTabBar }: Props) {
+export function Screen({ children, contentStyle, showTabBar, tintColor }: Props) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -42,6 +48,10 @@ export function Screen({ children, contentStyle, showTabBar }: Props) {
       <Animated.View style={[styles.aura1, { transform: [{ scale: pulseAnim }, { translateY: translateY1 }] }]} pointerEvents="none" />
       <Animated.View style={[styles.aura2, { transform: [{ scale: pulseAnim }, { translateY: translateY2 }] }]} pointerEvents="none" />
       <Animated.View style={[styles.aura3, { transform: [{ scale: pulseAnim }, { translateY: translateY3 }] }]} pointerEvents="none" />
+      {/* Today-tinted wash — 7% opacity so the screen subtly absorbs today's lucky color. */}
+      {tintColor ? (
+        <View style={[styles.tintWash, { backgroundColor: tintColor }]} pointerEvents="none" />
+      ) : null}
       <Animated.ScrollView
         contentContainerStyle={[styles.content, showTabBar && styles.contentWithTabBar, contentStyle]}
         showsVerticalScrollIndicator={false}
@@ -108,5 +118,9 @@ const styles = StyleSheet.create({
     ...Platform.select({
       web: { backgroundImage: 'radial-gradient(circle, rgba(237, 232, 255, 0.9) 0%, rgba(237, 232, 255, 0) 70%)' }
     }),
+  },
+  tintWash: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.07,
   },
 });

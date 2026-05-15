@@ -10,7 +10,8 @@ import { ProfilePhotoCapture } from '../src/components/ProfilePhotoCapture';
 import { Screen } from '../src/components/Screen';
 import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
-import { createProfile } from '../src/lib/luck';
+import { elementEmoji, getZodiacElement } from '../src/lib/chineseZodiac';
+import { createProfile, getChineseZodiac } from '../src/lib/luck';
 import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
 import { saveStoredProfile } from '../src/lib/storage';
 import { colors, radii, spacing } from '../src/styles/theme';
@@ -205,6 +206,9 @@ export default function OnboardingScreen() {
           <Text style={styles.label}>Birthday</Text>
           <BirthdayPicker value={birthday} onChange={setBirthday} />
         </View>
+        {/* Magic-trick preview — fires the moment a valid birthday lands.
+            Day-1 "this knows me" moment before the user finishes onboarding. */}
+        {isValidDateKey(birthday.trim()) ? <BirthdayPreviewCard birthday={birthday.trim()} /> : null}
         <Field label="Birth time optional" value={birthTime} onChangeText={setBirthTime} placeholder="08:30" />
         <Field label="Birthplace optional" value={birthplace} onChangeText={setBirthplace} placeholder="Bangkok" />
       </View> : null}
@@ -344,6 +348,21 @@ type FieldProps = {
   placeholder: string;
 };
 
+function BirthdayPreviewCard({ birthday }: { birthday: string }) {
+  const animal = getChineseZodiac(birthday);
+  const element = getZodiacElement(animal, birthday);
+  const emoji = element ? elementEmoji[element] : '✨';
+  return (
+    <View style={styles.previewCard}>
+      <Text style={styles.previewEmoji}>{emoji}</Text>
+      <View style={styles.previewBody}>
+        <Text style={styles.previewLabel}>The almanac already knows you</Text>
+        <Text style={styles.previewTitle}>Year of the {animal} · {element} element</Text>
+      </View>
+    </View>
+  );
+}
+
 function Field({ label, value, onChangeText, placeholder }: FieldProps) {
   return (
     <View style={styles.group}>
@@ -361,6 +380,36 @@ function Field({ label, value, onChangeText, placeholder }: FieldProps) {
 }
 
 const styles = StyleSheet.create({
+  previewCard: {
+    alignItems: 'center',
+    backgroundColor: colors.panel,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    gap: spacing.md,
+    padding: spacing.md,
+  },
+  previewEmoji: {
+    fontSize: 38,
+    lineHeight: 44,
+  },
+  previewBody: {
+    flex: 1,
+  },
+  previewLabel: {
+    color: colors.muted,
+    fontSize: 11,
+    fontStyle: 'italic',
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  previewTitle: {
+    color: colors.mauve,
+    fontSize: 16,
+    fontWeight: '900',
+    marginTop: 2,
+  },
   screenContent: {
     overflow: 'hidden',
     paddingBottom: spacing.xl2,

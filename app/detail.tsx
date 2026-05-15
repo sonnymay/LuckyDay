@@ -228,7 +228,7 @@ export default function DetailScreen() {
   const actionSentence = getActionSentence(reading.action);
 
   return (
-    <Screen showTabBar>
+    <Screen showTabBar tintColor={getLuckyColorHex(reading.luckyColor)}>
     <Animated.View style={{ opacity: fadeAnim }}>
       <View style={styles.brandRow}>
         <Text style={styles.brandMark}>LuckyDay</Text>
