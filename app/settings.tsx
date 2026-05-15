@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Animated, Platform, Pressable, Share, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { AppButton } from '../src/components/AppButton';
@@ -11,9 +11,23 @@ import { TimePickerInput } from '../src/components/TimePickerInput';
 import { isValidDateKey } from '../src/lib/date';
 import { elementEmoji, getZodiacElement } from '../src/lib/chineseZodiac';
 import { createProfile, getChineseZodiac, normalizeMainFocuses } from '../src/lib/luck';
-import { isValidReminderTime, syncLocalDailyReminder } from '../src/lib/notifications';
+import {
+  getStreakSavePushEnabled,
+  isValidReminderTime,
+  setStreakSavePushEnabled,
+  syncLocalDailyReminder,
+  syncStreakSaveReminder,
+} from '../src/lib/notifications';
+import { getReadingStreak } from '../src/lib/streak';
 import { getPremiumStatus, PremiumStatus } from '../src/lib/purchases';
-import { getStoredProfile, resetAllStoredData, resetStoredFeedback, resetStoredProfile, saveStoredProfile } from '../src/lib/storage';
+import {
+  getStoredProfile,
+  getStoredReadingHistory,
+  resetAllStoredData,
+  resetStoredFeedback,
+  resetStoredProfile,
+  saveStoredProfile,
+} from '../src/lib/storage';
 import { colors, fonts, radii, spacing } from '../src/styles/theme';
 import { MainFocus, Profile } from '../src/types';
 
@@ -93,6 +107,7 @@ export default function SettingsScreen() {
   const [birthplace, setBirthplace] = useState('');
   const [mainFocus, setMainFocus] = useState<MainFocus[]>(['Luck']);
   const [notificationTime, setNotificationTime] = useState('');
+  const [streakSavePushEnabled, setStreakSavePushEnabledState] = useState(true);
   const [faceUri, setFaceUri] = useState('');
   const [leftPalmUri, setLeftPalmUri] = useState('');
   const [rightPalmUri, setRightPalmUri] = useState('');
@@ -106,7 +121,7 @@ export default function SettingsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      Promise.all([getStoredProfile(), getPremiumStatus()]).then(([storedProfile, status]) => {
+      Promise.all([getStoredProfile(), getPremiumStatus(), getStreakSavePushEnabled()]).then(([storedProfile, status, savePushOn]) => {
         if (!storedProfile) {
           router.replace('/');
           return;
@@ -120,6 +135,7 @@ export default function SettingsScreen() {
         setBirthplace(storedProfile.birthplace ?? '');
         setMainFocus(normalizeMainFocuses(storedProfile.mainFocus));
         setNotificationTime(storedProfile.notificationTime ?? '');
+        setStreakSavePushEnabledState(savePushOn);
         setFaceUri(storedProfile.photos?.faceUri ?? '');
         setLeftPalmUri(storedProfile.photos?.leftPalmUri ?? '');
         setRightPalmUri(storedProfile.photos?.rightPalmUri ?? '');
@@ -131,6 +147,14 @@ export default function SettingsScreen() {
       });
     }, []),
   );
+
+  async function handleStreakSavePushToggle(next: boolean) {
+    setStreakSavePushEnabledState(next);
+    await setStreakSavePushEnabled(next);
+    const history = await getStoredReadingHistory();
+    const currentStreak = getReadingStreak(history);
+    await syncStreakSaveReminder(currentStreak).catch(() => undefined);
+  }
 
   async function saveSettings() {
     if (!profile) return;
@@ -370,6 +394,25 @@ export default function SettingsScreen() {
           <Text style={styles.label}>Morning reminder</Text>
           <TimePickerInput value={notificationTime} onChange={setNotificationTime} />
           <Text style={styles.helpText}>Optional. Leave empty to skip reminders.</Text>
+        </View>
+
+        <View style={styles.group}>
+          <View style={styles.toggleRow}>
+            <View style={styles.toggleTextWrap}>
+              <Text style={styles.label}>Streak save reminder</Text>
+              <Text style={styles.helpText}>
+                A gentle 9:30 PM nudge when your streak is alive, so you don&apos;t lose it before midnight.
+              </Text>
+            </View>
+            <Switch
+              value={streakSavePushEnabled}
+              onValueChange={handleStreakSavePushToggle}
+              accessibilityLabel="Streak save reminder"
+              accessibilityHint="Toggle the late-night push that helps you keep your streak"
+              trackColor={{ false: colors.faint, true: colors.luckyGold }}
+              thumbColor={colors.panel}
+            />
+          </View>
         </View>
       </View>
 
@@ -868,6 +911,15 @@ const styles = StyleSheet.create({
   helpText: {
     color: colors.muted,
     fontSize: 14,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  toggleTextWrap: {
+    flex: 1,
+    gap: spacing.xs,
   },
   input: {
     backgroundColor: colors.panel,

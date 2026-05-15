@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 const REMINDER_NOTIFICATION_KEY = 'luckyday.reminderNotificationId.v1';
 const STREAK_SAVE_NOTIFICATION_KEY = 'luckyday.streakSaveNotificationId.v1';
+const STREAK_SAVE_PUSH_ENABLED_KEY = 'luckyday.streakSavePushEnabled.v1';
 
 export type ReminderSyncResult = 'disabled' | 'scheduled' | 'denied' | 'invalid' | 'unsupported';
 
@@ -168,12 +169,27 @@ async function cancelStoredNotification(storageKey: string) {
  *
  * Cancels itself when streak drops to 0 — no nag for users between streaks.
  */
+export async function getStreakSavePushEnabled(): Promise<boolean> {
+  const value = await AsyncStorage.getItem(STREAK_SAVE_PUSH_ENABLED_KEY);
+  // Default: enabled. Only opted-out users have an explicit 'false' stored.
+  return value !== 'false';
+}
+
+export async function setStreakSavePushEnabled(enabled: boolean): Promise<void> {
+  await AsyncStorage.setItem(STREAK_SAVE_PUSH_ENABLED_KEY, enabled ? 'true' : 'false');
+}
+
 export async function syncStreakSaveReminder(streak: number): Promise<ReminderSyncResult> {
   if (Platform.OS === 'web') {
     return streak >= 1 ? 'unsupported' : 'disabled';
   }
 
   await cancelStoredNotification(STREAK_SAVE_NOTIFICATION_KEY);
+
+  const enabled = await getStreakSavePushEnabled();
+  if (!enabled) {
+    return 'disabled';
+  }
 
   if (streak < 1) {
     return 'disabled';

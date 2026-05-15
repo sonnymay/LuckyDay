@@ -1,9 +1,13 @@
 # LuckyDay — Codex Handoff Document
 
-**Last updated:** 2026-05-08
+**Last updated:** 2026-05-14
 **Stack:** Expo SDK 54, React Native, expo-router ~6.0.23, TypeScript, RevenueCat IAP, PostHog analytics
 **Target:** iOS App Store (primary). Android and Web secondary.
 
+> **2026-05-14 — Build 14 in review (pending verdict).** Build 13 was rejected (Guideline 4.3(b) — saturated category / fortune-telling clone signal). Response: full **English-only UI sweep** (commit `f13d08c`) stripping all displayed Chinese characters, plus repositioning copy that removed user-facing "luck"/"fortune" framing in favor of Chinese Almanac language (commit `8736ad9`). Shipped Build 14 with this repositioning + several premium-feel features: auspicious-day (黄道吉日) badge, streak-save warning push, solar term countdown, midnight rollover, Chinese double-hour chip, Reduce Motion + VoiceOver accessibility, live best-time progress bar, streak milestone celebrations, time-aware greeting. Reading-soul audit Wk1 (`src/lib/luck.ts`) and Wk2 (`src/lib/almanac.ts`) complete — 6 strings refined to almanac voice. 9-routine automation system live (morning health, polish-lens, review-watch, accessibility, small-screen, competitor-mining, reading-soul, apply-insight, delight-audit) plus weekly sync-main + daily commit-log scripts. Tests grew 43 → 94 (3 → 9 test files including auspiciousDay). All work on `codex-luckyday-product-polish`; clean tree, pushed.
+>
+> **Older context (kept for continuity) ↓**
+>
 > **2026-05-08 02:30 — Build 10 REJECTED.** Apple rejected on iPad Air 11-inch / iPadOS 26.4.2 with the same Guideline 2.1(a) crash-on-launch. Crash signature: JS-thrown unhandled exception → `RCTExceptionsManager` → `objc_exception_rethrow` → `abort()`. **Not** a native module init crash anymore — Build 10's lazy-load mitigation worked at the native layer; the new failure is a JS-level exception escalating to fatal.
 >
 > **2026-05-09 — Build 13 submitted, iPhone-only.** Build 12 was rejected (4th time) for crash on iPad Air 11-inch M3 / iPadOS 26.4.2. Crash logs confirm a NATIVE Objective-C exception thrown ~205ms into launch — the JS-level ErrorBoundary cannot catch it. Without iPad Air M3 device access for repro, real fix is impossible. Build 13 strategy: declared `supportsTablet: false` (Apple now reviews on iPhone, where app has never crashed) + removed `@sentry/react-native` and `posthog-react-native` packages (their iOS pods auto-installed crash-handler swizzling that increased risk surface for zero benefit since both were env-gated no-ops). Wrappers in `src/lib/{sentry,analytics}.ts` kept as inert stubs so all call sites still compile. Build 13 (commit `3404911`) is now "Ready for Review" in App Store Connect.
