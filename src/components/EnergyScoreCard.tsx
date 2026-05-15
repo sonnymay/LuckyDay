@@ -100,11 +100,15 @@ export function EnergyScoreCard({ score, message }: Props) {
           );
         })}
         <View style={styles.orbInner}>
-          <Text style={styles.score}>{displayScore}</Text>
-          <Text style={styles.scoreUnit}>/100</Text>
+          <Text style={styles.score} maxFontSizeMultiplier={1.0} allowFontScaling={false}>
+            {displayScore}
+          </Text>
+          <Text style={styles.scoreUnit} maxFontSizeMultiplier={1.0} allowFontScaling={false}>
+            /100
+          </Text>
         </View>
       </View>
-      <Text style={styles.moodPill}>{energyMood(displayScore)}</Text>
+      <Text style={styles.moodPill} maxFontSizeMultiplier={1.2}>{energyMood(displayScore)}</Text>
       <View style={styles.messagePanel}>
         <Text style={styles.message}>{message}</Text>
       </View>

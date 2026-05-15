@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Text, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from '../src/styles/theme';
 import { track } from '../src/lib/analytics';
@@ -11,6 +12,19 @@ import { ErrorBoundary } from '../src/components/ErrorBoundary';
 // Install at module load time so the very first render of any child
 // component is already covered. Idempotent — safe to run on hot reload.
 installGlobalErrorHandler();
+
+// Honor iOS Dynamic Type up to a sane ceiling so accessibility text-size
+// settings scale body copy without exploding fixed-size containers (score
+// orb, badges, chips). Components with tighter constraints opt down further
+// via per-instance maxFontSizeMultiplier.
+const DEFAULT_FONT_SCALE_CAP = 1.6;
+type ScaleDefaults = { defaultProps?: { maxFontSizeMultiplier?: number } };
+const TextWithDefaults = Text as unknown as ScaleDefaults;
+const TextInputWithDefaults = TextInput as unknown as ScaleDefaults;
+TextWithDefaults.defaultProps = TextWithDefaults.defaultProps ?? {};
+TextWithDefaults.defaultProps.maxFontSizeMultiplier = DEFAULT_FONT_SCALE_CAP;
+TextInputWithDefaults.defaultProps = TextInputWithDefaults.defaultProps ?? {};
+TextInputWithDefaults.defaultProps.maxFontSizeMultiplier = DEFAULT_FONT_SCALE_CAP;
 
 export default function RootLayout() {
   useEffect(() => {

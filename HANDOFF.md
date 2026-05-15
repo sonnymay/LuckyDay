@@ -621,6 +621,9 @@ Apple rejected Build 13 under Guideline 4.3(b) (saturated category / fortune-tel
 - `772b35f feat: streak save warning — late-night push + at-the-wire celebration` — daily 21:30 push when streak ≥ 1 ("Your N-day streak holds until midnight"), and an in-app "✦ Streak saved with Xh Ym to spare" pill when user opens during the danger window. Auto-cancels when streak drops to 0; reuses morning-reminder permission (no re-prompt). New `STREAK_SAVE_NOTIFICATION_KEY`.
 - `c8bb151 feat: settings toggle for streak-save push reminder` — per-channel Switch under Morning reminder so users can disable just the 21:30 push without losing the morning one. New flag `luckyday.streakSavePushEnabled.v1` (default on); `syncStreakSaveReminder` honors it. Defends against any App Review concern about multi-notification apps lacking per-channel control.
 
+#### Accessibility — Dynamic Type
+- **Dynamic Type scaling** (current commit) — body text now honors iOS text-size accessibility setting up to a 1.6× ceiling, set globally via `Text.defaultProps.maxFontSizeMultiplier` and `TextInput.defaultProps.maxFontSizeMultiplier` in `app/_layout.tsx`. Score number + `/100` unit pinned to 1.0× (must stay inside the 132×132 orb); mood pill capped at 1.2×. Completes the a11y trifecta with Reduce Motion and VoiceOver shipped earlier in the cycle.
+
 #### Reading-soul audits (Routine 7)
 - `52961c1 copy: reading soul audit Wk1 — luck.ts — 3 strings refined` — first audit pool: main daily messages, action sentences, score-band copy. 3 lowest-scoring strings rewritten with concrete imagery + time-of-day anchors.
 - `592fead copy: reading soul audit Wk2 - almanac.ts - 3 strings refined` — second audit pool: yi/ji guidance. Tracker at `docs/reading-soul-rotation.md`; per-week audit files under `docs/reading-audits/`.
@@ -780,12 +783,12 @@ Build 14 is in Apple review under the new Chinese Almanac repositioning. While w
 
 | # | Idea | Effort | Why now |
 |---|---|---|---|
-| 1 | **Bedtime reflection push** — daily 9 PM push "How did today's reading land?" → opens feedback screen | half day | Closes daily loop; doubles touchpoints without spam; builds prediction-vs-reality dataset |
-| 2 | **Dynamic Type scaling** — fonts respect iOS text-size accessibility setting | half day | Pairs naturally with the Reduce Motion + VoiceOver work in Build 14 |
-| 3 | **Onboarding "consulting the almanac" reveal** — 1.5s animated sequence (stars, elements, fade-in orb) before first reading | 1 day | Day-1 wow moment, perceived premium |
-| 4 | **Share-card vertical Story redesign** — gold border, today's auspicious badge + solar term, almanac framing throughout | 2 days | Every shared card is the app's only viral surface |
-| 5 | **App icon variant per element** — Wood/Fire/Earth/Metal/Water alternate iOS icons picked from user's Chinese element on first launch | 1 day | Identity hook; "this is mine" moment |
-| 6 | **Reading-soul audits Wk3–Wk5** — chineseZodiac.ts, westernZodiac.ts, notifications.ts | 1h/week | Compounding content soul; on the Thursday rotation |
+| 1 | ~~**Dynamic Type scaling**~~ ✅ shipped — fonts respect iOS text-size accessibility setting | half day | Done; bundles into Build 15 |
+| 2 | **Onboarding "consulting the almanac" reveal** — 1.5s animated sequence (stars, elements, fade-in orb) before first reading | 1 day | Day-1 wow moment, perceived premium |
+| 3 | **Share-card vertical Story redesign** — gold border, today's auspicious badge + solar term, almanac framing throughout | 2 days | Every shared card is the app's only viral surface |
+| 4 | **App icon variant per element** — Wood/Fire/Earth/Metal/Water alternate iOS icons picked from user's Chinese element on first launch | 1 day | Identity hook; "this is mine" moment |
+| 5 | **Reading-soul audits Wk3–Wk5** — chineseZodiac.ts, westernZodiac.ts, notifications.ts | 1h/week | Compounding content soul; on the Thursday rotation |
+| 6 | **Bedtime reflection push** — daily 9 PM push → feedback screen | half day | DEFERRED — wait until Build 14 verdict + retention data justify a 3rd daily push channel |
 
 Each shipped item must update this HANDOFF.md (Section 4 entry + ticking off the roadmap row) and push to GitHub on the same branch as the change.
 
