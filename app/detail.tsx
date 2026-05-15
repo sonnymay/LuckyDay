@@ -873,11 +873,10 @@ const styles = StyleSheet.create({
     borderColor: '#F5BFAA',
   },
   pillsLabel: {
-    color: colors.ink,
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    color: colors.muted,
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   pillsWrap: {
     flexDirection: 'row',
@@ -983,10 +982,9 @@ const styles = StyleSheet.create({
   },
   breakdownLabel: {
     color: colors.muted,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
+    letterSpacing: 0.2,
   },
   breakdownValue: {
     color: colors.mauve,
@@ -1161,10 +1159,9 @@ const styles = StyleSheet.create({
   },
   quickLabel: {
     color: colors.mauve,
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   quickValue: {
     color: colors.ink,
@@ -1207,10 +1204,9 @@ const styles = StyleSheet.create({
   },
   deepDiveTitle: {
     color: colors.mauve,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '900',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    letterSpacing: 0.2,
   },
   divider: {
     backgroundColor: colors.line,
@@ -1219,11 +1215,10 @@ const styles = StyleSheet.create({
   },
   influencesLabel: {
     color: colors.muted,
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 0.8,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.2,
     marginBottom: spacing.xs,
-    textTransform: 'uppercase',
   },
   showMoreButton: {
     alignItems: 'center',
@@ -1295,10 +1290,9 @@ const styles = StyleSheet.create({
   },
   tomorrowLabel: {
     color: colors.muted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    letterSpacing: 0.2,
   },
   tomorrowTitle: {
     color: colors.mauve,
