@@ -18,7 +18,7 @@ import { generateDailyReading } from '../src/lib/luck';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
 import { getPremiumStatus } from '../src/lib/purchases';
 import { getNextMilestoneTarget, getReadingStreak, getStreakMilestone, shouldRequestRating } from '../src/lib/streak';
-import { syncLocalDailyReminder } from '../src/lib/notifications';
+import { syncLocalDailyReminder, syncStreakSaveReminder } from '../src/lib/notifications';
 import {
   getStoredProfile,
   getStoredReadingHistory,
@@ -249,6 +249,9 @@ export default function HomeScreen() {
                 // Small delay so the screen has rendered before the system dialog appears
                 setTimeout(() => requestStoreReviewIfAvailable(), 2000);
               }
+              // Late-night streak save reminder — fires at 21:30 daily when
+              // the user has an active streak. Fire-and-forget; safe to fail.
+              syncStreakSaveReminder(currentStreak).catch(() => undefined);
               return saveReadingHistoryItem(dailyReading);
             })
             .catch(() => undefined);

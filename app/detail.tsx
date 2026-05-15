@@ -82,6 +82,9 @@ export default function DetailScreen() {
   const [loading, setLoading] = useState(true);
   const [milestoneToShow, setMilestoneToShow] = useState<Milestone | null>(null);
   const [now, setNow] = useState<Date>(() => new Date());
+  // True only when today's reading was NOT yet in history when this screen
+  // loaded — used to fire the late-night "streak saved" celebration pill.
+  const [savedAtTheWire, setSavedAtTheWire] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Refresh `now` every minute so the Best-time progress bar ticks live.
@@ -116,6 +119,15 @@ export default function DetailScreen() {
       const currentStreak = getReadingStreak(nextHistory);
       setStreak(currentStreak);
       setNextMilestoneTarget(getNextMilestoneTarget(currentStreak));
+
+      // Fire the "saved at the wire" pill only when today is genuinely new
+      // (no prior entry for this date in history) AND it's late evening AND
+      // the streak is alive. Compute BEFORE we save below so the check
+      // reflects the on-disk state from before this visit.
+      const wasNewToday = !history.some((item) => item.date === todayReading.date);
+      const localHour = new Date().getHours();
+      setSavedAtTheWire(wasNewToday && currentStreak >= 1 && localHour >= 21);
+
       saveReadingHistoryItem(todayReading).catch(() => undefined);
 
       // Pick the largest unseen streak milestone the user just earned.
@@ -226,6 +238,18 @@ export default function DetailScreen() {
           <Text style={styles.streakHint}>
             {nextMilestoneTarget - streak} days to your {nextMilestoneTarget}-day milestone
           </Text>
+        ) : null}
+        {savedAtTheWire ? (
+          <View
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`Streak saved with ${minutesUntilMidnight(now)} to spare`}
+            style={styles.streakSavePill}
+          >
+            <Text style={styles.streakSavePillText}>
+              ✦ Streak saved with {formatMinutes(minutesUntilMidnight(now))} to spare
+            </Text>
+          </View>
         ) : null}
       </View>
 
@@ -555,6 +579,18 @@ function formatReadingDate(reading: DailyReading): string {
   return [displayDate, reading.lunarDate, reading.solarTerm].filter(Boolean).join(' · ');
 }
 
+/** Whole minutes between `now` and the next local midnight. */
+function minutesUntilMidnight(now: Date): number {
+  return (24 - now.getHours()) * 60 - now.getMinutes();
+}
+
+/** Format minutes as "Xh Ym" or "Ym" — used in the streak-save pill. */
+function formatMinutes(total: number): string {
+  const hours = Math.floor(total / 60);
+  const mins = total % 60;
+  return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+}
+
 /**
  * Returns the page-title greeting based on local hour of day so the screen
  * feels personal across morning / afternoon / evening / late-night opens.
@@ -651,6 +687,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
     marginTop: spacing.xs,
+  },
+  streakSavePill: {
+    backgroundColor: colors.sunrise,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.pill,
+    borderWidth: 1.5,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+  },
+  streakSavePillText: {
+    color: colors.goldDeep,
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.3,
   },
   streakPill: {
     backgroundColor: colors.champagne,

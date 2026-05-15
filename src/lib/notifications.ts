@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const REMINDER_NOTIFICATION_KEY = 'luckyday.reminderNotificationId.v1';
+const STREAK_SAVE_NOTIFICATION_KEY = 'luckyday.streakSaveNotificationId.v1';
 
 export type ReminderSyncResult = 'disabled' | 'scheduled' | 'denied' | 'invalid' | 'unsupported';
 
@@ -141,7 +142,11 @@ export async function syncLocalDailyReminder(time?: string, reading?: ReminderRe
 }
 
 async function cancelStoredReminder() {
-  const notificationId = await AsyncStorage.getItem(REMINDER_NOTIFICATION_KEY);
+  await cancelStoredNotification(REMINDER_NOTIFICATION_KEY);
+}
+
+async function cancelStoredNotification(storageKey: string) {
+  const notificationId = await AsyncStorage.getItem(storageKey);
   if (!notificationId) {
     return;
   }
@@ -152,8 +157,54 @@ async function cancelStoredReminder() {
       await Notifications.cancelScheduledNotificationAsync(notificationId);
     }
   } finally {
-    await AsyncStorage.removeItem(REMINDER_NOTIFICATION_KEY);
+    await AsyncStorage.removeItem(storageKey);
   }
+}
+
+/**
+ * Late-night streak save reminder. Fires daily at 21:30 local time when the
+ * user has an active streak (>= 1) so they can record today's reading
+ * before the day rolls over and the streak breaks.
+ *
+ * Cancels itself when streak drops to 0 — no nag for users between streaks.
+ */
+export async function syncStreakSaveReminder(streak: number): Promise<ReminderSyncResult> {
+  if (Platform.OS === 'web') {
+    return streak >= 1 ? 'unsupported' : 'disabled';
+  }
+
+  await cancelStoredNotification(STREAK_SAVE_NOTIFICATION_KEY);
+
+  if (streak < 1) {
+    return 'disabled';
+  }
+
+  const Notifications = await getNotifications();
+  if (!Notifications) {
+    return 'unsupported';
+  }
+
+  // Reuse whatever permission state was set for the morning reminder; do not
+  // re-prompt here. Returns silent 'denied' if user previously declined.
+  const permission = await Notifications.getPermissionsAsync();
+  if (!permission.granted) {
+    return 'denied';
+  }
+
+  const id = await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Tonight\'s almanac is open ✦',
+      body: `Your ${streak}-day streak holds until midnight. Take 10 seconds to read today.`,
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour: 21,
+      minute: 30,
+    },
+  });
+
+  await AsyncStorage.setItem(STREAK_SAVE_NOTIFICATION_KEY, id);
+  return 'scheduled';
 }
 
 async function getNotifications(): Promise<typeof import('expo-notifications') | null> {
