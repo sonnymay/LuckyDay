@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, AppState, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Animated, AppState, Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 async function triggerShareHaptic() {
@@ -19,11 +19,13 @@ import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
 import { getNextMilestoneTarget, getReadingStreak } from '../src/lib/streak';
 import {
   getFeedbackForDate,
+  getJournalEntry,
   getSeenMilestones,
   getStoredProfile,
   getStoredReadingHistory,
   markMilestoneSeen,
   saveReadingHistoryItem,
+  setJournalEntry,
 } from '../src/lib/storage';
 import { Milestone, selectMilestoneToShow } from '../src/lib/milestones';
 import { MilestoneModal } from '../src/components/MilestoneModal';
@@ -78,6 +80,7 @@ export default function DetailScreen() {
   const [tomorrowScore, setTomorrowScore] = useState<number | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [weekPattern, setWeekPattern] = useState<WeekPattern | null>(null);
+  const [journalText, setJournalText] = useState('');
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
   const [streak, setStreak] = useState(0);
@@ -125,6 +128,12 @@ export default function DetailScreen() {
       const tomorrowDate = new Date();
       tomorrowDate.setDate(tomorrowDate.getDate() + 1);
       setTomorrowScore(generateDailyReading(profile, tomorrowDate).score);
+      // Load any prior journal entry for today so the field re-hydrates.
+      getJournalEntry(todayReading.date)
+        .then((existing) => {
+          if (active) setJournalText(existing);
+        })
+        .catch(() => undefined);
       const nextHistory = [todayReading, ...history.filter((item) => item.date !== todayReading.date)];
       const currentStreak = getReadingStreak(nextHistory);
       setStreak(currentStreak);
@@ -337,6 +346,23 @@ export default function DetailScreen() {
       <Card style={styles.actionCard}>
         <Text style={styles.actionLabel}>🍀 Your ritual for today</Text>
         <Text style={styles.actionText}>{actionSentence}</Text>
+      </Card>
+
+      {/* ── Daily journal — personal artifact, the strongest churn defense ── */}
+      <Card style={styles.journalCard}>
+        <Text style={styles.journalLabel}>What's on your mind today?</Text>
+        <TextInput
+          accessibilityLabel="Daily journal entry"
+          multiline
+          onBlur={() => {
+            if (reading) setJournalEntry(reading.date, journalText).catch(() => undefined);
+          }}
+          onChangeText={setJournalText}
+          placeholder="A line for your future self…"
+          placeholderTextColor={colors.faint}
+          style={styles.journalInput}
+          value={journalText}
+        />
       </Card>
 
       {/* ── Best time — live progress through the window ── */}
@@ -1052,6 +1078,31 @@ const styles = StyleSheet.create({
   },
   breakdownNeutral: {
     color: colors.faint,
+  },
+  // Daily journal — personal artifact for churn defense
+  journalCard: {
+    backgroundColor: colors.panel,
+    borderColor: colors.roseGold,
+    borderWidth: 1.5,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  journalLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    fontStyle: 'italic',
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  journalInput: {
+    color: colors.ink,
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 22,
+    minHeight: 60,
+    paddingVertical: 0,
+    textAlignVertical: 'top',
   },
   // Weekly pattern — colored chips, ascending energy
   weekPatternCard: {

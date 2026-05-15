@@ -7,7 +7,7 @@ import { Screen } from '../src/components/Screen';
 import { SectionRow } from '../src/components/SectionRow';
 import { getMonthActivity, getNextMilestoneTarget, getReadingStreak, getStreakMilestone, MonthActivityDay } from '../src/lib/streak';
 import { getPremiumStatus } from '../src/lib/purchases';
-import { getStoredFeedback, getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
+import { getAllJournalEntries, getStoredFeedback, getStoredProfile, getStoredReadingHistory } from '../src/lib/storage';
 import { colors, fonts, radii, spacing } from '../src/styles/theme';
 import { DailyReading, Feedback } from '../src/types';
 
@@ -134,6 +134,7 @@ function ratingToDayScore(value: Feedback['rating']) {
 export default function HistoryScreen() {
   const [history, setHistory] = useState<DailyReading[]>([]);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [journals, setJournals] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -154,12 +155,13 @@ export default function HistoryScreen() {
           }
 
           setIsPremium(premiumStatus.isPremium);
-          return Promise.all([getStoredReadingHistory(), getStoredFeedback()]);
+          return Promise.all([getStoredReadingHistory(), getStoredFeedback(), getAllJournalEntries()]);
         })
         .then((items) => {
           if (active && items) {
             setHistory(items[0]);
             setFeedback(items[1]);
+            setJournals(items[2]);
           }
         })
         .finally(() => {
@@ -259,7 +261,12 @@ export default function HistoryScreen() {
           <PremiumGate isPremium={isPremium} featureLabel="full reading history">
             <View style={styles.historyList}>
               {previewHistory.map((reading) => (
-                <HistoryCard key={reading.date} reading={reading} feedback={feedback.find((item) => item.date === reading.date)} />
+                <HistoryCard
+                  key={reading.date}
+                  reading={reading}
+                  feedback={feedback.find((item) => item.date === reading.date)}
+                  journal={journals[reading.date]}
+                />
               ))}
             </View>
           </PremiumGate>
@@ -366,7 +373,7 @@ function AccuracyRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function HistoryCard({ reading, feedback }: { reading: DailyReading; feedback?: Feedback }) {
+function HistoryCard({ reading, feedback, journal }: { reading: DailyReading; feedback?: Feedback; journal?: string }) {
   return (
     <Card style={styles.historyCard}>
       <View style={styles.cardTop}>
@@ -402,6 +409,12 @@ function HistoryCard({ reading, feedback }: { reading: DailyReading; feedback?: 
       </View>
       <View style={styles.divider} />
       <SectionRow label="🍀 Small action" value={reading.action ?? '—'} />
+      {journal ? (
+        <>
+          <View style={styles.divider} />
+          <Text style={styles.journalLine}>“{journal}”</Text>
+        </>
+      ) : null}
       {feedback?.overallDay ? (
         <>
           <View style={styles.divider} />
@@ -864,6 +877,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 19,
+  },
+  journalLine: {
+    color: colors.ink,
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    fontStyle: 'italic',
+    fontWeight: '500',
+    lineHeight: 20,
   },
   reflectButton: {
     alignItems: 'center',

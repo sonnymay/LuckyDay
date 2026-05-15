@@ -7,6 +7,7 @@ const READING_HISTORY_KEY = 'luckyday.readingHistory.v1';
 const HAS_SEEN_PAYWALL_KEY = 'luckyday.hasSeenPaywall.v1';
 const LAST_NOTIFICATION_DATE_KEY = 'luckyday.lastNotificationDate.v1';
 const MILESTONES_SEEN_KEY = 'luckyday.milestonesSeen.v1';
+const JOURNAL_KEY = 'luckyday.journal.v1';
 const MAX_READING_HISTORY_ITEMS = 30;
 
 export async function getStoredProfile() {
@@ -100,4 +101,43 @@ export async function markMilestoneSeen(milestone: number): Promise<void> {
   if (seen.includes(milestone)) return;
   const next = [...seen, milestone];
   await AsyncStorage.setItem(MILESTONES_SEEN_KEY, JSON.stringify(next));
+}
+
+/**
+ * Daily journal — single optional text entry per date. Keyed by date so a
+ * user can revisit a past day and see what they wrote. Personal artifacts
+ * are the strongest churn defense: users don't delete an app that holds
+ * their own words.
+ */
+type JournalMap = Record<string, string>;
+
+async function getJournalMap(): Promise<JournalMap> {
+  const value = await AsyncStorage.getItem(JOURNAL_KEY);
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as JournalMap) : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function getJournalEntry(date: string): Promise<string> {
+  const map = await getJournalMap();
+  return map[date] ?? '';
+}
+
+export async function setJournalEntry(date: string, text: string): Promise<void> {
+  const map = await getJournalMap();
+  const trimmed = text.trim();
+  if (trimmed.length === 0) {
+    delete map[date];
+  } else {
+    map[date] = trimmed;
+  }
+  await AsyncStorage.setItem(JOURNAL_KEY, JSON.stringify(map));
+}
+
+export async function getAllJournalEntries(): Promise<JournalMap> {
+  return getJournalMap();
 }
