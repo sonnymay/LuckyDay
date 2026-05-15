@@ -77,6 +77,7 @@ export default function DetailScreen() {
   const [yesterdayScore, setYesterdayScore] = useState<number | null>(null);
   const [tomorrowScore, setTomorrowScore] = useState<number | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [weekPattern, setWeekPattern] = useState<WeekPattern | null>(null);
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
   const [streak, setStreak] = useState(0);
@@ -150,6 +151,13 @@ export default function DetailScreen() {
 
       // Find the most recent reading that isn't today
       const past = history.filter((h) => h.date !== todayReading.date);
+
+      // Weekly pattern — bucket the last 7 days of readings (incl. today)
+      // by tier. Show only with ≥5 days of data so the pattern is real,
+      // not noise from a fresh install. Pattern recognition is the #1
+      // stickiness driver at day 7+ in almanac-class apps.
+      const lastSeven = [todayReading, ...past].slice(0, 7);
+      setWeekPattern(lastSeven.length >= 5 ? bucketWeekPattern(lastSeven) : null);
       if (past.length > 0) {
         setYesterdayScore(past[0].score);
       } else {
@@ -284,6 +292,22 @@ export default function DetailScreen() {
           </View>
         ) : null}
       </View>
+
+      {/* ── Weekly pattern — pattern recognition is the day-7+ stickiness driver ── */}
+      {weekPattern ? (
+        <Card style={styles.weekPatternCard}>
+          <Text style={styles.weekPatternLabel}>Your last {weekPattern.total} days</Text>
+          <View style={styles.weekPatternRow}>
+            {formatWeekPatternParts(weekPattern).map((part) => (
+              <View key={part.label} style={styles.weekPatternChip}>
+                <View style={[styles.weekPatternDot, { backgroundColor: part.color }]} />
+                <Text style={styles.weekPatternCount}>{part.count}</Text>
+                <Text style={styles.weekPatternChipLabel}>{part.label}</Text>
+              </View>
+            ))}
+          </View>
+        </Card>
+      ) : null}
 
       {/* ── Yesterday reflection prompt — feeds the accuracy loop ── */}
       {yesterdayPrompt ? (
@@ -547,6 +571,39 @@ function getReadingTierLabel(score: number): string {
   if (score >= 65) return 'Good';
   if (score >= 56) return 'Steady';
   return 'Rest';
+}
+
+type WeekPattern = {
+  total: number;
+  peak: number;
+  strong: number;
+  good: number;
+  steady: number;
+  rest: number;
+};
+
+function bucketWeekPattern(readings: DailyReading[]): WeekPattern {
+  const p: WeekPattern = { total: readings.length, peak: 0, strong: 0, good: 0, steady: 0, rest: 0 };
+  for (const r of readings) {
+    if (r.score >= 85) p.peak += 1;
+    else if (r.score >= 75) p.strong += 1;
+    else if (r.score >= 65) p.good += 1;
+    else if (r.score >= 56) p.steady += 1;
+    else p.rest += 1;
+  }
+  return p;
+}
+
+function formatWeekPatternParts(p: WeekPattern): { label: string; count: number; color: string }[] {
+  // Collapse Peak into Strong for the chip row (visual simplicity).
+  // Order: ascending energy so the eye reads "rest → steady → strong".
+  const parts = [
+    { label: 'rest',   count: p.rest,                    color: '#A87B97' }, // colors.faint
+    { label: 'steady', count: p.steady,                  color: '#C03A78' }, // colors.mauve
+    { label: 'good',   count: p.good,                    color: '#D690B0' }, // colors.roseGold
+    { label: 'strong', count: p.strong + p.peak,         color: '#9A6410' }, // colors.goldDeep
+  ];
+  return parts.filter((part) => part.count > 0);
 }
 
 function getTomorrowDeltaArrow(tomorrow: number, today: number): string {
@@ -995,6 +1052,52 @@ const styles = StyleSheet.create({
   },
   breakdownNeutral: {
     color: colors.faint,
+  },
+  // Weekly pattern — colored chips, ascending energy
+  weekPatternCard: {
+    backgroundColor: colors.panel,
+    borderColor: colors.roseGold,
+    borderWidth: 1.5,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  weekPatternLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  weekPatternRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  weekPatternChip: {
+    alignItems: 'center',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+  },
+  weekPatternDot: {
+    borderRadius: 5,
+    height: 10,
+    width: 10,
+  },
+  weekPatternCount: {
+    color: colors.ink,
+    fontFamily: fonts.heavy,
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  weekPatternChipLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
   },
   // Yesterday-reflection prompt — feeds the accuracy loop in History
   reflectPrompt: {
