@@ -284,16 +284,31 @@ export default function DetailScreen() {
         {(() => {
           const auspicious = getAuspiciousDay(new Date(`${reading.date}T00:00:00`));
           const label = formatAuspiciousBadgeLabel(auspicious);
-          if (!label || !auspicious) return null;
+          if (label && auspicious) {
+            return (
+              <View
+                accessible
+                accessibilityRole="text"
+                accessibilityLabel={`${label}. ${auspicious.meaning}`}
+                style={styles.auspiciousBadge}
+              >
+                <Text style={styles.auspiciousBadgeText}>{label}</Text>
+                <Text style={styles.auspiciousBadgeMeaning}>{auspicious.meaning}</Text>
+              </View>
+            );
+          }
+          // Neutral fallback — the slot is always filled so users learn to
+          // trust it, and the contrast on auspicious days lands harder.
+          const neutral = getNeutralDayCopy(reading.moonPhase);
           return (
             <View
               accessible
               accessibilityRole="text"
-              accessibilityLabel={`${label}. ${auspicious.meaning}`}
-              style={styles.auspiciousBadge}
+              accessibilityLabel={`${neutral.label}. ${neutral.meaning}`}
+              style={styles.neutralBadge}
             >
-              <Text style={styles.auspiciousBadgeText}>{label}</Text>
-              <Text style={styles.auspiciousBadgeMeaning}>{auspicious.meaning}</Text>
+              <Text style={styles.neutralBadgeText}>{neutral.label}</Text>
+              <Text style={styles.neutralBadgeMeaning}>{neutral.meaning}</Text>
             </View>
           );
         })()}
@@ -658,6 +673,23 @@ const SCORE_BANDS = [
   { label: 'Peak',   min: 85, max: 101, color: colors.blush },
 ];
 
+function getNeutralDayCopy(moonPhase: string): { label: string; meaning: string } {
+  // Map moon phases to a small neutral-day frame so the auspicious slot is
+  // always filled. Pattern matches the auspicious tone: short title + one
+  // actionable line. Falls back to a generic open-day frame.
+  const map: Record<string, { label: string; meaning: string }> = {
+    'New Moon':         { label: 'Quiet day · New Moon',          meaning: 'A fresh page. Begin small.' },
+    'Waxing Crescent':  { label: 'Open day · Waxing Crescent',     meaning: 'No special tide. Build your own tone.' },
+    'First Quarter':    { label: 'Steady day · First Quarter',     meaning: 'Push gently — the week is rising.' },
+    'Waxing Gibbous':   { label: 'Building day · Waxing Gibbous',  meaning: 'Refine, do not rush. Energy gathers.' },
+    'Full Moon':        { label: 'Full day · Full Moon',           meaning: 'Hold steady at the peak. Notice everything.' },
+    'Waning Gibbous':   { label: 'Releasing day · Waning Gibbous', meaning: 'Let unfinished things settle on their own.' },
+    'Last Quarter':     { label: 'Clearing day · Last Quarter',    meaning: 'Tidy what is open before you start anything new.' },
+    'Waning Crescent':  { label: 'Resting day · Waning Crescent',  meaning: 'Conserve. Strain costs more today.' },
+  };
+  return map[moonPhase] ?? { label: 'Open day', meaning: 'No special tide. Your own pace sets the day.' };
+}
+
 function getReadingTierLabel(score: number): string {
   if (score >= 85) return 'Peak';
   if (score >= 75) return 'Strong';
@@ -940,6 +972,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 1,
+  },
+  // Neutral fallback — same shape as auspicious badge but softer palette so
+  // the slot reads as always-present without competing with the gold treatment
+  // when the day actually qualifies.
+  neutralBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs,
+  },
+  neutralBadgeText: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  neutralBadgeMeaning: {
+    color: colors.ink,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 1,
+    opacity: 0.85,
   },
   streakRow: {
     alignItems: 'center',
@@ -1289,10 +1347,10 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: colors.white,
-    fontFamily: fonts.bold,
-    fontSize: 20,
-    fontWeight: '700',
-    lineHeight: 28,
+    fontFamily: fonts.heavy,
+    fontSize: 22,
+    fontWeight: '900',
+    lineHeight: 30,
   },
   actionTextDone: {
     opacity: 0.6,
