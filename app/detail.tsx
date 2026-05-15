@@ -75,6 +75,8 @@ function DetailSkeleton() {
 export default function DetailScreen() {
   const [reading, setReading] = useState<DailyReading | null>(null);
   const [yesterdayScore, setYesterdayScore] = useState<number | null>(null);
+  const [tomorrowScore, setTomorrowScore] = useState<number | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
   const [streak, setStreak] = useState(0);
@@ -117,6 +119,11 @@ export default function DetailScreen() {
       setShowAllInsights(false);
       const todayReading = generateDailyReading(profile);
       setReading(todayReading);
+      // Tomorrow preview drives the return-loop. Compute on focus so a
+      // user opening at 23:59 vs 00:01 sees the right "tomorrow."
+      const tomorrowDate = new Date();
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+      setTomorrowScore(generateDailyReading(profile, tomorrowDate).score);
       const nextHistory = [todayReading, ...history.filter((item) => item.date !== todayReading.date)];
       const currentStreak = getReadingStreak(nextHistory);
       setStreak(currentStreak);
@@ -261,7 +268,7 @@ export default function DetailScreen() {
         </View>
         {nextMilestoneTarget && streak > 0 ? (
           <Text style={styles.streakHint}>
-            {nextMilestoneTarget - streak} days to your {nextMilestoneTarget}-day milestone
+            {nextMilestoneTarget - streak} more {nextMilestoneTarget - streak === 1 ? 'day' : 'days'} opens a new chapter
           </Text>
         ) : null}
         {savedAtTheWire ? (
@@ -481,15 +488,33 @@ export default function DetailScreen() {
         ) : null}
       </Card>
 
+      {/* ── Tomorrow preview — closes the return-loop with a real tier + delta ── */}
+      {tomorrowScore !== null ? (
+        <Card style={styles.tomorrowCard}>
+          <Text style={styles.tomorrowEmoji}>{getTomorrowEmoji(tomorrowScore, reading.score)}</Text>
+          <View style={styles.tomorrowBody}>
+            <Text style={styles.tomorrowLabel}>Tomorrow's almanac</Text>
+            <Text style={styles.tomorrowTitle}>{getReadingTierLabel(tomorrowScore)} day {getTomorrowDeltaArrow(tomorrowScore, reading.score)}</Text>
+            <Text style={styles.tomorrowCopy}>{getTomorrowCopy(tomorrowScore, reading.score)}</Text>
+          </View>
+        </Card>
+      ) : null}
+
       {/* ── Share CTA ── */}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Share today's reading"
-        onPress={() => { triggerShareHaptic(); shareReading(reading); }}
-        style={({ pressed }) => [styles.shareButton, pressed && styles.shareButtonPressed]}
+        accessibilityLabel="Send today's almanac to someone"
+        disabled={isSharing}
+        onPress={() => {
+          if (isSharing) return;
+          setIsSharing(true);
+          triggerShareHaptic();
+          shareReading(reading).finally(() => setIsSharing(false));
+        }}
+        style={({ pressed }) => [styles.shareButton, pressed && styles.shareButtonPressed, isSharing && styles.shareButtonDisabled]}
       >
         <Ionicons name="share-outline" size={20} color={colors.mauve} />
-        <Text style={styles.shareButtonText}>Share today's reading</Text>
+        <Text style={styles.shareButtonText}>Send today's almanac ✦</Text>
       </Pressable>
     </Animated.View>
 
@@ -524,6 +549,28 @@ function getReadingTierLabel(score: number): string {
   return 'Rest';
 }
 
+function getTomorrowDeltaArrow(tomorrow: number, today: number): string {
+  const delta = tomorrow - today;
+  if (delta >= 3) return `↑ ${delta}`;
+  if (delta <= -3) return `↓ ${Math.abs(delta)}`;
+  return '·';
+}
+
+function getTomorrowCopy(tomorrow: number, today: number): string {
+  const delta = tomorrow - today;
+  if (delta >= 8) return 'A clear lift incoming — save bold moves for tomorrow.';
+  if (delta >= 3) return 'Energy rises tomorrow — plan one important move.';
+  if (delta <= -8) return 'A softer day ahead — wrap loose ends today if you can.';
+  if (delta <= -3) return 'Quieter pace tomorrow — nothing wrong, just slower.';
+  return 'A similar tone tomorrow — your rhythm stays the same.';
+}
+
+function getTomorrowEmoji(tomorrow: number, today: number): string {
+  if (tomorrow - today >= 3) return '🌅';
+  if (tomorrow - today <= -3) return '🌙';
+  return '✨';
+}
+
 function getScoreContext(score: number): string {
   if (score >= 90) return 'Peak energy today — a day to act boldly and initiate.';
   if (score >= 82) return 'Peak flow today — strong momentum, move with confidence.';
@@ -540,8 +587,8 @@ function getActionSentence(action: string): string {
 }
 
 function getStreakLabel(streak: number): string {
-  if (streak <= 1) return 'Day 1 ritual streak';
-  return `${streak}-day ritual streak`;
+  if (streak <= 1) return 'Your first day back';
+  return `${streak} days in a row`;
 }
 
 function getBaseStrength(base: number): string {
@@ -614,19 +661,28 @@ function getInsightRows(reading: DailyReading, focuses: MainFocus[]): InsightRow
   return rows;
 }
 
-function shareReading(reading: DailyReading) {
-  Share.share({
-    message: [
-      `My almanac reading for ${reading.date} ✨`,
-      `\n"${reading.mainMessage}"`,
-      `\n🎨 ${reading.luckyColor}  ·  🔢 ${reading.luckyNumber}  ·  ⏰ ${reading.luckyTime}  ·  🧭 ${reading.luckyDirection}`,
-      reading.moonPhase ? `🌙 ${reading.moonPhase}` : '',
-      `\n🍀 ${reading.action}`,
-    ]
-      .filter(Boolean)
-      .join('\n'),
-    title: "Today.s almanac reading",
-  });
+function shareReading(reading: DailyReading): Promise<unknown> {
+  // Wrap in try/catch — web's navigator.share throws synchronously when
+  // called concurrently (e.g. double-tap) which would propagate as an
+  // uncaught error and trip the ErrorBoundary.
+  try {
+    return Promise.resolve(
+      Share.share({
+        message: [
+          `My almanac reading for ${reading.date} ✨`,
+          `\n"${reading.mainMessage}"`,
+          `\n🎨 ${reading.luckyColor}  ·  🔢 ${reading.luckyNumber}  ·  ⏰ ${reading.luckyTime}  ·  🧭 ${reading.luckyDirection}`,
+          reading.moonPhase ? `🌙 ${reading.moonPhase}` : '',
+          `\n🍀 ${reading.action}`,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+        title: "Today's almanac reading",
+      }),
+    ).catch(() => undefined);
+  } catch {
+    return Promise.resolve();
+  }
 }
 
 function formatReadingDate(reading: DailyReading): string {
@@ -867,7 +923,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     flex: 1,
     justifyContent: 'center',
-    opacity: 0.6,
   },
   scoreBandActive: {
     backgroundColor: colors.champagne,
@@ -883,14 +938,16 @@ const styles = StyleSheet.create({
     }),
   },
   scoreBandLabel: {
-    color: colors.muted,
+    color: colors.mauve,
     fontSize: 9,
     fontWeight: '900',
     letterSpacing: 0.5,
+    opacity: 0.65,
     textTransform: 'uppercase',
   },
   scoreBandLabelActive: {
     color: colors.ink,
+    opacity: 1,
   },
   scoreContextLine: {
     color: colors.ink,
@@ -998,10 +1055,10 @@ const styles = StyleSheet.create({
     }),
   },
   actionLabel: {
-    color: colors.champagne,
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 1.2,
+    color: 'rgba(255, 255, 255, 0.55)',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
   actionText: {
@@ -1210,9 +1267,50 @@ const styles = StyleSheet.create({
   shareButtonPressed: {
     opacity: 0.78,
   },
+  shareButtonDisabled: {
+    opacity: 0.5,
+  },
   shareButtonText: {
     color: colors.mauve,
     fontSize: 16,
     fontWeight: '900',
+  },
+  // Tomorrow preview — closes the return loop
+  tomorrowCard: {
+    alignItems: 'center',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
+    flexDirection: 'row',
+    gap: spacing.md,
+    overflow: 'hidden',
+    padding: spacing.md,
+  },
+  tomorrowEmoji: {
+    fontSize: 36,
+    lineHeight: 42,
+  },
+  tomorrowBody: {
+    flex: 1,
+    gap: 2,
+  },
+  tomorrowLabel: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  tomorrowTitle: {
+    color: colors.mauve,
+    fontFamily: fonts.heavy,
+    fontSize: 19,
+    fontWeight: '900',
+  },
+  tomorrowCopy: {
+    color: colors.ink,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 18,
+    marginTop: 2,
   },
 });

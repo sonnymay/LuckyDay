@@ -294,7 +294,7 @@ export default function SettingsScreen() {
   return (
     <Screen showTabBar>
       {/* ── Page title ── */}
-      <Text style={styles.pageTitle}>Profile ✨</Text>
+      <Text style={styles.pageTitle}>Settings ✨</Text>
       {/* ── Astrology ID Badge ── */}
       <Card style={styles.idBadgeCard}>
         <View style={styles.idBadgeHeader}>
