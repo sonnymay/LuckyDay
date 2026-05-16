@@ -104,12 +104,12 @@ export async function syncLocalDailyReminder(time?: string, reading?: ReminderRe
     "Your color today can change how the morning feels. Open to find out.",
     "Today has a best-time window. Open to see when it is.",
     "Your morning read is fresh: color, number, and one key action.",
-    "Something in today's chart is worth knowing before you start.",
-    "Today's energy is different from yesterday. Open today's almanac. ✨",
+    "Something in today's almanac is worth knowing before you start.",
+    "Today's tone is different from yesterday. The almanac is ready when you are. ✨",
   ];
 
   const titles = [
-    'What does today hold for you? ✨',
+    "Today's almanac is open ✦",
     'Your energy score is in 🌙',
     'The almanac chose a color for you 🎨',
     'Your number is waiting 🔢',
@@ -117,8 +117,8 @@ export async function syncLocalDailyReminder(time?: string, reading?: ReminderRe
     "Open today's almanac 🌅",
     'Today is ready 🍀',
     'Your morning ritual is ready 🌸',
-    'The stars aligned something for you ✨',
-    'One tap to set your day right 🌸',
+    'Your day is on the page ✨',
+    'One tap to set your day 🌸',
   ];
 
   const pool = personalizedBodies.length > 0 ? personalizedBodies : genericBodies;
