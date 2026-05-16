@@ -31,11 +31,12 @@ import {
 import { colors, radii, spacing } from '../src/styles/theme';
 
 const FEATURES = [
-  { emoji: '🎨', label: 'Color, number, best time, and direction for today' },
-  { emoji: '💰', label: 'Money, love, work, and health guidance in plain language' },
-  { emoji: '🌙', label: 'Lunar almanac, moon phase, and solar term context' },
-  { emoji: '📖', label: 'Reading history to spot your personal patterns' },
-  { emoji: '✨', label: 'Share cards made for IG Stories and LINE' },
+  { emoji: '🎨', label: 'Today\'s lucky color, number, best time, and direction' },
+  { emoji: '🌟', label: 'Auspicious-day insights from the Chinese almanac' },
+  { emoji: '💰', label: 'Plain-English guidance for money, love, work, and health' },
+  { emoji: '🌙', label: 'Lunar date, moon phase, and solar-term context' },
+  { emoji: '📖', label: 'Reading history so you spot your own patterns over weeks' },
+  { emoji: '✨', label: 'Story-ready share cards with almanac framing' },
 ];
 
 function getBillingLabel(pkg: PurchasePackage | null) {
@@ -200,7 +201,7 @@ export default function PaywallScreen() {
             <Text style={styles.lockedPill}>Premium reading</Text>
             <Ionicons name="lock-closed" size={16} color={colors.goldDeep} />
           </View>
-          <Text style={styles.lockedTitle}>Unlock to see today's full premium guidance.</Text>
+          <Text style={styles.lockedTitle}>Your full almanac for today is one tap away.</Text>
           <View style={styles.lockedMetricRow}>
             <View style={styles.lockedMetric}>
               <Ionicons name="time-outline" size={16} color={colors.mauve} />
@@ -229,7 +230,7 @@ export default function PaywallScreen() {
           </View>
         ) : null}
         <Text style={styles.subhead}>
-          Unlock deeper readings, prettier share cards, and a reading history that helps you spot your patterns.
+          The full almanac for your day — best time, lucky color, auspicious-day insights, and a history that learns your rhythm.
         </Text>
         <View style={styles.socialProof}>
           <Text style={styles.socialProofText}>Private by design · restore purchases anytime</Text>
@@ -242,11 +243,11 @@ export default function PaywallScreen() {
         <View style={styles.compareGrid}>
           <View style={styles.compareColumn}>
             <Text style={styles.compareLabel}>Free</Text>
-            <Text style={styles.compareText}>Daily score, zodiac animals, and a simple reading summary.</Text>
+            <Text style={styles.compareText}>Daily score, zodiac, and a simple reading summary.</Text>
           </View>
           <View style={[styles.compareColumn, styles.comparePremium]}>
             <Text style={styles.compareLabelPremium}>Premium</Text>
-            <Text style={styles.compareTextPremium}>Best time, color, direction, almanac context, history, and share cards.</Text>
+            <Text style={styles.compareTextPremium}>Auspicious-day insights, best time + color + direction, weeks of history, and almanac-framed share cards.</Text>
           </View>
         </View>
       </Card>
