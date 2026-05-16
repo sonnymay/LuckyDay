@@ -956,12 +956,14 @@ function getTomorrowCopy(tomorrow: number, today: number): string {
 }
 
 function getScoreContext(score: number): string {
+  // Every tier should feel chosen, not punished — the delta line beneath
+  // does the "vs. yesterday" work, so the band copy validates the day.
   if (score >= 90) return 'Peak energy today — a day to act boldly and initiate.';
   if (score >= 82) return 'Peak flow today — strong momentum, move with confidence.';
   if (score >= 75) return 'Strong energy today — good day for forward motion.';
   if (score >= 65) return 'Good energy today — choose steady action over rushing.';
-  if (score >= 56) return 'Steady energy today — stay consistent and protect your focus.';
-  return 'Rest energy today — pace yourself and conserve attention.';
+  if (score >= 56) return 'Steady energy today — the kind of day that compounds quietly.';
+  return 'Rest energy today — your body is asking for less, and that\'s the message.';
 }
 
 function getActionSentence(action: string): string {
@@ -986,12 +988,14 @@ function getDeltaExplanation(today: number, yesterday: number, moonPhase: string
   const delta = today - yesterday;
   const absDelta = Math.abs(delta);
   const direction = delta > 0 ? '↑' : delta < 0 ? '↓' : '→';
-  if (absDelta === 0) return '→ Same energy as yesterday.';
+  if (absDelta === 0) return '→ Same tone as yesterday — your rhythm holds.';
   if (delta > 0) {
     if (absDelta >= 10) return `${direction} Up ${absDelta} from yesterday — daily alignment shifted in your favor.`;
-    return `${direction} Up ${absDelta} from yesterday — energy is building.`;
+    if (absDelta >= 5) return `${direction} Up ${absDelta} from yesterday — momentum building from yesterday's base.`;
+    return `${direction} Up ${absDelta} from yesterday — a small lift, worth using.`;
   }
   if (absDelta >= 10) return `${direction} Down ${absDelta} from yesterday — ${moonPhase} calls for a steadier pace today.`;
+  if (absDelta >= 5) return `${direction} Down ${absDelta} from yesterday — softer ground, choose one focus and protect it.`;
   return `${direction} Down ${absDelta} from yesterday — a quieter day, not a bad one.`;
 }
 
