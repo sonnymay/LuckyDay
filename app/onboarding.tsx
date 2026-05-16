@@ -209,10 +209,10 @@ export default function OnboardingScreen() {
         <Card style={styles.welcomeCard}>
           <Text style={styles.welcomeTitle}>Your first reading should feel earned.</Text>
           <Text style={styles.welcomeCopy}>
-            LuckyDay blends your birthday-based zodiac, your chosen focus, the lunar calendar, moon phase, and seasonal timing into one calm daily check-in.
+            Open it before your day starts. Mark it done before you sleep. The pattern across your week shows itself by day seven.
           </Text>
           <Text style={styles.welcomeCopy}>
-            Your birthday helps anchor the zodiac and lunar context. Birth time and place are optional and can be skipped.
+            We&apos;ll ask for your birthday next — that anchors your zodiac and the almanac context. Birth time and place are optional.
           </Text>
         </Card>
       ) : null}
@@ -335,7 +335,7 @@ function getStepTitle(step: number) {
 }
 
 function getStepCopy(step: number) {
-  if (step === 1) return 'A simple daily dashboard for what to do, what to avoid, and when your energy is strongest.';
+  if (step === 1) return 'A 30-second daily ritual. One score, one color, one small thing to do — pulled from your zodiac and the Chinese almanac.';
   if (step === 2) return 'Your profile stays on your phone. Private by default, easy to update anytime.';
   if (step === 3) return 'Pick what you want today’s guidance to support. Add a reminder if you want a daily nudge.';
   return 'Photos are optional and stay on this device. Skip them now or add them later from Settings.';
