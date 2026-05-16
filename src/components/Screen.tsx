@@ -74,6 +74,16 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     padding: spacing.md,
     paddingBottom: spacing.xl2,
+    // Desktop guard: the app's a portrait phone surface. At 27"+ widths the
+    // score orb, cards, and copy stretch uncomfortably wide; cap to a
+    // phone-shaped column and center.
+    ...Platform.select({
+      web: {
+        alignSelf: 'center',
+        maxWidth: 430,
+        width: '100%',
+      },
+    }),
   },
   // Extra bottom padding so last card isn't hidden behind the tab bar
   contentWithTabBar: {

@@ -90,6 +90,9 @@ export default function DetailScreen() {
   // One shared progress driver for the confetti burst: 8 dots interpolate
   // off the same 0→1 timing so all the math stays in render, not state.
   const confettiAnim = useRef(new Animated.Value(0)).current;
+  // Brief echo of what the user just journaled — closes the listen loop.
+  const [journalEcho, setJournalEcho] = useState<string | null>(null);
+  const journalEchoAnim = useRef(new Animated.Value(0)).current;
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
   const [streak, setStreak] = useState(0);
@@ -250,6 +253,25 @@ export default function DetailScreen() {
   const visibleInsights = showAllInsights ? insightRows : insightRows.slice(0, 3);
   const hiddenInsightCount = Math.max(0, insightRows.length - 3);
   const actionSentence = getActionSentence(reading.action);
+
+  const triggerJournalEcho = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed) {
+      setJournalEcho(null);
+      journalEchoAnim.setValue(0);
+      return;
+    }
+    // First 6–8 words back to the user as proof we heard them. Truncate
+    // with an ellipsis if longer; preserve original casing.
+    const words = trimmed.split(/\s+/);
+    const preview = words.length > 8 ? `${words.slice(0, 8).join(' ')}…` : words.slice(0, 8).join(' ');
+    setJournalEcho(preview);
+    Animated.sequence([
+      Animated.timing(journalEchoAnim, { toValue: 1, duration: 280, useNativeDriver: true }),
+      Animated.delay(2400),
+      Animated.timing(journalEchoAnim, { toValue: 0, duration: 480, useNativeDriver: true }),
+    ]).start(() => setJournalEcho(null));
+  };
 
   const handleRitualTap = () => {
     if (ritualDone || !reading) return;
@@ -442,22 +464,33 @@ export default function DetailScreen() {
 
       {/* ── Daily journal — personal artifact, the strongest churn defense ── */}
       <View style={styles.journalGroup}>
-        <Text style={styles.journalLabel}>What's on your mind today?</Text>
+        <Text style={styles.journalLabel}>{ritualDone ? 'How did it go?' : "What's on your mind today?"}</Text>
         <View style={styles.journalCard}>
           <TextInput
             ref={journalInputRef}
             accessibilityLabel="Daily journal entry"
             multiline
             onBlur={() => {
-              if (reading) setJournalEntry(reading.date, journalText).catch(() => undefined);
+              if (!reading) return;
+              setJournalEntry(reading.date, journalText).catch(() => undefined);
+              triggerJournalEcho(journalText);
             }}
             onChangeText={setJournalText}
-            placeholder={ritualDone ? 'How did it go?' : 'A line for today…'}
+            placeholder={ritualDone ? 'A line about how it went…' : 'A line for today…'}
             placeholderTextColor={colors.faint}
             style={styles.journalInput}
             value={journalText}
           />
         </View>
+        {/* Echo — closes the listen loop. The app heard what you said. */}
+        {journalEcho ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.journalEcho, { opacity: journalEchoAnim }]}
+          >
+            <Text style={styles.journalEchoText}>“{journalEcho}” ✦ Noted</Text>
+          </Animated.View>
+        ) : null}
       </View>
 
       {/* ── Best time — live progress through the window ── */}
@@ -1321,6 +1354,18 @@ const styles = StyleSheet.create({
     minHeight: 60,
     paddingVertical: 0,
     textAlignVertical: 'top',
+  },
+  journalEcho: {
+    marginTop: 4,
+    paddingHorizontal: spacing.xs,
+  },
+  journalEchoText: {
+    color: colors.mauve,
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    fontStyle: 'italic',
+    fontWeight: '600',
+    lineHeight: 16,
   },
   // Weekly pattern — colored chips, ascending energy
   weekPatternCard: {

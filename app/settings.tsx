@@ -347,8 +347,8 @@ export default function SettingsScreen() {
         <Pressable onPress={() => router.push('/paywall')} style={({ pressed }) => [styles.upgradeCard, pressed && styles.upgradeCardPressed]}>
           <Text style={styles.upgradeEmoji}>🌟</Text>
           <View style={styles.upgradeCopy}>
-            <Text style={styles.upgradeTitle}>You're on Free</Text>
-            <Text style={styles.upgradeSub}>Upgrade for full rituals, deeper history, and more.</Text>
+            <Text style={styles.upgradeTitle}>Free plan</Text>
+            <Text style={styles.upgradeSub}>Premium unlocks full daily almanac, unlimited reading history, and the auspicious-day insights.</Text>
           </View>
           <Text style={styles.upgradeArrow}>›</Text>
         </Pressable>
