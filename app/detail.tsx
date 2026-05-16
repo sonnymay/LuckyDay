@@ -93,6 +93,9 @@ export default function DetailScreen() {
   // Brief echo of what the user just journaled — closes the listen loop.
   const [journalEcho, setJournalEcho] = useState<string | null>(null);
   const journalEchoAnim = useRef(new Animated.Value(0)).current;
+  const [doubleHourTooltipVisible, setDoubleHourTooltipVisible] = useState(false);
+  const doubleHourTooltipAnim = useRef(new Animated.Value(0)).current;
+  const doubleHourTooltipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
   const [streak, setStreak] = useState(0);
@@ -111,6 +114,13 @@ export default function DetailScreen() {
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(id);
+  }, []);
+
+  // Tear down the tooltip auto-dismiss timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (doubleHourTooltipTimer.current) clearTimeout(doubleHourTooltipTimer.current);
+    };
   }, []);
 
   // When the app returns from background and the date has rolled past
@@ -254,6 +264,26 @@ export default function DetailScreen() {
   const hiddenInsightCount = Math.max(0, insightRows.length - 3);
   const actionSentence = getActionSentence(reading.action);
 
+  const toggleDoubleHourTooltip = () => {
+    if (doubleHourTooltipTimer.current) {
+      clearTimeout(doubleHourTooltipTimer.current);
+      doubleHourTooltipTimer.current = null;
+    }
+    if (doubleHourTooltipVisible) {
+      Animated.timing(doubleHourTooltipAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(
+        () => setDoubleHourTooltipVisible(false),
+      );
+      return;
+    }
+    setDoubleHourTooltipVisible(true);
+    Animated.timing(doubleHourTooltipAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+    doubleHourTooltipTimer.current = setTimeout(() => {
+      Animated.timing(doubleHourTooltipAnim, { toValue: 0, duration: 320, useNativeDriver: true }).start(
+        () => setDoubleHourTooltipVisible(false),
+      );
+    }, 4000);
+  };
+
   const triggerJournalEcho = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) {
@@ -305,13 +335,29 @@ export default function DetailScreen() {
       <View style={styles.brandRow}>
         <Text style={styles.brandMark}>LuckyDay</Text>
         <Text style={styles.brandSub}>{formatReadingDate(reading)}</Text>
-        <Text
-          accessibilityRole="text"
-          accessibilityLabel={`Current double-hour: ${getCurrentDoubleHour(now).animal} hour, ${getCurrentDoubleHour(now).range}`}
-          style={styles.doubleHourChip}
-        >
-          {formatDoubleHourChip(getCurrentDoubleHour(now))}
-        </Text>
+        <View style={styles.doubleHourChipWrap}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityHint="Tap to learn about Chinese double-hours"
+            accessibilityLabel={`Current double-hour: ${getCurrentDoubleHour(now).animal} hour, ${getCurrentDoubleHour(now).range}`}
+            hitSlop={6}
+            onPress={toggleDoubleHourTooltip}
+          >
+            <Text style={styles.doubleHourChip}>
+              {formatDoubleHourChip(getCurrentDoubleHour(now))} ⓘ
+            </Text>
+          </Pressable>
+          {doubleHourTooltipVisible ? (
+            <Animated.View
+              pointerEvents="none"
+              style={[styles.doubleHourTooltip, { opacity: doubleHourTooltipAnim }]}
+            >
+              <Text style={styles.doubleHourTooltipText}>
+                Chinese time-keeping splits the day into 12 two-hour periods, each named after a zodiac animal.
+              </Text>
+            </Animated.View>
+          ) : null}
+        </View>
         {(() => {
           const hint = formatNextSolarTermHint(getNextSolarTerm(new Date(`${reading.date}T00:00:00`)));
           return hint ? (
@@ -1079,6 +1125,36 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
     marginTop: 2,
+  },
+  doubleHourChipWrap: {
+    alignSelf: 'flex-start',
+    position: 'relative',
+  },
+  doubleHourTooltip: {
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    elevation: 4,
+    left: 0,
+    marginTop: 6,
+    maxWidth: 280,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    position: 'absolute',
+    shadowColor: colors.ink,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    top: '100%',
+    zIndex: 50,
+  },
+  doubleHourTooltipText: {
+    color: colors.goldDeep,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
   },
   auspiciousBadge: {
     alignSelf: 'flex-start',
