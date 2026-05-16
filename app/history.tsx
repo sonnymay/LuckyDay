@@ -569,10 +569,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900',
   },
-  // Stats summary card
+  // Stats summary card — was off-brand lavender; bring into the petal blush
+  // / rose-gold token system so History reads as part of the same surface.
   statsCard: {
-    backgroundColor: colors.lavender,
-    borderColor: '#C8BFEE',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
   },
   statsHeading: {
     color: colors.mauve,
