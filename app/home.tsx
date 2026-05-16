@@ -737,8 +737,8 @@ const styles = StyleSheet.create({
   // Fortune quote strip
   quoteStrip: {
     alignItems: 'center',
-    backgroundColor: colors.lavender,
-    borderColor: '#C8BFEE',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
     borderRadius: radii.lg,
     borderWidth: 1.5,
     flexDirection: 'row',
@@ -797,8 +797,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   guidanceCard: {
-    backgroundColor: colors.lavender,
-    borderColor: '#C8BFEE',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
   },
   shareButton: {
     alignItems: 'center',

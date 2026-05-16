@@ -610,8 +610,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   statDivider: {
-    backgroundColor: '#C8BFEE',
+    backgroundColor: colors.roseGold,
     height: 50,
+    opacity: 0.4,
     width: 1,
   },
   accuracyCard: {

@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
     borderColor: colors.luckyGold,
   },
   timeCard: {
-    backgroundColor: colors.lavender,
-    borderColor: '#C8BFEE',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
   },
   decor: {
     color: 'rgba(192, 58, 120, 0.12)',

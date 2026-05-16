@@ -771,8 +771,8 @@ const styles = StyleSheet.create({
   },
   // How it works
   howItWorksCard: {
-    backgroundColor: colors.lavender,
-    borderColor: '#C8BFEE',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
     gap: spacing.sm,
   },
   contextTitle: {

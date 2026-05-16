@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   summaryCard: {
-    backgroundColor: colors.lavender,
-    borderColor: '#C8BFEE',
+    backgroundColor: colors.panelStrong,
+    borderColor: colors.roseGold,
   },
   sectionTitle: {
     color: colors.mauve,

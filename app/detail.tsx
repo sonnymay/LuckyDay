@@ -96,6 +96,9 @@ export default function DetailScreen() {
   const [doubleHourTooltipVisible, setDoubleHourTooltipVisible] = useState(false);
   const doubleHourTooltipAnim = useRef(new Animated.Value(0)).current;
   const doubleHourTooltipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [solarTermTooltipVisible, setSolarTermTooltipVisible] = useState(false);
+  const solarTermTooltipAnim = useRef(new Animated.Value(0)).current;
+  const solarTermTooltipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
   const [streak, setStreak] = useState(0);
@@ -116,10 +119,11 @@ export default function DetailScreen() {
     return () => clearInterval(id);
   }, []);
 
-  // Tear down the tooltip auto-dismiss timer on unmount.
+  // Tear down tooltip auto-dismiss timers on unmount.
   useEffect(() => {
     return () => {
       if (doubleHourTooltipTimer.current) clearTimeout(doubleHourTooltipTimer.current);
+      if (solarTermTooltipTimer.current) clearTimeout(solarTermTooltipTimer.current);
     };
   }, []);
 
@@ -264,6 +268,26 @@ export default function DetailScreen() {
   const hiddenInsightCount = Math.max(0, insightRows.length - 3);
   const actionSentence = getActionSentence(reading.action);
 
+  const toggleSolarTermTooltip = () => {
+    if (solarTermTooltipTimer.current) {
+      clearTimeout(solarTermTooltipTimer.current);
+      solarTermTooltipTimer.current = null;
+    }
+    if (solarTermTooltipVisible) {
+      Animated.timing(solarTermTooltipAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(
+        () => setSolarTermTooltipVisible(false),
+      );
+      return;
+    }
+    setSolarTermTooltipVisible(true);
+    Animated.timing(solarTermTooltipAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+    solarTermTooltipTimer.current = setTimeout(() => {
+      Animated.timing(solarTermTooltipAnim, { toValue: 0, duration: 320, useNativeDriver: true }).start(
+        () => setSolarTermTooltipVisible(false),
+      );
+    }, 4000);
+  };
+
   const toggleDoubleHourTooltip = () => {
     if (doubleHourTooltipTimer.current) {
       clearTimeout(doubleHourTooltipTimer.current);
@@ -361,9 +385,27 @@ export default function DetailScreen() {
         {(() => {
           const hint = formatNextSolarTermHint(getNextSolarTerm(new Date(`${reading.date}T00:00:00`)));
           return hint ? (
-            <Text accessibilityRole="text" accessibilityLabel={hint} style={styles.solarTermChip}>
-              {hint}
-            </Text>
+            <View style={styles.solarTermChipWrap}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityHint="Tap to learn about solar terms"
+                accessibilityLabel={hint}
+                hitSlop={6}
+                onPress={toggleSolarTermTooltip}
+              >
+                <Text style={styles.solarTermChip}>{hint} ⓘ</Text>
+              </Pressable>
+              {solarTermTooltipVisible ? (
+                <Animated.View
+                  pointerEvents="none"
+                  style={[styles.solarTermTooltip, { opacity: solarTermTooltipAnim }]}
+                >
+                  <Text style={styles.solarTermTooltipText}>
+                    Solar terms are 24 seasonal markers in the Chinese almanac — small turning points in the year.
+                  </Text>
+                </Animated.View>
+              ) : null}
+            </View>
           ) : null;
         })()}
         {(() => {
@@ -1150,6 +1192,36 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   doubleHourTooltipText: {
+    color: colors.goldDeep,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  solarTermChipWrap: {
+    alignSelf: 'flex-start',
+    position: 'relative',
+  },
+  solarTermTooltip: {
+    backgroundColor: colors.champagne,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    elevation: 4,
+    left: 0,
+    marginTop: 6,
+    maxWidth: 280,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    position: 'absolute',
+    shadowColor: colors.ink,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    top: '100%',
+    zIndex: 50,
+  },
+  solarTermTooltipText: {
     color: colors.goldDeep,
     fontFamily: fonts.regular,
     fontSize: 13,
