@@ -109,8 +109,8 @@ export default function FeedbackScreen() {
         <View style={styles.savedAura1} pointerEvents="none" />
         <View style={styles.savedAura2} pointerEvents="none" />
         <Animated.View style={[styles.savedContainer, { opacity: savedAnim }]}>
-          <Text style={styles.savedEmoji}>✨</Text>
-          <Text style={styles.savedTitle}>Reflection saved</Text>
+          <Text style={styles.savedEmoji}>✦</Text>
+          <Text style={styles.savedTitle}>Noted</Text>
           <Text style={styles.savedCopy}>{savedMessage}</Text>
         </Animated.View>
       </SafeAreaView>
@@ -121,7 +121,7 @@ export default function FeedbackScreen() {
     <Screen>
       <Card style={styles.headerCard}>
         <Text style={styles.dateLabel}>{formatReflectionDate(date)}</Text>
-        <Text style={styles.predictedLine}>We predicted: {reading ? `${reading.score} · ${getScoreBand(reading.score)}` : 'Today’s luck'}</Text>
+        <Text style={styles.predictedLine}>Almanac said: {reading ? `${reading.score} · ${getScoreBand(reading.score)}` : 'today\'s reading'}</Text>
         <Text style={styles.title}>How did your day feel?</Text>
         <View style={styles.matchButtons}>
           {([

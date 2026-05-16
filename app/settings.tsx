@@ -303,7 +303,7 @@ export default function SettingsScreen() {
           </View>
           <View style={styles.idBadgeIdentity}>
             <Text style={styles.idBadgeName}>{profile.nickname}</Text>
-            <Text style={styles.idBadgeLabel}>Saved locally on this device</Text>
+            <Text style={styles.idBadgeLabel}>Stays on your device — never sent anywhere</Text>
           </View>
         </View>
         <View style={styles.idBadgeMetrics}>
@@ -358,7 +358,7 @@ export default function SettingsScreen() {
       <Card style={styles.howItWorksCard}>
         <Text style={styles.contextTitle}>How LuckyDay works</Text>
         <Text style={styles.photoCopy}>
-          Your daily reading blends birthday-based zodiac context, your focus, the Chinese almanac, moon phase, and local timing. It is a gentle ritual guide, not a guarantee.
+          Each day blends your zodiac, the Chinese almanac, the moon phase, and what you chose to focus on. A gentle ritual frame for the day — not a guarantee, not a forecast.
         </Text>
       </Card>
 
