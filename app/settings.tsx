@@ -348,7 +348,7 @@ export default function SettingsScreen() {
           <Text style={styles.upgradeEmoji}>🌟</Text>
           <View style={styles.upgradeCopy}>
             <Text style={styles.upgradeTitle}>Free plan</Text>
-            <Text style={styles.upgradeSub}>Premium unlocks full daily almanac, unlimited reading history, and the auspicious-day insights.</Text>
+            <Text style={styles.upgradeSub}>Premium unlocks unlimited reading history, almanac-framed share cards, and the pattern-recognition layer.</Text>
           </View>
           <Text style={styles.upgradeArrow}>›</Text>
         </Pressable>

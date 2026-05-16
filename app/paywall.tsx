@@ -31,12 +31,11 @@ import {
 import { colors, radii, spacing } from '../src/styles/theme';
 
 const FEATURES = [
-  { emoji: '🎨', label: 'Today\'s lucky color, number, best time, and direction' },
-  { emoji: '🌟', label: 'Auspicious-day insights from the Chinese almanac' },
-  { emoji: '💰', label: 'Plain-English guidance for money, love, work, and health' },
-  { emoji: '🌙', label: 'Lunar date, moon phase, and solar-term context' },
-  { emoji: '📖', label: 'Reading history so you spot your own patterns over weeks' },
-  { emoji: '✨', label: 'Story-ready share cards with almanac framing' },
+  { emoji: '📖', label: 'Unlimited reading history — full archive instead of the last 3 days' },
+  { emoji: '✨', label: 'Story-ready share cards with almanac framing for IG and LINE' },
+  { emoji: '🎯', label: 'Pattern recognition across weeks — accuracy stats and rhythm insights' },
+  { emoji: '🌟', label: 'Saved milestones, streak rescues, and the full reflection archive' },
+  { emoji: '🙏', label: 'Support a tiny indie project that keeps everything on your device' },
 ];
 
 function getBillingLabel(pkg: PurchasePackage | null) {
@@ -230,7 +229,7 @@ export default function PaywallScreen() {
           </View>
         ) : null}
         <Text style={styles.subhead}>
-          The full almanac for your day — best time, lucky color, auspicious-day insights, and a history that learns your rhythm.
+          Your daily reading is always free. Premium unlocks your full archive, almanac-framed share cards, and the rhythm-recognition layer.
         </Text>
         <View style={styles.socialProof}>
           <Text style={styles.socialProofText}>Private by design · restore purchases anytime</Text>
@@ -243,11 +242,11 @@ export default function PaywallScreen() {
         <View style={styles.compareGrid}>
           <View style={styles.compareColumn}>
             <Text style={styles.compareLabel}>Free</Text>
-            <Text style={styles.compareText}>Daily score, zodiac, and a simple reading summary.</Text>
+            <Text style={styles.compareText}>The full daily reading — score, color, ritual, almanac context, last 3 days of history.</Text>
           </View>
           <View style={[styles.compareColumn, styles.comparePremium]}>
             <Text style={styles.compareLabelPremium}>Premium</Text>
-            <Text style={styles.compareTextPremium}>Auspicious-day insights, best time + color + direction, weeks of history, and almanac-framed share cards.</Text>
+            <Text style={styles.compareTextPremium}>Unlimited history archive, almanac-framed share cards for IG/LINE, accuracy stats across weeks.</Text>
           </View>
         </View>
       </Card>

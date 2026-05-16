@@ -18,6 +18,7 @@ import { generateDailyReading } from '../src/lib/luck';
 import { getLuckyColorHex, getLuckyColorMeaning } from '../src/lib/luckyColor';
 import { getNextMilestoneTarget, getReadingStreak } from '../src/lib/streak';
 import {
+  getCoachSeen,
   getFeedbackForDate,
   getJournalEntry,
   getRitualDone,
@@ -26,6 +27,7 @@ import {
   getStoredReadingHistory,
   markMilestoneSeen,
   saveReadingHistoryItem,
+  setCoachSeen,
   setJournalEntry,
   setRitualDone,
 } from '../src/lib/storage';
@@ -99,6 +101,7 @@ export default function DetailScreen() {
   const [solarTermTooltipVisible, setSolarTermTooltipVisible] = useState(false);
   const solarTermTooltipAnim = useRef(new Animated.Value(0)).current;
   const solarTermTooltipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showCoach, setShowCoach] = useState(false);
   const [nickname, setNickname] = useState<string>('');
   const [mainFocuses, setMainFocuses] = useState<MainFocus[]>(['Luck']);
   const [streak, setStreak] = useState(0);
@@ -164,6 +167,13 @@ export default function DetailScreen() {
       getRitualDone(todayReading.date)
         .then((done) => {
           if (active) setRitualDoneState(done);
+        })
+        .catch(() => undefined);
+      // First-time orientation card — shown once, ever. Dismiss writes to
+      // AsyncStorage so subsequent visits never see it.
+      getCoachSeen()
+        .then((seen) => {
+          if (active) setShowCoach(!seen);
         })
         .catch(() => undefined);
       const nextHistory = [todayReading, ...history.filter((item) => item.date !== todayReading.date)];
@@ -267,6 +277,11 @@ export default function DetailScreen() {
   const visibleInsights = showAllInsights ? insightRows : insightRows.slice(0, 3);
   const hiddenInsightCount = Math.max(0, insightRows.length - 3);
   const actionSentence = getActionSentence(reading.action);
+
+  const dismissCoach = () => {
+    setShowCoach(false);
+    setCoachSeen().catch(() => undefined);
+  };
 
   const toggleSolarTermTooltip = () => {
     if (solarTermTooltipTimer.current) {
@@ -441,6 +456,36 @@ export default function DetailScreen() {
         })()}
       </View>
       <Text style={styles.pageTitle}>{getGreeting(nickname, now)}</Text>
+
+      {/* First-time coach card — concept legibility for cold users. Dismiss
+          writes to storage so this never returns. */}
+      {showCoach ? (
+        <Card style={styles.coachCard}>
+          <View style={styles.coachHeader}>
+            <Text style={styles.coachKicker}>How to read this</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss orientation"
+              hitSlop={10}
+              onPress={dismissCoach}
+              style={({ pressed }) => [styles.coachDismiss, pressed && { opacity: 0.6 }]}
+            >
+              <Text style={styles.coachDismissText}>✕</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.coachTitle}>Your daily almanac, at a glance.</Text>
+          <Text style={styles.coachBody}>
+            The score is the day's tone. The ritual below is one small thing to do. Tap any chip to learn what it means. Check in tomorrow to see your rhythm form.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={dismissCoach}
+            style={({ pressed }) => [styles.coachCta, pressed && { opacity: 0.85 }]}
+          >
+            <Text style={styles.coachCtaText}>Got it ✦</Text>
+          </Pressable>
+        </Card>
+      ) : null}
 
       {/* ── Energy score orb — the headline number ── */}
       <EnergyScoreCard score={reading.score} message={reading.mainMessage} />
@@ -1650,6 +1695,63 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     textDecorationLine: 'line-through',
     textDecorationStyle: 'solid',
+  },
+  // First-time coach card — concept legibility for cold users.
+  coachCard: {
+    backgroundColor: colors.panel,
+    borderColor: colors.luckyGold,
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  coachHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  coachKicker: {
+    color: colors.goldDeep,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  coachDismiss: {
+    padding: 4,
+  },
+  coachDismissText: {
+    color: colors.muted,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  coachTitle: {
+    color: colors.ink,
+    fontFamily: fonts.heavy,
+    fontSize: 18,
+    fontWeight: '900',
+    lineHeight: 24,
+  },
+  coachBody: {
+    color: colors.ink,
+    fontFamily: fonts.regular,
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  coachCta: {
+    alignItems: 'center',
+    backgroundColor: colors.luckyGold,
+    borderRadius: radii.pill,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+  },
+  coachCtaText: {
+    color: colors.goldDeep,
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 0.4,
   },
   // Container — position:relative so confetti overlays the button area.
   ritualTapWrap: {

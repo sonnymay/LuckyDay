@@ -9,6 +9,7 @@ const LAST_NOTIFICATION_DATE_KEY = 'luckyday.lastNotificationDate.v1';
 const MILESTONES_SEEN_KEY = 'luckyday.milestonesSeen.v1';
 const JOURNAL_KEY = 'luckyday.journal.v1';
 const RITUAL_DONE_KEY = 'luckyday.ritualDone.v1';
+const COACH_SEEN_KEY = 'luckyday.coachSeen.v1';
 const MAX_READING_HISTORY_ITEMS = 30;
 
 export async function getStoredProfile() {
@@ -178,4 +179,17 @@ export async function setRitualDone(date: string, done: boolean): Promise<void> 
 
 export async function getAllRitualDone(): Promise<RitualDoneMap> {
   return getRitualDoneMap();
+}
+
+/**
+ * First-time orientation coach card. Set once on dismiss; never shown again.
+ * Used by /detail to show a one-time "what this app is" panel for cold users.
+ */
+export async function getCoachSeen(): Promise<boolean> {
+  const value = await AsyncStorage.getItem(COACH_SEEN_KEY);
+  return value === 'true';
+}
+
+export async function setCoachSeen(): Promise<void> {
+  await AsyncStorage.setItem(COACH_SEEN_KEY, 'true');
 }
